@@ -1,0 +1,91 @@
+{
+  "active_model": "v8_upstox_3y",
+  "models": {
+    "v1_yfinance_ranker": {
+      "description": "Original 2-year yfinance model. 54 features. Spearman rho ~0.032.",
+      "long_model": "models/xgb_long_model.json",
+      "short_model": "models/xgb_short_model.json",
+      "scaler": "models/scaler.pkl",
+      "meta": "models/model_metadata.json",
+      "type": "ranker",
+      "long_test_spearman": 0.032,
+      "short_test_spearman": 0.035,
+      "trained_at": null,
+      "notes": "Baseline production model."
+    },
+    "v2_feature_fix": {
+      "description": "V2: Fixed Dist_52W_High, lag features, Nifty50 regime, VWAP. 81 features.",
+      "long_model": "models/v2_feature_fix/xgb_long_model.json",
+      "short_model": "models/v2_feature_fix/xgb_short_model.json",
+      "scaler": "models/v2_feature_fix/scaler.pkl",
+      "meta": "models/v2_feature_fix/metadata.json",
+      "type": "ranker",
+      "long_test_spearman": 0.0406,
+      "short_test_spearman": 0.0409,
+      "trained_at": "2026-05-16",
+      "notes": "Trained. Long P@3=53.3%, Short P@3=55.6%."
+    },
+    "v3_sector_momentum": {
+      "description": "V3: Sector momentum, Bar_Position, raw indicators, VP divergence, VWAP (fixed). 95 features.",
+      "long_model": "models/v3_sector_momentum/xgb_long_model.json",
+      "short_model": "models/v3_sector_momentum/xgb_short_model.json",
+      "scaler": "models/v3_sector_momentum/scaler.pkl",
+      "meta": "models/v3_sector_momentum/metadata.json",
+      "type": "ranker",
+      "long_test_spearman": 0.0558,
+      "short_test_spearman": 0.0574,
+      "long_topk3": 0.554,
+      "short_topk3": 0.572,
+      "trained_at": "2026-05-16",
+      "notes": "Final v3.1 with fixed VWAP and sector momentum. Targets achieved."
+    },
+    "v4_regime_aware": {
+      "description": "V4 Regime-Aware + Multi-TF model. Optimized for stable alpha.",
+      "long_model": "models/v4_regime_aware/xgb_long_model.json",
+      "short_model": "models/v4_regime_aware/xgb_short_model.json",
+      "scaler": "",
+      "meta": "models/v4_regime_aware/metadata.json",
+      "type": "ranker",
+      "long_test_spearman": 0.082,
+      "short_test_spearman": 0.085,
+      "trained_at": "2026-05-17T00:33:08.491188",
+      "notes": "Regime-conditioned ranker. No scaler — XGBoost trees are scale-invariant."
+    },
+    "v6_feature_fixed": {
+      "description": "V6 with fixed CCI (MAD), Vortex (True Range w gaps), Ultimate Oscillator.",
+      "long_model": "models/v6_feature_fixed/xgb_long_model.json",
+      "short_model": "models/v6_feature_fixed/xgb_short_model.json",
+      "scaler": "models/v6_feature_fixed/scaler.pkl",
+      "meta": "models/v6_feature_fixed/metadata.json",
+      "type": "ranker",
+      "long_test_spearman": 0.0268,
+      "short_test_spearman": 0.0279,
+      "trained_at": "2026-05-25",
+      "notes": "Retrained on 60d hourly upstox parquet files with today's (May 25) data included."
+    },
+    "v7_yfinance_2y": {
+      "description": "V7: Trained on 2 years of hourly yfinance data with V6 (legacy=False) feature equations.",
+      "long_model": "models/v7_yfinance_2y/xgb_long_model.json",
+      "short_model": "models/v7_yfinance_2y/xgb_short_model.json",
+      "scaler": "models/v7_yfinance_2y/scaler.pkl",
+      "meta": "models/v7_yfinance_2y/metadata.json",
+      "type": "ranker",
+      "long_test_spearman": 0.0338,
+      "short_test_spearman": 0.0357,
+      "trained_at": "2026-05-22",
+      "notes": "Trained on 2y hourly yfinance data. Verified fixed feature math (legacy=False)."
+    },
+    "v8_upstox_3y": {
+      "description": "V8: Trained on 3 years of hourly Upstox data with microstructure features (IBS, Buy_Pressure, etc.).",
+      "long_model": "models/v8_upstox_3y/xgb_long_model.json",
+      "short_model": "models/v8_upstox_3y/xgb_short_model.json",
+      "scaler": "models/scaler.pkl",
+      "meta": "models/v8_upstox_3y/metadata.json",
+      "type": "ranker",
+      "long_test_spearman": 0.0461,
+      "short_test_spearman": 0.0490,
+      "trained_at": "2026-05-28T14:04:01",
+      "notes": "Added microstructure features (IBS, Buy_Pressure, Return_Accel, Lower_Shadow, etc.). Huge performance boost."
+    }
+  }
+}
