@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ ticker }} | Vanguard Intelligence</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg-dark: #05070a;
+            --card-bg: rgba(13, 17, 23, 0.75);
+            --accent-long: #00ff88;
+            --accent-short: #ff4d4d;
+            --accent-blue: #00d4ff;
+            --text-main: #e6edf3;
+            --text-dim: #8b949e;
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 2rem 0;
+        }
+
+        /* --- PREMIUM CARD HOVER SYSTEM --- */
+        .card-glass {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .card-glass:hover {
+            border-color: rgba(0, 212, 255, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.05);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+            height: 100%;
+            transition: all 0.25s ease-in-out;
+            text-align: center;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-blue);
+            background: rgba(0, 212, 255, 0.04);
+            box-shadow: 0 8px 24px rgba(0, 212, 255, 0.1);
+        }
+
+        .stat-label {
+            font-family: 'Outfit';
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono';
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .ticker-header {
+            font-family: 'Outfit';
+            font-weight: 800;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+
+        .intelligence-card {
+            border-left: 4px solid var(--accent-blue);
+            background: linear-gradient(90deg, rgba(0, 212, 255, 0.05) 0%, transparent 100%);
+        }
+
+        .verdict-badge {
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: 'Outfit';
+        }
+
+        .verdict-BULLISH { background: rgba(0, 255, 136, 0.1); color: var(--accent-long); border: 1px solid var(--accent-long); }
+        .verdict-BEARISH { background: rgba(255, 77, 77, 0.1); color: var(--accent-short); border: 1px solid var(--accent-short); }
+        .verdict-NEUTRAL { background: rgba(255, 255, 255, 0.05); color: var(--text-dim); border: 1px solid var(--glass-border); }
+
+        /* --- PREMIUM DARK TABLES --- */
+        .table {
+            --bs-table-bg: transparent;
+            --bs-table-hover-bg: rgba(255, 255, 255, 0.02);
+            --bs-table-color: var(--text-main);
+            --bs-table-border-color: rgba(255, 255, 255, 0.04);
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            color: var(--text-dim);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Outfit';
+            font-weight: 600;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
+
+        .table td {
+            font-size: 13px;
+            padding: 0.8rem 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            vertical-align: middle;
+        }
+
+        .side-badge {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Outfit';
+        }
+
+        .side-LONG { background: rgba(0, 255, 136, 0.1); color: var(--accent-long); border: 1px solid rgba(0, 255, 136, 0.2); }
+        .side-SHORT { background: rgba(255, 77, 77, 0.1); color: var(--accent-short); border: 1px solid rgba(255, 77, 77, 0.2); }
+
+        /* Conviction Meter */
+        .conviction-meter {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .conviction-bar {
+            height: 100%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .pulse-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 100%);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .pulse-card:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .live-price-big {
+            font-family: 'JetBrains Mono';
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1;
+            margin: 1rem 0;
+        }
+
+        .trend-up { color: var(--accent-long) !important; }
+        .trend-down { color: var(--accent-short) !important; }
+
+        @keyframes pulse-border {
+            0% { border-color: var(--glass-border); }
+            50% { border-color: rgba(0, 212, 255, 0.4); }
+            100% { border-color: var(--glass-border); }
+        }
+
+        .live-active {
+            animation: pulse-border 2s infinite;
+        }
+
+        .section-title {
+            font-family: 'Outfit';
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-btn {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2rem;
+            transition: color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: var(--accent-blue);
+        }
+
+        /* Accent classes matching server rendering */
+        .text-accent-long {
+            color: var(--accent-long) !important;
+        }
+
+        .text-accent-short {
+            color: var(--accent-short) !important;
+        }
+
+        .text-main {
+            color: var(--text-main) !important;
+        }
+
+        .text-dim {
+            color: var(--text-dim) !important;
+        }
+
+        .text-accent-blue {
+            color: var(--accent-blue) !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid px-3 px-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="/" class="back-btn mb-0"><i class="bi bi-arrow-left"></i> BACK TO DASHBOARD</a>
+            <div class="input-group input-group-sm shadow-sm" style="width: 280px;">
+                <span class="input-group-text bg-dark border-secondary text-dim" style="border-right: none; background: rgba(13, 17, 23, 0.8) !important;"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control bg-dark border-secondary text-white" id="tickerSearch" placeholder="SEARCH ANOTHER TICKER..." style="border-left: none; border-right: none; font-size: 10px; letter-spacing: 1px; font-weight: 600; background: rgba(13, 17, 23, 0.8) !important;">
+                <button class="btn btn-outline-info" type="button" onclick="searchTicker()" style="font-size: 10px; font-weight: 800; border-color: #666; color: #aaa;">GO</button>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- LEFT: INFO & CHART -->
+            <div class="col-lg-8">
+                <div class="card card-glass mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
+                            <div>
+                                <div class="d-flex align-items-center flex-wrap gap-3">
+                                    <div class="ticker-header m-0">{{ ticker.replace('.NS', '') }}</div>
+                                    <a href="https://www.tradingview.com/chart/?symbol=NSE:{{ ticker.replace('.NS', '') }}" target="_blank" class="btn btn-outline-info btn-sm fw-bold px-3" style="border-radius: 8px; font-size: 10px;">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> VIEW ON TRADINGVIEW
+                                    </a>
+                                </div>
+                                <div class="text-dim outfit text-uppercase small mt-1" style="letter-spacing: 1px;">NSE National Stock Exchange | INR</div>
+                            </div>
+                            <div class="text-md-end" id="verdict-container">
+                                <div class="stat-label">Vanguard Intelligence Verdict</div>
+                                <div id="verdict-badge-placeholder">
+                                     <div class="spinner-border spinner-border-sm text-info" role="status"></div>
+                                     <span class="ms-2 text-dim small">GENERATING...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6 col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-label">Total Alpha</div>
+                                    <div class="stat-value {% if perf.total_alpha > 0 %}text-success{% elif perf.total_alpha < 0 %}text-danger{% endif %}">
+                                        {{ '+' if perf.total_alpha > 0 else '' }}{{ perf.total_alpha }}%
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-label">Total Trades</div>
+                                    <div class="stat-value text-white">{{ perf.count }}</div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-label">Avg P&L</div>
+                                    <div class="stat-value text-info">{{ perf.avg_pnl }}%</div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <div class="stat-card">
+                                    <div class="stat-label">Best Trade</div>
+                                    <div class="stat-value text-success">+{{ perf.best_trade }}%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Real-Time Execution Pulse -->
+                        <div class="card card-glass live-active" style="background: rgba(0, 212, 255, 0.02); border-color: rgba(0, 212, 255, 0.15);">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="section-title text-info mb-0"><i class="bi bi-broadcast"></i> Real-Time Execution Pulse</div>
+                                    <div class="badge bg-info text-dark" id="last-update" style="font-size: 9px; letter-spacing: 1px; font-weight: 700;">SYNCING...</div>
+                                </div>
+                                
+                                <div class="row align-items-center g-4">
+                                    <div class="col-md-6">
+                                        <div class="stat-label">Current NSE Price</div>
+                                        <div class="live-price-big my-2" id="live-price">₹{{ "%.2f"|format(live_price) if live_price else (history[0].entry_price if history else '---') }}</div>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <span class="badge bg-dark border border-white border-opacity-10" id="live-change-pct" style="font-family: 'JetBrains Mono';">0.00%</span>
+                                            <span class="text-dim small outfit">LTP @ NSE INDIA</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <div class="pulse-card">
+                                                    <div class="stat-label text-truncate">Relative Volume</div>
+                                                    <div class="stat-value text-info" id="factor-rvol">---</div>
+                                                    <div class="small text-dim" style="font-size: 10px;">Vs 20D Avg</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="pulse-card">
+                                                    <div class="stat-label text-truncate">Dollar Volume</div>
+                                                    <div class="stat-value text-white" id="factor-dv" style="font-size: 1rem;">---</div>
+                                                    <div class="small text-dim" style="font-size: 10px;">60D Mean</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="pulse-card">
+                                                    <div class="stat-label text-truncate">52W High Dist</div>
+                                                    <div class="stat-value" id="factor-dist">---</div>
+                                                    <div class="small text-dim" style="font-size: 10px;">To Peak</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="pulse-card">
+                                                    <div class="stat-label text-truncate">Market Cap Proxy</div>
+                                                    <div class="stat-value text-dim" style="font-size: 1rem;">MID/LARGE</div>
+                                                    <div class="small text-dim" style="font-size: 10px;">Z-Score Normal</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div class="stat-label">ML Model Conviction Bias</div>
+                                        <div class="stat-label fw-bold" id="conviction-text">NEUTRAL (0.00)</div>
+                                    </div>
+                                    <div class="conviction-meter">
+                                        <div id="conviction-bar-long" class="conviction-bar" style="width: 50%; background: var(--accent-long); position: absolute; left: 50%;"></div>
+                                        <div id="conviction-bar-short" class="conviction-bar" style="width: 0%; background: var(--accent-short); position: absolute; right: 50%;"></div>
+                                        <div style="position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: white; opacity: 0.3; z-index: 2;"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <div class="small text-dim" style="font-size: 9px; font-weight: 600; letter-spacing: 0.5px;">BEARISH BIAS</div>
+                                        <div class="small text-dim" style="font-size: 9px; font-weight: 600; letter-spacing: 0.5px;">BULLISH BIAS</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TRADE HISTORY -->
+                <div class="card card-glass mb-4">
+                    <div class="card-body p-4">
+                        <div class="section-title text-dim mb-4"><i class="bi bi-clock-history"></i> Ticker Execution History</div>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Side</th>
+                                        <th>Entry</th>
+                                        <th>Exit</th>
+                                        <th>P&amp;L</th>
+                                        <th>1H Forecast</th>
+                                        <th>Audit</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for trade in history %}
+                                    <tr>
+                                        <td class="text-dim mono" style="font-size: 12px;">{{ trade.timestamp[:16].replace('T', ' ') }}</td>
+                                        <td><span class="side-badge side-{{ trade.side }}">{{ trade.side }}</span></td>
+                                        <td class="mono fw-semibold">₹{{ "%.2f"|format(trade.entry_price) }}</td>
+                                        <td class="mono">₹{{ "%.2f"|format(trade.exit_price or 0) }}</td>
+                                        <td class="mono fw-bold {% if trade.final_profit_pct > 0 %}text-success{% elif trade.final_profit_pct < 0 %}text-danger{% endif %}">
+                                            {{ '+' if trade.final_profit_pct > 0 else '' }}{{ "%.2f"|format(trade.final_profit_pct or 0) }}%
+                                        </td>
+                                        <td class="mono text-info fw-semibold" style="font-size: 12px;">{{ trade.one_hour_prob or 'N/A' }}</td>
+                                        <td><span class="badge bg-dark border border-white border-opacity-10 py-1 px-2 text-dim font-monospace" style="font-size: 10px;">{{ "%.2f"|format(trade.nlp_sentiment) }}</span></td>
+                                        <td><span class="badge {% if trade.status == 'CLOSED' %}bg-secondary{% else %}bg-info text-dark{% endif %} px-2 py-1" style="font-size: 10px; font-weight: 700; font-family: 'Outfit';">{{ trade.status }}</span></td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="8" class="text-center text-dim py-4">No trade history recorded for this ticker.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: AI INTELLIGENCE -->
+            <div class="col-lg-4">
+                <div class="card card-glass intelligence-card mb-4">
+                    <div class="card-body p-4">
+                        <div class="section-title text-info mb-4"><i class="bi bi-robot"></i> AI Intelligence Report</div>
+                        
+                        <div id="ai-loading-state" class="text-center py-4">
+                            <div class="spinner-border text-info mb-3" role="status"></div>
+                            <div class="text-dim outfit small fw-semibold">GROUNDING GOOGLE SEARCH & ANALYZING CATALYSTS...</div>
+                        </div>
+
+                        <div id="ai-content" style="display: none;">
+                            <div class="mb-4">
+                                <div class="stat-label">Market Sentiment</div>
+                                <p class="small text-main" id="ai-sentiment" style="line-height: 1.5;"></p>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="stat-label">Critical Levels</div>
+                                <p class="small text-accent-blue mono" id="ai-levels" style="line-height: 1.5;"></p>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="stat-label">Catalysts & News</div>
+                                <p class="small text-main" id="ai-catalysts" style="line-height: 1.5;"></p>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="stat-label">Identified Risks</div>
+                                <p class="small text-accent-short" id="ai-risks" style="line-height: 1.5;"></p>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="stat-label">Next 1 Hour Forecast</div>
+                                <p class="small text-accent-long fw-bold h6 outfit mt-1" id="ai-1h-forecast">---% Probability</p>
+                            </div>
+
+                            <div id="ai-sources-container" class="mb-4 pt-3 border-top border-white border-opacity-10" style="display: none;">
+                                <div class="stat-label mb-2"><i class="bi bi-google me-1"></i> Grounded Search Sources</div>
+                                <div class="d-flex flex-column gap-2" id="ai-sources-list"></div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-top border-white border-opacity-10 text-center">
+                                <div class="stat-label">Confidence Score</div>
+                                <div class="h3 outfit fw-800 text-info mt-1" id="ai-confidence">---%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QUANTITATIVE FACTORS -->
+                <div class="card card-glass mb-4">
+                    <div class="card-body p-4">
+                        <div class="section-title text-dim mb-4"><i class="bi bi-calculator"></i> Quantitative Factors</div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-dim outfit small fw-semibold">Long XGB Score</span>
+                                <span class="mono text-success fw-bold" id="score-long">---</span>
+                            </div>
+                            <div class="progress" style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px;">
+                                <div id="progress-long" class="progress-bar bg-success" style="width: 0%; border-radius: 3px;"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-dim outfit small fw-semibold">Short XGB Score</span>
+                                <span class="mono text-danger fw-bold" id="score-short">---</span>
+                            </div>
+                            <div class="progress" style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px;">
+                                <div id="progress-short" class="progress-bar bg-danger" style="width: 0%; border-radius: 3px;"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top border-white border-opacity-10">
+                            <div class="small text-dim mb-3" style="line-height: 1.5;">Model features are Z-scored across the Nifty 200 universe every 5 minutes to identify cross-sectional relative strength.</div>
+                            
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-info-circle text-info"></i>
+                                <span class="small outfit fw-semibold">ALPHA PROJECTION: <strong id="alpha-proj" class="text-info">---</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TRADINGVIEW TECH ANALYSIS WIDGET -->
+                <div class="card card-glass p-0 overflow-hidden mb-4" style="height: 400px; border-top: 4px solid var(--accent-blue);">
+                    <div class="tradingview-widget-container h-100">
+                        <div class="tradingview-widget-container__widget h-100"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
+                        {
+                        "interval": "1h",
+                        "width": "100%",
+                        "isTransparent": true,
+                        "height": 400,
+                        "symbol": "NSE:{{ ticker.replace('.NS', '') }}",
+                        "showIntervalTabs": true,
+                        "displayMode": "single",
+                        "locale": "en",
+                        "colorTheme": "dark"
+                        }
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SYMBOL = "{{ ticker }}";
+        
+        async function updateLiveFactors() {
+            try {
+                const response = await fetch('/live_scores');
+                const data = await response.json();
+                
+                if (data.scores) {
+                    const tickerData = data.scores.find(s => s.ticker === SYMBOL);
+                    if (tickerData) {
+                        // Update Price
+                        const priceEl = document.getElementById('live-price');
+                        const oldPrice = parseFloat(priceEl.innerText.replace('₹', ''));
+                        const newPrice = tickerData.Close;
+                        
+                        priceEl.innerText = `₹${newPrice.toFixed(2)}`;
+                        if (newPrice > oldPrice) {
+                            priceEl.classList.add('trend-up');
+                            priceEl.classList.remove('trend-down');
+                        } else if (newPrice < oldPrice) {
+                            priceEl.classList.add('trend-down');
+                            priceEl.classList.remove('trend-up');
+                        }
+
+                        // Update Factors
+                        document.getElementById('factor-rvol').innerText = tickerData.rvol_raw.toFixed(2) + 'x';
+                        
+                        // Format Dollar Volume
+                        let dv = tickerData.dv_raw;
+                        let dvStr = dv > 1e9 ? (dv/1e9).toFixed(2) + 'B' : (dv/1e6).toFixed(2) + 'M';
+                        document.getElementById('factor-dv').innerText = '₹' + dvStr;
+
+                        // 52W High Dist
+                        let dist = tickerData.dist_52h_actual * 100;
+                        const distEl = document.getElementById('factor-dist');
+                        distEl.innerText = dist.toFixed(2) + '%';
+                        distEl.className = 'stat-value ' + (dist > -5 ? 'text-success' : 'text-danger');
+
+                        // Conviction
+                        const conviction = tickerData.Long_Conviction;
+                        const barLong = document.getElementById('conviction-bar-long');
+                        const barShort = document.getElementById('conviction-bar-short');
+                        const convText = document.getElementById('conviction-text');
+
+                        if (conviction > 0) {
+                            barLong.style.width = Math.min(conviction * 100, 50) + '%';
+                            barShort.style.width = '0%';
+                            convText.innerText = `BULLISH (${conviction.toFixed(3)})`;
+                            convText.className = 'stat-label text-success';
+                        } else {
+                            barLong.style.width = '0%';
+                            barShort.style.width = Math.min(Math.abs(conviction) * 100, 50) + '%';
+                            convText.innerText = `BEARISH (${conviction.toFixed(3)})`;
+                            convText.className = 'stat-label text-danger';
+                        }
+
+                        // Detailed Scores
+                        document.getElementById('score-long').innerText = tickerData.long_score.toFixed(4);
+                        document.getElementById('score-short').innerText = tickerData.short_score.toFixed(4);
+                        document.getElementById('progress-long').style.width = Math.max(0, tickerData.long_score * 500) + '%';
+                        document.getElementById('progress-short').style.width = Math.max(0, tickerData.short_score * 500) + '%';
+                        
+                        document.getElementById('alpha-proj').innerText = (tickerData.Long_Conviction * 10).toFixed(2) + '%';
+                        
+                        document.getElementById('last-update').innerText = 'LIVE SYNC: ' + new Date().toLocaleTimeString();
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch live scores:", err);
+            }
+        }
+
+        // Initial update and interval
+        updateLiveFactors();
+        setInterval(updateLiveFactors, 5000);
+
+        // LAZY LOAD INTELLIGENCE
+        async function fetchIntelligence() {
+            try {
+                const resp = await fetch(`/api/intelligence/${SYMBOL}`);
+                const data = await resp.json();
+
+                if (data.error) {
+                    document.getElementById('ai-loading-state').innerHTML = `
+                        <div class="alert alert-danger py-2 small" style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.2);">
+                            <i class="bi bi-exclamation-triangle me-2"></i> ${data.error}
+                        </div>`;
+                    return;
+                }
+
+                // Hide Loading, Show Content
+                document.getElementById('ai-loading-state').style.display = 'none';
+                document.getElementById('ai-content').style.display = 'block';
+
+                // Populate Content
+                const formatAIField = (field) => {
+                    if (!field) return 'N/A';
+
+                    const itemToString = (item) => {
+                        if (typeof item !== 'object' || item === null) return item;
+                        // If it's an object, try to find a meaningful value
+                        return item.level || item.price || item.value || item.reason || JSON.stringify(item);
+                    };
+
+                    if (Array.isArray(field)) {
+                        return field.map(itemToString).join(', ');
+                    }
+
+                    if (typeof field === 'object') {
+                        let parts = [];
+                        // Handle common Support/Resistance structure
+                        if (field.support) parts.push(`SUP: ${Array.isArray(field.support) ? field.support.map(itemToString).join(', ') : itemToString(field.support)}`);
+                        if (field.resistance) parts.push(`RES: ${Array.isArray(field.resistance) ? field.resistance.map(itemToString).join(', ') : itemToString(field.resistance)}`);
+                        if (field.pivot_point) parts.push(`PIVOT: ${itemToString(field.pivot_point)}`);
+                        
+                        if (parts.length > 0) return parts.join(' | ');
+                        
+                        // Generic object handling
+                        return Object.entries(field)
+                            .map(([key, val]) => `${key}: ${itemToString(val)}`)
+                            .join(' | ');
+                    }
+                    return field;
+                };
+
+                document.getElementById('ai-sentiment').innerText = formatAIField(data.market_sentiment);
+                document.getElementById('ai-levels').innerText = formatAIField(data.key_levels);
+                document.getElementById('ai-catalysts').innerText = formatAIField(data.catalysts);
+                document.getElementById('ai-risks').innerText = formatAIField(data.risk_factors);
+                
+                const prob = data.one_hour_probability || '---%';
+                const probEl = document.getElementById('ai-1h-forecast');
+                probEl.innerText = prob + (prob.includes('%') ? '' : ' Probability');
+                
+                // Color based on probability if it's a number
+                const probVal = parseInt(prob);
+                if (!isNaN(probVal)) {
+                    if (probVal >= 70) probEl.className = 'small text-success fw-bold';
+                    else if (probVal <= 40) probEl.className = 'small text-danger fw-bold';
+                    else probEl.className = 'small text-info fw-bold';
+                }
+
+                document.getElementById('ai-confidence').innerText = data.confidence || '---%';
+
+                // Populate Sources
+                if (data.sources && data.sources.length > 0) {
+                    const sourcesContainer = document.getElementById('ai-sources-container');
+                    const sourcesList = document.getElementById('ai-sources-list');
+                    sourcesContainer.style.display = 'block';
+                    sourcesList.innerHTML = data.sources.map(s => `
+                        <a href="${s.uri}" target="_blank" class="text-dim smallest text-decoration-none d-flex align-items-center gap-2" style="transition: color 0.2s ease;">
+                            <i class="bi bi-link-45deg"></i>
+                            <span class="text-truncate">${s.title}</span>
+                        </a>
+                    `).join('');
+                }
+
+                // Update Header Verdict
+                const verdictPlaceholder = document.getElementById('verdict-badge-placeholder');
+                verdictPlaceholder.innerHTML = `
+                    <span class="verdict-badge verdict-${data.verdict_label}">
+                        ${data.intelligence_verdict}
+                    </span>`;
+                
+            } catch (err) {
+                console.error("Failed to fetch intelligence:", err);
+                document.getElementById('ai-loading-state').innerHTML = `<div class="text-danger small">CONNECTION ERROR</div>`;
+            }
+        }
+
+        fetchIntelligence();
+
+        function searchTicker() {
+            let ticker = document.getElementById('tickerSearch').value.trim().toUpperCase();
+            if (ticker) {
+                if (!ticker.endsWith('.NS') && !ticker.includes('.')) {
+                    ticker += '.NS';
+                }
+                window.location.href = `/ticker/${ticker}`;
+            }
+        }
+
+        document.getElementById('tickerSearch').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchTicker();
+            }
+        });
+    </script>
+</body>
+
+</html>

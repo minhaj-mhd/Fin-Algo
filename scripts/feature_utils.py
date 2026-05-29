@@ -367,3 +367,86 @@ def compute_features(df, legacy=True):
                     df[col] = 0.0
 
     return df
+
+def compute_features_15min(df, legacy=False):
+    """Given a dataframe with columns Open/High/Low/Close/Volume indexed by datetime,
+    compute standard features and 15-minute specific features.
+    """
+    # 1. Compute standard features
+    df = compute_features(df, legacy=legacy)
+    
+    # 2. Compute 15-minute specific features
+    # Volume_Burst: Volume / 8-period volume average
+    df['Volume_Burst'] = df['Volume'] / (df['Volume'].rolling(8).mean() + 1e-8)
+    
+    # Spread_Proxy: (High - Low) / Close
+    df['Spread_Proxy'] = (df['High'] - df['Low']) / (df['Close'] + 1e-8)
+    
+    # Candle_Body_Ratio: abs(Close - Open) / (High - Low)
+    df['Candle_Body_Ratio'] = (df['Close'] - df['Open']).abs() / (df['High'] - df['Low'] + 1e-8)
+    
+    # Momentum_Fade: Return / Return_lag1 (stable ratio clipped to [-5.0, 5.0])
+    lag1_ret = df['Return'].shift(1)
+    df['Momentum_Fade'] = (df['Return'] / (lag1_ret + np.sign(lag1_ret) * 1e-8)).clip(-5.0, 5.0).fillna(0.0)
+    
+    # Intra_Hour_Position: minute // 15 (0-3)
+    df['Intra_Hour_Position'] = (df.index.minute // 15).astype(float)
+    
+    # Volume_Tilt: Volume / 4-period sum (current 15m volume ratio to past 1 hour)
+    df['Volume_Tilt'] = df['Volume'] / (df['Volume'].rolling(4).sum() + 1e-8)
+    
+    # Raw_Volume_Zscore: rolling volume z-score (not cross-sectionally scored)
+    df['Raw_Volume_Zscore'] = (df['Volume'] - df['Volume'].rolling(24).mean()) / (df['Volume'].rolling(24).std() + 1e-8)
+    df['Raw_Volume_Zscore'] = df['Raw_Volume_Zscore'].fillna(0.0)
+    
+    # CMF_8: Chaikin Money Flow over 8 periods
+    mfv = ((df['Close'] - df['Low']) - (df['High'] - df['Close'])) / (df['High'] - df['Low'] + 1e-8) * df['Volume']
+    df['CMF_8'] = mfv.rolling(8).sum() / (df['Volume'].rolling(8).sum() + 1e-8)
+    df['CMF_8'] = df['CMF_8'].fillna(0.0)
+    
+    # RVOL_4: Relative volume over 4 periods
+    df['RVOL_4'] = df['Volume'] / (df['Volume'].rolling(4).mean() + 1e-8)
+    
+    return df
+
+def compute_features_30min(df, legacy=False):
+    """Given a dataframe with columns Open/High/Low/Close/Volume indexed by datetime,
+    compute standard features and 30-minute specific features.
+    """
+    # 1. Compute standard features
+    df = compute_features(df, legacy=legacy)
+    
+    # 2. Compute 30-minute specific features
+    # Volume_Burst: Volume / 4-period volume average (4 * 30min = 2 hours)
+    df['Volume_Burst'] = df['Volume'] / (df['Volume'].rolling(4).mean() + 1e-8)
+    
+    # Spread_Proxy: (High - Low) / Close
+    df['Spread_Proxy'] = (df['High'] - df['Low']) / (df['Close'] + 1e-8)
+    
+    # Candle_Body_Ratio: abs(Close - Open) / (High - Low)
+    df['Candle_Body_Ratio'] = (df['Close'] - df['Open']).abs() / (df['High'] - df['Low'] + 1e-8)
+    
+    # Momentum_Fade: Return / Return_lag1 (stable ratio clipped to [-5.0, 5.0])
+    lag1_ret = df['Return'].shift(1)
+    df['Momentum_Fade'] = (df['Return'] / (lag1_ret + np.sign(lag1_ret) * 1e-8)).clip(-5.0, 5.0).fillna(0.0)
+    
+    # Intra_Hour_Position: minute // 30 (0-1)
+    df['Intra_Hour_Position'] = (df.index.minute // 30).astype(float)
+    
+    # Volume_Tilt: Volume / 2-period sum (current 30m volume ratio to past 1 hour)
+    df['Volume_Tilt'] = df['Volume'] / (df['Volume'].rolling(2).sum() + 1e-8)
+    
+    # Raw_Volume_Zscore: rolling volume z-score over 12 periods (12 * 30min = 6 hours)
+    df['Raw_Volume_Zscore'] = (df['Volume'] - df['Volume'].rolling(12).mean()) / (df['Volume'].rolling(12).std() + 1e-8)
+    df['Raw_Volume_Zscore'] = df['Raw_Volume_Zscore'].fillna(0.0)
+    
+    # CMF_8: Chaikin Money Flow over 4 periods (4 * 30min = 2 hours)
+    mfv = ((df['Close'] - df['Low']) - (df['High'] - df['Close'])) / (df['High'] - df['Low'] + 1e-8) * df['Volume']
+    df['CMF_8'] = mfv.rolling(4).sum() / (df['Volume'].rolling(4).sum() + 1e-8)
+    df['CMF_8'] = df['CMF_8'].fillna(0.0)
+    
+    # RVOL_4: Relative volume over 2 periods (2 * 30min = 1 hour)
+    df['RVOL_4'] = df['Volume'] / (df['Volume'].rolling(2).mean() + 1e-8)
+    
+    return df
+

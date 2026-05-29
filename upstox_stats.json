@@ -1,0 +1,15 @@
+{
+    "initial_capital": 99517.68,
+    "virtual_capital": 99764.1,
+    "used_margin": 0,
+    "available_margin": 99764.1,
+    "realized_charges": 874.4,
+    "open_positions_count": 0,
+    "unrealized_pnl_inr": 0.0,
+    "day_realized_pnl_inr": -34.6,
+    "total_pnl_inr": 246.42,
+    "total_pnl_pct": 0.2476,
+    "positions": [],
+    "pending_positions": [],
+    "timestamp": "2026-05-29T15:15:03.641660"
+}

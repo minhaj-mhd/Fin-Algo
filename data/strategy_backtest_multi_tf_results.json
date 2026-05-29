@@ -1,0 +1,33 @@
+{
+  "holdout_month": "2026-05",
+  "tickers_universe_size": 172,
+  "strategies": {
+    "strategy_1_single_bar": {
+      "strategy": "Strategy 1: Confluence + 15m (Single-Bar) Hold",
+      "total_trades": 55,
+      "wins": 29,
+      "losses": 26,
+      "win_rate": 0.5272727272727272,
+      "total_return": 0.06648025802602053,
+      "avg_return": 0.0012087319641094641,
+      "avg_trades_per_day": 3.4375,
+      "green_day_rate": 0.75,
+      "profit_factor": 1.7769629873804518,
+      "max_drawdown": -0.02071776877512877
+    },
+    "strategy_2_dynamic": {
+      "strategy": "Strategy 2: Confluence + Dynamic Conviction Exit",
+      "total_trades": 48,
+      "wins": 14,
+      "losses": 34,
+      "win_rate": 0.2916666666666667,
+      "total_return": -0.14382293934144325,
+      "avg_return": -0.0029963112362800678,
+      "avg_trades_per_day": 3.0,
+      "green_day_rate": 0.1875,
+      "profit_factor": 0.3441533073081001,
+      "max_drawdown": -0.17074718668202055
+    }
+  },
+  "backtested_at": "2026-05-29T16:58:35.316746"
+}

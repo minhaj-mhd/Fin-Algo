@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vanguard Command Center | FinalGo V2.3</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg-dark: #05070a;
+            --card-bg: rgba(13, 17, 23, 0.75);
+            --accent-long: #00ff88;
+            --accent-short: #ff4d4d;
+            --accent-blue: #00d4ff;
+            --text-main: #e6edf3;
+            --text-dim: #8b949e;
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+        }
+
+        /* --- MODERN GLASS HEADER --- */
+        .fixed-header {
+            position: sticky;
+            top: 0;
+            background: rgba(5, 7, 10, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1000;
+            padding: 1.25rem 2rem;
+        }
+
+        /* --- PREMIUM CARD HOVER SYSTEM --- */
+        .card-glass {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .card-glass:hover {
+            border-color: rgba(0, 212, 255, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.05);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+            height: 100%;
+            transition: all 0.25s ease-in-out;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-blue);
+            background: rgba(0, 212, 255, 0.04);
+            box-shadow: 0 8px 24px rgba(0, 212, 255, 0.1);
+        }
+
+        .stat-label {
+            font-family: 'Outfit';
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .stat-main {
+            font-family: 'Outfit';
+            font-size: 1.65rem;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .stat-sub {
+            font-family: 'JetBrains Mono';
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        /* --- EXTENSION BADGE (loss-extension active) --- */
+        @keyframes ext-pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 170, 0, 0.5); }
+            50%       { opacity: 0.85; box-shadow: 0 0 0 6px rgba(255, 170, 0, 0); }
+        }
+        .ext-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 170, 0, 0.12);
+            border: 1px solid rgba(255, 170, 0, 0.55);
+            color: #ffaa00;
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            animation: ext-pulse 1.6s ease-in-out infinite;
+            white-space: nowrap;
+        }
+        .ext-badge .bi { font-size: 11px; }
+
+        /* --- BOOTSTRAP TABS OVERRIDES --- */
+        .nav-tabs {
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 1.75rem;
+        }
+
+        .nav-link {
+            color: var(--text-dim);
+            border: none !important;
+            padding: 0.85rem 1.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 1px;
+            font-family: 'Outfit';
+            background: transparent !important;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: #fff;
+        }
+
+        .nav-link.active {
+            color: var(--accent-blue) !important;
+            border-bottom: 2px solid var(--accent-blue) !important;
+        }
+
+        /* --- HIGHLIGHT PANELS --- */
+        .section-title {
+            font-family: 'Outfit';
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* --- PREMIUM DARK TABLES --- */
+        .table {
+            --bs-table-bg: transparent;
+            --bs-table-hover-bg: rgba(255, 255, 255, 0.02);
+            --bs-table-color: var(--text-main);
+            --bs-table-border-color: rgba(255, 255, 255, 0.04);
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            color: var(--text-dim);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Outfit';
+            font-weight: 600;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
+
+        .table td {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 0.75rem 0.5rem;
+            font-size: 13px;
+        }
+
+        .side-badge {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .side-long {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-long);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .side-short {
+            background: rgba(255, 77, 77, 0.1);
+            color: var(--accent-short);
+            border: 1px solid rgba(255, 77, 77, 0.2);
+        }
+
+        .ticker-name {
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono';
+        }
+
+        .ticker-link {
+            color: var(--accent-blue);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 700;
+        }
+
+        .ticker-link:hover {
+            color: #fff;
+            text-decoration: underline;
+            text-shadow: 0 0 12px rgba(0, 212, 255, 0.8);
+        }
+
+        .ticker-link i {
+            font-size: 10px;
+            opacity: 0.6;
+            transform: translateX(-3px);
+            transition: all 0.2s ease;
+        }
+
+        .ticker-link:hover i {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .pulse-live {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-long);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 10px var(--accent-long);
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.25);
+            }
+        }
+
+        #clock {
+            font-family: 'JetBrains Mono';
+            color: var(--accent-blue);
+            font-weight: 700;
+        }
+
+        /* --- LIVE PNL GLOWS --- */
+        .live-pnl {
+            font-family: 'JetBrains Mono';
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .live-pnl.positive {
+            color: var(--accent-long);
+            text-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+            animation: pnl-glow-green 3s ease-in-out infinite;
+        }
+
+        .live-pnl.negative {
+            color: var(--accent-short);
+            text-shadow: 0 0 8px rgba(255, 77, 77, 0.4);
+        }
+
+        .live-pnl.neutral {
+            color: var(--text-dim);
+        }
+
+        @keyframes pnl-glow-green {
+            0%, 100% {
+                text-shadow: 0 0 6px rgba(0, 255, 136, 0.4);
+            }
+            50% {
+                text-shadow: 0 0 14px rgba(0, 255, 136, 0.8);
+            }
+        }
+
+        .peak-pnl {
+            font-family: 'JetBrains Mono';
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .text-accent-long {
+            color: var(--accent-long) !important;
+        }
+
+        .text-accent-short {
+            color: var(--accent-short) !important;
+        }
+
+        /* --- HIGH TECH SUB-TABS --- */
+        .sub-tab-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 10px;
+        }
+
+        .sub-tab {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-dim);
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .sub-tab:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .sub-tab.active.long {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-long);
+            border-color: rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.1);
+        }
+
+        .sub-tab.active.short {
+            background: rgba(255, 77, 77, 0.1);
+            color: var(--accent-short);
+            border-color: rgba(255, 77, 77, 0.3);
+            box-shadow: 0 0 15px rgba(255, 77, 77, 0.1);
+        }
+
+        /* --- SUGGESTIONS CONTAINER --- */
+        .search-container {
+            position: relative;
+        }
+
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(13, 17, 23, 0.98);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--accent-blue);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .suggestion-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suggestion-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent-blue);
+            padding-left: 20px;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-ticker {
+            color: #fff;
+        }
+
+        .suggestion-meta {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        /* --- WIDGET CARDS --- */
+        .market-widget {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 6px 14px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: right;
+            min-width: 110px;
+            position: relative;
+        }
+
+        .market-widget:hover {
+            border-color: rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.07);
+            box-shadow: 0 0 18px rgba(0,212,255,0.1);
+            transform: translateY(-1px);
+        }
+
+        .widget-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-dim);
+            font-family: 'Outfit';
+            font-weight: 600;
+        }
+
+        .widget-value {
+            font-family: 'JetBrains Mono';
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .widget-sub {
+            font-family: 'JetBrains Mono';
+            font-size: 10px;
+            opacity: 0.75;
+        }
+
+        .sentiment-bullish  { color: var(--accent-long); }
+        .sentiment-bearish  { color: var(--accent-short); }
+        .sentiment-neutral,
+        .sentiment-mixed    { color: #f0c040; }
+        .sentiment-unavailable { color: var(--text-dim); }
+
+        /* --- PREMIUM SCROLLBARS --- */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- HIGH-FIDELITY INTERACTIVE MODALS --- */
+        .modal-content.glass-modal {
+            background: rgba(10, 13, 20, 0.97);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(24px);
+            border-radius: 20px;
+            color: var(--text-main);
+        }
+
+        .modal-header.glass-modal-header {
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 1.2rem 1.5rem;
+        }
+
+        .modal-footer.glass-modal-footer {
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .metric-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 12px;
+            padding: 12px 16px;
+            text-align: center;
+        }
+
+        .metric-card .mc-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            font-family: 'Outfit';
+        }
+
+        .metric-card .mc-value {
+            font-family: 'JetBrains Mono';
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .metric-card .mc-sub {
+            font-size: 10px;
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono';
+        }
+
+        .conviction-bar-wrap {
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            height: 10px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .conviction-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.6s ease;
+        }
+
+        .mini-rank-table td, .mini-rank-table th {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-color: rgba(255,255,255,0.05);
+            font-family: 'JetBrains Mono';
+        }
+
+        .mini-rank-table th {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            font-family: 'Outfit';
+        }
+    </style>
+</head>
+
+<body>
+    <!-- FIXED HEADER -->
+    <header class="fixed-header">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <span class="h4 outfit fw-800 text-uppercase mb-0" style="letter-spacing: 2px;">Vanguard Intelligence</span>
+                <div class="search-container ms-3">
+                    <div class="input-group input-group-sm" style="width: 320px; filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.15));">
+                        <span class="input-group-text bg-dark border-info text-info" style="border-right: none; background: rgba(13, 17, 23, 0.9) !important; border-width: 1px;"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control bg-dark border-info text-white" id="tickerSearch" autocomplete="off" placeholder="SEARCH TICKER (e.g. RELIANCE)..." style="border-left: none; border-right: none; font-size: 11px; letter-spacing: 0.5px; font-weight: 600; background: rgba(13, 17, 23, 0.9) !important; border-width: 1px;">
+                        <button class="btn btn-info text-dark" type="button" onclick="searchTicker()" style="font-size: 11px; font-weight: 800; border-radius: 0 8px 8px 0;">GO</button>
+                    </div>
+                    <div id="searchSuggestions" class="search-suggestions"></div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <!-- NIFTY 50 WIDGET -->
+                <div class="market-widget" id="nifty-widget" onclick="openMarketModal()" title="Click for full market metrics">
+                    <div class="widget-label"><i class="bi bi-graph-up me-1"></i>NIFTY 50</div>
+                    <div class="widget-value" id="nifty-price-widget">—</div>
+                    <div class="widget-sub" id="nifty-change-widget">Loading...</div>
+                </div>
+                <!-- MODEL PULSE WIDGET -->
+                <div class="market-widget" id="model-pulse-widget" onclick="openModelModal()" title="Click for conviction details">
+                    <div class="widget-label"><i class="bi bi-cpu me-1"></i>Model Pulse</div>
+                    <div class="widget-value" id="model-sentiment-widget">—</div>
+                    <div class="widget-sub" id="model-strength-widget">Loading...</div>
+                </div>
+                <div class="text-end">
+                    <div class="small text-dim text-uppercase smallest fw-bold" style="letter-spacing: 1px;">System Clock</div>
+                    <div id="clock" class="h5 mb-0">00:00:00</div>
+                </div>
+                <div class="text-end d-none d-md-block">
+                    <div class="small text-dim text-uppercase smallest fw-bold" style="letter-spacing: 1px;">Status</div>
+                    <div class="small fw-bold text-success"><span class="pulse-live me-1"></span> LIVE MONITORING</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <a href="/performance" style="text-decoration: none; color: inherit; display: block;">
+                    <div class="stat-card" style="cursor: pointer;">
+                        <div class="stat-label">Total Performance <i class="bi bi-chevron-right ms-1" style="font-size: 8px;"></i></div>
+                        <div class="stat-main" id="total-alpha">+0.00%</div>
+                        <div class="stat-sub text-dim" id="total-count">0 Trades Executed</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-label">Weekly Snapshot (From Mon)</div>
+                    <div class="stat-main text-info" id="weekly-alpha">+0.00%</div>
+                    <div class="stat-sub" id="weekly-details">
+                        <span class="text-success">L: +0.00%</span> | <span class="text-danger">S: +0.00%</span>
+                        <span class="text-dim ms-2">| 0 Trades</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-label">Intraday Tracker (Today)</div>
+                    <div class="stat-main text-warning" id="daily-alpha">+0.00%</div>
+                    <div class="stat-sub" id="daily-details">
+                        <span class="text-success">L: +0.00%</span> | <span class="text-danger">S: +0.00%</span>
+                        <span class="text-dim ms-2">| 0 Trades</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div id="net-capital-box" class="stat-card" style="border-color: rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); cursor: pointer;" onclick="recalculateAll(); switchToUpstoxTab();" onmouseover="this.style.borderColor='var(--accent-blue)'; this.style.background='rgba(0, 212, 255, 0.05)'" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.15)'; this.style.background='rgba(255, 255, 255, 0.05)'">
+                    <div class="stat-label">Net Capital (After P&amp;L)</div>
+                    <div class="stat-main text-white" id="upstox-margin">₹1,00,000</div>
+                    <div class="stat-sub" id="upstox-charges">
+                        <span class="text-dim">Total P&L:</span> <span id="total-pnl-inr" class="text-success">₹0.00</span>
+                        <span class="text-dim ms-2">| 🟠 Sandbox</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid px-lg-5">
+        <!-- TABS -->
+        <ul class="nav nav-tabs" id="vanguardTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" id="signals-tab" data-bs-toggle="tab" data-bs-target="#signals" type="button">Shadow Trades</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="vetoed-tab" data-bs-toggle="tab" data-bs-target="#vetoed" type="button">AI Vetoed</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis" type="button">Conviction Analysis</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="upstox-tab" data-bs-toggle="tab" data-bs-target="#upstox" type="button" onclick="recalculateAll()"><i class="bi bi-wallet2 me-1"></i> Upstox Portfolio</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="vanguardTabContent">
+            <!-- SIGNALS TAB -->
+            <div class="tab-pane fade show active" id="signals">
+                <!-- OPEN TRADES -->
+                <div class="card card-glass mb-4 p-4">
+                    <div class="section-title text-info"><i class="bi bi-activity"></i> Active Shadow Tracking</div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Ticker</th>
+                                    <th>Side</th>
+                                    <th>ML Score</th>
+                                    <th>Entry</th>
+                                    <th>Live Price</th>
+                                    <th>Target</th>
+                                    <th>Live P&L</th>
+                                    <th>Peak P&amp;L</th>
+                                    <th>Time Left</th>
+                                    <th>Next 1H</th>
+                                    <th>Gemini Sentiment</th>
+                                    <th>TV 1H</th>
+                                </tr>
+                            </thead>
+                            <tbody id="open-signals">
+                                <tr>
+                                    <td colspan="12" class="text-center text-dim py-4">No active trades.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CLOSED TRADES -->
+                <div class="card card-glass mb-4 p-4">
+                    <div class="section-title text-dim"><i class="bi bi-clock-history"></i> Realized Performance Feed</div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Asset</th>
+                                    <th>Execution</th>
+                                    <th>ML Score</th>
+                                    <th>Timestamp</th>
+                                    <th>Final P&L</th>
+                                    <th>Next 1H</th>
+                                    <th>Gemini Sentiment</th>
+                                    <th>TV 1H</th>
+                                    <th>Comment</th>
+                                </tr>
+                            </thead>
+                            <tbody id="closed-signals">
+                                <!-- Closed signals inject here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VETOED TAB -->
+            <div class="tab-pane fade" id="vetoed">
+                <div class="card card-glass mb-4 p-4" style="border-color: rgba(255, 193, 7, 0.25);">
+                    <div class="section-title text-warning d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-shield-slash"></i> AI Vetoed (Live Tracking)</span>
+                        <div class="d-flex gap-4" style="font-family: 'JetBrains Mono'; font-size: 11px;">
+                            <div class="text-end">
+                                <div style="color: var(--text-dim); font-size: 9px; text-transform: uppercase;">S1 Avoided</div>
+                                <div id="veto-s1-pnl" class="fw-bold text-warning">+0.00%</div>
+                            </div>
+                            <div class="text-end">
+                                <div style="color: var(--text-dim); font-size: 9px; text-transform: uppercase;">S2 Avoided</div>
+                                <div id="veto-s2-pnl" class="fw-bold text-warning">+0.00%</div>
+                            </div>
+                            <div class="text-end">
+                                <div style="color: var(--text-dim); font-size: 9px; text-transform: uppercase;">Daily Total</div>
+                                <div id="veto-daily-pnl" class="fw-bold text-warning">+0.00%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive mt-2">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Ticker</th>
+                                    <th>Side</th>
+                                    <th>ML Score</th>
+                                    <th>Vetoed</th>
+                                    <th>Potential Entry</th>
+                                    <th>Tracking Price</th>
+                                    <th>Shadow P&amp;L</th>
+                                    <th>Veto Stage</th>
+                                    <th>LLM Reason</th>
+                                    <th>TV 1H</th>
+                                    <th>Next 1H</th>
+                                    <th>Status / Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vetoed-signals">
+                                <tr>
+                                    <td colspan="12" class="text-center text-dim py-4">No recently vetoed signals.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANALYSIS TAB -->
+            <div class="tab-pane fade" id="analysis">
+                <div class="card card-glass mb-4 p-4">
+                    <div class="section-title text-warning d-flex justify-content-between align-items-center mb-3">
+                        <span><i class="bi bi-bar-chart-fill"></i> Conviction Analysis Layer</span>
+                        <span class="text-dim mono" style="font-size:10px;" id="analysis-updated">Waiting for scan...</span>
+                    </div>
+
+                    <div class="sub-tab-bar">
+                        <div class="sub-tab active long" id="tab-long" onclick="setAnalysisMode('LONG')">
+                            <i class="bi bi-graph-up-arrow me-1"></i> Long Rankings
+                        </div>
+                        <div class="sub-tab" id="tab-short" onclick="setAnalysisMode('SHORT')">
+                            <i class="bi bi-graph-down-arrow me-1"></i> Short Rankings
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Ticker</th>
+                                    <th>Long/Short</th>
+                                    <th>Conviction</th>
+                                    <th>Liquidity (1H)</th>
+                                    <th>RVOL</th>
+                                    <th>52W High</th>
+                                    <th>Bias</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analysis-body">
+                                <tr>
+                                    <td colspan="8" class="text-center text-dim py-4">Waiting for next engine scan...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UPSTOX PORTFOLIO TAB -->
+            <div class="tab-pane fade" id="upstox">
+
+                <!-- ROW 1: CAPITAL SUMMARY STRIP -->
+                <div class="card card-glass mb-4 p-4" style="border-left: 4px solid var(--accent-blue);">
+                    <div class="section-title text-info mb-3"><i class="bi bi-wallet2"></i> Capital & Margin Overview</div>
+                    <div class="row text-center g-3">
+                        <div class="col border-end border-secondary border-opacity-25 py-2">
+                            <div class="stat-label">Initial Capital</div>
+                            <div class="h5 outfit fw-bold text-white mb-0" id="p-initial-cap">₹1,00,000</div>
+                        </div>
+                        <div class="col border-end border-secondary border-opacity-25 py-2">
+                            <div class="stat-label">Net Capital</div>
+                            <div class="h5 outfit fw-bold text-white mb-0" id="p-net-cap">₹1,00,000</div>
+                            <div class="stat-sub text-success" id="p-net-cap-pct" style="font-size:11px;">+0.00%</div>
+                        </div>
+                        <div class="col border-end border-secondary border-opacity-25 py-2">
+                            <div class="stat-label">Available Margin</div>
+                            <div class="h5 outfit fw-bold text-info mb-0" id="p-avail">₹1,00,000</div>
+                        </div>
+                        <div class="col border-end border-secondary border-opacity-25 py-2">
+                            <div class="stat-label">Used Margin</div>
+                            <div class="h5 outfit fw-bold text-warning mb-0" id="p-used">₹0</div>
+                            <div class="stat-sub text-dim" id="p-pos-count" style="font-size:11px;">0 positions</div>
+                        </div>
+                        <div class="col border-end border-secondary border-opacity-25 py-2">
+                            <div class="stat-label">Unrealized P&amp;L</div>
+                            <div class="h5 outfit fw-bold text-white mb-0" id="p-unreal">₹0.00</div>
+                        </div>
+                        <div class="col border-end border-secondary border-opacity-25 py-2">
+                            <div class="stat-label">Today Realized P&amp;L</div>
+                            <div class="h5 outfit fw-bold text-white mb-0" id="p-day-real">₹0.00</div>
+                            <div class="stat-sub text-dim" id="p-charges" style="font-size:11px;">All-time: ₹0.00</div>
+                        </div>
+                        <div class="col py-2">
+                            <div class="stat-label">Today's Charges</div>
+                            <div class="h5 outfit fw-bold text-danger mb-0" id="p-charges-today">₹0.00</div>
+                            <div class="stat-sub text-dim" id="p-charges-pct" style="font-size:11px;">Inc. GST &amp; taxes</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 1.5: PENDING CONFIRMATIONS -->
+                <div class="card card-glass mb-4 p-4" id="pending-card" style="display: none;">
+                    <div class="section-title text-warning"><i class="bi bi-hourglass-split"></i> Pending Candle Confirmations <span class="badge bg-warning text-dark ms-2" id="p-pending-badge">0</span></div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Ticker</th>
+                                    <th>Side</th>
+                                    <th>ML Score</th>
+                                    <th>Signal Price</th>
+                                    <th>Target Direction</th>
+                                    <th>Signal Time</th>
+                                    <th>AI Prob</th>
+                                    <th>AI Sentiment</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="p-pending-body">
+                                <tr><td colspan="9" class="text-center text-dim py-4">No pending confirmations.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ROW 2: OPEN POSITIONS -->
+                <div class="card card-glass mb-4 p-4">
+                    <div class="section-title text-info"><i class="bi bi-activity"></i> Open Positions <span class="badge bg-info text-dark ms-2" id="p-pos-badge">0</span></div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Ticker</th>
+                                    <th>Side</th>
+                                    <th>ML Score</th>
+                                    <th>Qty</th>
+                                    <th>Entry ₹</th>
+                                    <th>LTP ₹</th>
+                                    <th>Trade Value</th>
+                                    <th>Margin Used</th>
+                                    <th>Unrealized P&amp;L ₹</th>
+                                    <th>Unrealized %</th>
+                                    <th>Peak %</th>
+                                    <th>Time Left</th>
+                                    <th>1H Prob</th>
+                                    <th>TV 1H</th>
+                                </tr>
+                            </thead>
+                            <tbody id="p-positions-body">
+                                <tr><td colspan="14" class="text-center text-dim py-4">No open positions.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ROW 3: TODAY'S CLOSED TRADES -->
+                <div class="card card-glass mb-4 p-4">
+                    <div class="section-title text-dim d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-clock-history"></i> Today's Closed Trades</span>
+                        <div class="d-flex gap-3" style="font-size:11px; font-family:'JetBrains Mono';">
+                            <span class="text-dim">Win Rate: <span id="p-win-rate" class="fw-bold text-white">0%</span></span>
+                            <span class="text-dim">Wins: <span id="p-wins" class="fw-bold text-success">0</span></span>
+                            <span class="text-dim">Losses: <span id="p-losses" class="fw-bold text-danger">0</span></span>
+                            <span class="text-dim">Avg: <span id="p-avg-pnl" class="fw-bold text-white">₹0</span></span>
+                        </div>
+                    </div>
+                    <div class="table-responsive mt-2">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Ticker</th>
+                                    <th>Side</th>
+                                    <th>ML Score</th>
+                                    <th>Qty</th>
+                                    <th>Entry ₹</th>
+                                    <th>Exit ₹</th>
+                                    <th>Net P&amp;L ₹</th>
+                                    <th>P&amp;L %</th>
+                                    <th>Status</th>
+                                    <th>TV 1H</th>
+                                    <th>Time</th>
+                                    <th>Comment</th>
+                                </tr>
+                            </thead>
+                            <tbody id="p-closed-body">
+                                <tr><td colspan="11" class="text-center text-dim py-4">No closed trades today.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ROW 4: DAILY PERFORMANCE BAR -->
+                <div class="card card-glass mb-4 p-4">
+                    <div class="section-title text-dim mb-2"><i class="bi bi-bar-chart-steps"></i> Daily Performance Bar</div>
+                    <div class="row text-center g-3">
+                        <div class="col-6 col-md-3 col-lg border-end border-secondary border-opacity-25 py-2">
+                            <div class="stat-label">Total Trades</div>
+                            <div class="mono fw-bold text-white" id="pb-total">0</div>
+                        </div>
+                        <div class="col-6 col-md-3 col-lg border-end border-secondary border-opacity-25 py-2">
+                            <div class="stat-label">Best Trade</div>
+                            <div class="mono fw-bold text-success" id="pb-best">₹0.00</div>
+                        </div>
+                        <div class="col-6 col-md-3 col-lg border-end border-secondary border-opacity-25 py-2">
+                            <div class="stat-label">Worst Trade</div>
+                            <div class="mono fw-bold text-danger" id="pb-worst">₹0.00</div>
+                        </div>
+                        <div class="col-6 col-md-3 col-lg border-end border-secondary border-opacity-25 py-2">
+                            <div class="stat-label">Avg Trade</div>
+                            <div class="mono fw-bold text-white" id="pb-avg">₹0.00</div>
+                        </div>
+                        <div class="col-6 col-md-3 col-lg border-end border-secondary border-opacity-25 py-2">
+                            <div class="stat-label">Total Charges</div>
+                            <div class="mono fw-bold text-danger" id="pb-charges">₹0.00</div>
+                        </div>
+                        <div class="col-6 col-md-3 col-lg border-end border-secondary border-opacity-25 py-2">
+                            <div class="stat-label">Net P&amp;L (Day)</div>
+                            <div class="mono fw-bold text-white" id="pb-net">₹0.00</div>
+                        </div>
+                        <div class="col-6 col-md-3 col-lg py-2">
+                            <div class="stat-label">Total P&amp;L (All-time)</div>
+                            <div class="mono fw-bold text-white" id="pb-alltime">₹0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function formatComment(comment) {
+            if (!comment) return '';
+            const text = comment.split('|')[0];
+            if (text.length <= 50) return text;
+            const truncated = text.substring(0, 50);
+            return `
+                <span class="comment-short">${truncated}... <a href="javascript:void(0)" onclick="this.parentElement.style.display='none'; this.parentElement.nextElementSibling.style.display='inline';" class="text-info text-decoration-none ms-1">Expand</a></span>
+                <span class="comment-full" style="display:none;">${text} <a href="javascript:void(0)" onclick="this.parentElement.style.display='none'; this.parentElement.previousElementSibling.style.display='inline';" class="text-info text-decoration-none ms-1">Collapse</a></span>
+            `;
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('en-US', { hour12: false });
+        }
+        setInterval(updateClock, 1000);
+
+        function getSentimentLabel(score) {
+            if (score >= 0.9) return "STRONG BULLISH";
+            if (score >= 0.7) return "BULLISH";
+            if (score >= 0.4) return "NEUTRAL";
+            if (score >= 0.2) return "BEARISH";
+            return "STRONG BEARISH";
+        }
+
+        // --- SEARCH SUGGESTIONS LOGIC ---
+        let allTickers = [];
+        const searchInput = document.getElementById('tickerSearch');
+        const suggestionsBox = document.getElementById('searchSuggestions');
+
+        async function initSearch() {
+            try {
+                const res = await fetch('/api/tickers');
+                allTickers = await res.json();
+            } catch (e) {
+                console.warn('Failed to load tickers for suggestions');
+            }
+        }
+        initSearch();
+
+        searchInput.addEventListener('input', (e) => {
+            const val = e.target.value.toUpperCase().trim();
+            if (val.length < 1) {
+                suggestionsBox.style.display = 'none';
+                return;
+            }
+
+            const matches = allTickers.filter(t => t.includes(val)).slice(0, 10);
+            if (matches.length > 0) {
+                suggestionsBox.innerHTML = matches.map(m => `
+                    <div class="suggestion-item" onclick="selectTicker('${m}')">
+                        <span class="suggestion-ticker">${m}</span>
+                        <span class="suggestion-meta">NSE Cash</span>
+                    </div>
+                `).join('');
+                suggestionsBox.style.display = 'block';
+            } else {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+
+        function selectTicker(symbol) {
+            searchInput.value = symbol;
+            suggestionsBox.style.display = 'none';
+            searchTicker();
+        }
+
+
+
+        // ---------- HELPERS ----------
+        function inrFmt(v) {
+            const abs = Math.abs(v);
+            const s = abs >= 1e7 ? (abs/1e7).toFixed(2) + 'Cr'
+                    : abs >= 1e5 ? (abs/1e5).toFixed(2) + 'L'
+                    : abs.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+            return (v < 0 ? '-' : '') + '₹' + s;
+        }
+        function pnlClass(v) {
+            return v > 0.01 ? 'text-success' : v < -0.01 ? 'text-danger' : 'text-white';
+        }
+        function pnlSign(v) { return v >= 0 ? '+' : ''; }
+
+        async function fetchUpstoxData() {
+            try {
+                const res = await fetch('/api/upstox/stats');
+                const s = await res.json();
+
+                // ── HEADER STAT BOX (Net Capital) ──────────────────────────────
+                const netCap = s.virtual_capital || 0;
+                const totalPnl = s.total_pnl_inr || 0;
+                document.getElementById('upstox-margin').innerText = inrFmt(netCap);
+                const tpEl = document.getElementById('total-pnl-inr');
+                tpEl.innerText = (totalPnl >= 0 ? '+' : '') + inrFmt(totalPnl);
+                tpEl.className = pnlClass(totalPnl);
+
+                // ── CAPITAL STRIP ───────────────────────────────────────────────
+                const initCap = s.initial_capital || 100000;
+                const pnlPct  = s.total_pnl_pct || 0;
+                const avail   = s.available_margin || 0;
+                const used    = s.used_margin || 0;
+                const unreal  = s.unrealized_pnl_inr || 0;
+                const dayReal = s.day_realized_pnl_inr || 0;
+                const charges = s.realized_charges || 0;
+                const posCount = s.open_positions_count || 0;
+
+                document.getElementById('p-initial-cap').innerText = inrFmt(initCap);
+
+                const netCapEl = document.getElementById('p-net-cap');
+                netCapEl.innerText = inrFmt(netCap);
+                netCapEl.className = 'h4 outfit fw-bold ' + pnlClass(totalPnl);
+
+                const pctEl = document.getElementById('p-net-cap-pct');
+                pctEl.innerText = pnlSign(pnlPct) + pnlPct.toFixed(2) + '% all-time';
+                pctEl.className = 'stat-sub ' + pnlClass(pnlPct);
+
+                document.getElementById('p-avail').innerText = inrFmt(avail);
+                document.getElementById('p-used').innerText = inrFmt(used);
+                document.getElementById('p-pos-count').innerText = posCount + ' position' + (posCount !== 1 ? 's' : '');
+                document.getElementById('p-pos-badge').innerText = posCount;
+
+                const unrealEl = document.getElementById('p-unreal');
+                unrealEl.innerText = (unreal >= 0 ? '+' : '') + inrFmt(unreal);
+                unrealEl.className = 'h4 outfit fw-bold ' + pnlClass(unreal);
+
+                const dayRealEl = document.getElementById('p-day-real');
+                dayRealEl.innerText = (dayReal >= 0 ? '+' : '') + inrFmt(dayReal);
+                dayRealEl.className = 'h4 outfit fw-bold ' + pnlClass(dayReal);
+                
+                // All-time charges label (today's charges filled below after summ is declared)
+                document.getElementById('p-charges').innerText = 'All-time: ' + inrFmt(charges);
+
+                // ── PENDING CONFIRMATIONS TABLE ──────────────────────────────────
+                const pendingCard = document.getElementById('pending-card');
+                const pendingBody = document.getElementById('p-pending-body');
+                const pendingBadge = document.getElementById('p-pending-badge');
+                const pendingPositions = s.pending_positions || [];
+
+                if (pendingPositions.length > 0) {
+                    pendingCard.style.display = 'block';
+                    pendingBadge.innerText = pendingPositions.length;
+                    pendingBody.innerHTML = '';
+                    pendingPositions.forEach(p => {
+                        const sideCls = p.side === 'LONG' ? 'side-long' : 'side-short';
+                        const targetDirection = p.side === 'LONG' ? 
+                            '<span class="text-success small fw-bold"><i class="bi bi-arrow-up-circle-fill"></i> Green Candle</span>' : 
+                            '<span class="text-danger small fw-bold"><i class="bi bi-arrow-down-circle-fill"></i> Red Candle</span>';
+                        
+                        let sigTime = 'N/A';
+                        try {
+                            sigTime = new Date(p.entry_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                        } catch(e) {}
+
+                        pendingBody.innerHTML += `
+                            <tr>
+                                <td class="ticker-name">
+                                    <a href="/ticker/${encodeURIComponent(p.ticker)}" class="ticker-link">${p.ticker.replace('.NS','')}</a>
+                                </td>
+                                <td><span class="side-badge ${sideCls}">${p.side}</span></td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="mono fw-bold ${p.side === 'LONG' ? 'text-accent-long' : 'text-accent-short'}" style="font-size: 11px;">
+                                            ${(p.tech_score || 0).toFixed(4)}
+                                        </span>
+                                        <span class="mono text-dim smallest" style="font-size: 9px;">
+                                            L:${(p.long_score || 0).toFixed(3)} / S:${(p.short_score || 0).toFixed(3)}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="mono fw-bold">₹${p.entry_price.toFixed(2)}</td>
+                                <td>${targetDirection}</td>
+                                <td class="mono small text-dim">${sigTime}</td>
+                                <td class="mono small text-info">${p.one_hour_prob || 'N/A'}</td>
+                                <td><span class="badge bg-dark text-warning border border-warning border-opacity-10">${p.comment || 'N/A'}</span></td>
+                                <td>
+                                    <span class="ext-badge" style="background: rgba(255, 193, 7, 0.1); border-color: rgba(255, 193, 7, 0.3); color: #ffc107; font-size: 10px;">
+                                        <i class="bi bi-hourglass-split"></i> Confirming...
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    pendingCard.style.display = 'none';
+                }
+
+                // ── OPEN POSITIONS TABLE ────────────────────────────────────────
+                const posBody = document.getElementById('p-positions-body');
+                const positions = s.positions || [];
+                if (positions.length > 0) {
+                    posBody.innerHTML = '';
+                    positions.forEach(p => {
+                        const sideCls = p.side === 'LONG' ? 'side-long' : 'side-short';
+                        const pnlCls  = pnlClass(p.unrealized_pnl_inr);
+                        const pctCls  = pnlClass(p.unrealized_pnl_pct);
+
+                        // ── Extension-aware time left cell ──────────────────────
+                        const extPending = p.extension_pending || false;
+                        const extCount   = p.extension_count   || 0;
+                        const timeLeft   = p.time_left_min;
+                        let timeCell;
+                        if (extPending && extCount > 0) {
+                            timeCell = `<td>
+                                <span class="ext-badge">
+                                    <i class="bi bi-hourglass-split"></i>
+                                    +${timeLeft}m &nbsp;EXT #${extCount}/2
+                                </span>
+                            </td>`;
+                        } else if (timeLeft <= 5) {
+                            timeCell = `<td><span class="mono small text-danger fw-bold">${timeLeft}m</span></td>`;
+                        } else {
+                            timeCell = `<td class="text-info mono small">${timeLeft}m</td>`;
+                        }
+                        // ────────────────────────────────────────────────────────
+
+                        posBody.innerHTML += `
+                            <tr>
+                                <td class="ticker-name">
+                                    <a href="/ticker/${encodeURIComponent(p.ticker)}" class="ticker-link">${p.ticker.replace('.NS','')}</a>
+                                    <a href="https://www.tradingview.com/chart/?symbol=NSE:${p.ticker.replace('.NS','')}" target="_blank" class="text-dim ms-1" style="font-size:10px;" title="TradingView"><i class="bi bi-graph-up"></i></a>
+                                </td>
+                                <td><span class="side-badge ${sideCls}">${p.side}</span></td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="mono fw-bold ${p.side === 'LONG' ? 'text-accent-long' : 'text-accent-short'}" style="font-size: 11px;">
+                                            ${(p.tech_score || 0).toFixed(4)}
+                                        </span>
+                                        <span class="mono text-dim smallest" style="font-size: 9px;">
+                                            L:${(p.long_score || 0).toFixed(3)} / S:${(p.short_score || 0).toFixed(3)}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="mono">${p.quantity}</td>
+                                <td class="mono">₹${p.entry_price.toFixed(2)}</td>
+                                <td class="mono fw-bold ${pnlClass(p.current_price - p.entry_price)}">₹${p.current_price.toFixed(2)}</td>
+                                <td class="mono small text-dim">${inrFmt(p.trade_value)}</td>
+                                <td class="mono small text-warning">${inrFmt(p.margin_used)}</td>
+                                <td class="mono fw-bold ${pnlCls}">${pnlSign(p.unrealized_pnl_inr)}${inrFmt(p.unrealized_pnl_inr)}</td>
+                                <td class="mono fw-bold ${pctCls}">${pnlSign(p.unrealized_pnl_pct)}${p.unrealized_pnl_pct.toFixed(2)}%</td>
+                                <td class="mono small text-dim">${pnlSign(p.peak_profit_pct)}${p.peak_profit_pct.toFixed(2)}%</td>
+                                ${timeCell}
+                                <td class="mono smallest text-info">${p.one_hour_prob || 'N/A'}</td>
+                                <td>
+                                    <span class="badge bg-dark text-white border border-white border-opacity-10 smallest" style="font-size: 9px;">
+                                        <i class="bi bi-speedometer2 me-1"></i> ${p.tv_sentiment || 'N/A'}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    posBody.innerHTML = '<tr><td colspan="14" class="text-center text-dim py-4">No open positions.</td></tr>';
+                }
+
+                // ── TODAY'S CLOSED TRADES TABLE ─────────────────────────────────
+                const summ = s.today_summary || {};
+                const closedBody = document.getElementById('p-closed-body');
+                const todayTrades = (summ.today_trades || []);
+
+                // ── TODAY'S CHARGES CARD ─────────────────────────────────────────
+                const todayCharges = summ.today_charges_inr || 0;
+                document.getElementById('p-charges-today').innerText = inrFmt(todayCharges);
+                if (todayCharges > 0) {
+                    const pctOfCap = (todayCharges / initCap) * 100;
+                    document.getElementById('p-charges-pct').innerText = pctOfCap.toFixed(3) + '% of cap';
+                } else {
+                    document.getElementById('p-charges-pct').innerText = 'Inc. GST & taxes';
+                }
+
+                // Win rate bar
+                document.getElementById('p-win-rate').innerText = (summ.win_rate || 0).toFixed(1) + '%';
+                document.getElementById('p-wins').innerText = summ.wins || 0;
+                document.getElementById('p-losses').innerText = summ.losses || 0;
+                const avgEl = document.getElementById('p-avg-pnl');
+                avgEl.innerText = (summ.avg_pnl_inr >= 0 ? '+' : '') + inrFmt(summ.avg_pnl_inr || 0);
+                avgEl.className = 'fw-bold ' + pnlClass(summ.avg_pnl_inr || 0);
+
+                if (todayTrades.length > 0) {
+                    closedBody.innerHTML = '';
+                    todayTrades.forEach(t => {
+                        const sideCls   = t.side === 'LONG' ? 'side-long' : 'side-short';
+                        const netPnl    = t.net_pnl_amt || 0;
+                        const pnlPctV   = t.final_profit_pct || 0;
+                        const netCls    = pnlClass(netPnl);
+                        const pctCls    = pnlClass(pnlPctV);
+                        const time      = new Date(t.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                        const stBadge   = t.status === 'STOP_LOSS'
+                            ? '<span class="badge bg-danger" style="font-size:9px;">SL HIT</span>'
+                            : t.status === 'TAKE_PROFIT'
+                            ? '<span class="badge bg-success" style="font-size:9px;">TP HIT</span>'
+                            : '<span class="badge bg-secondary" style="font-size:9px;">CLOSED</span>';
+                        closedBody.innerHTML += `
+                            <tr>
+                                <td class="ticker-name">
+                                    <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">${(t.ticker || '').replace('.NS','')}</a>
+                                </td>
+                                <td><span class="side-badge ${sideCls}">${t.side}</span></td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="mono fw-bold ${t.side === 'LONG' ? 'text-accent-long' : 'text-accent-short'}" style="font-size: 11px;">
+                                            ${(t.tech_score || 0).toFixed(4)}
+                                        </span>
+                                        <span class="mono text-dim smallest" style="font-size: 9px;">
+                                            L:${(t.long_score || 0).toFixed(3)} / S:${(t.short_score || 0).toFixed(3)}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="mono">${t.quantity || '—'}</td>
+                                <td class="mono">₹${(t.entry_price || 0).toFixed(2)}</td>
+                                <td class="mono">₹${(t.exit_price || 0).toFixed(2)}</td>
+                                <td class="mono fw-bold ${netCls}">${pnlSign(netPnl)}${inrFmt(netPnl)}</td>
+                                <td class="mono fw-bold ${pctCls}">${pnlSign(pnlPctV)}${pnlPctV.toFixed(2)}%</td>
+                                <td>${stBadge}</td>
+                                <td>
+                                    <span class="badge bg-dark text-white border border-white border-opacity-10 smallest" style="font-size: 9px;">
+                                        <i class="bi bi-speedometer2 me-1"></i> ${t.tv_sentiment || 'N/A'}
+                                    </span>
+                                </td>
+                                <td class="text-dim smallest">${time}</td>
+                                <td class="text-dim smallest" style="max-width:300px;">${formatComment(t.comment)}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    closedBody.innerHTML = '<tr><td colspan="12" class="text-center text-dim py-4">No closed trades today.</td></tr>';
+                }
+
+                // ── DAILY PERFORMANCE BAR ───────────────────────────────────────
+                const dayNetEl = document.getElementById('pb-net');
+                dayNetEl.innerText = (dayReal >= 0 ? '+' : '') + inrFmt(dayReal);
+                dayNetEl.className = 'mono fw-bold ' + pnlClass(dayReal);
+
+                const bestEl = document.getElementById('pb-best');
+                bestEl.innerText = inrFmt(summ.best_trade_inr || 0);
+
+                const worstEl = document.getElementById('pb-worst');
+                worstEl.innerText = inrFmt(summ.worst_trade_inr || 0);
+
+                const avgPbEl = document.getElementById('pb-avg');
+                avgPbEl.innerText = (summ.avg_pnl_inr >= 0 ? '+' : '') + inrFmt(summ.avg_pnl_inr || 0);
+                avgPbEl.className = 'mono fw-bold ' + pnlClass(summ.avg_pnl_inr || 0);
+
+                document.getElementById('pb-total').innerText = summ.total_trades || 0;
+                document.getElementById('pb-charges').innerText = inrFmt(summ.today_charges_inr || 0);
+
+                const alltimeEl = document.getElementById('pb-alltime');
+                alltimeEl.innerText = (totalPnl >= 0 ? '+' : '') + inrFmt(totalPnl);
+                alltimeEl.className = 'mono fw-bold ' + pnlClass(totalPnl);
+
+            } catch (e) {
+                console.warn('Upstox Data Sync Error:', e);
+            }
+        }
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/vanguard_status');
+                const data = await res.json();
+
+                // 1. UPDATE HEADER STATS
+                const s = data.stats;
+                if (s) {
+                    document.getElementById('total-alpha').innerText = (s.total.alpha >= 0 ? '+' : '') + s.total.alpha.toFixed(2) + '%';
+                    document.getElementById('total-count').innerText = s.total.count + ' Trades Executed';
+                    
+                    document.getElementById('weekly-alpha').innerText = (s.weekly.alpha >= 0 ? '+' : '') + s.weekly.alpha.toFixed(2) + '%';
+                    document.getElementById('weekly-details').innerHTML = `
+                        <span class="text-success">L: ${s.weekly.long >= 0 ? '+' : ''}${s.weekly.long.toFixed(2)}%</span> | 
+                        <span class="text-danger">S: ${s.weekly.short >= 0 ? '+' : ''}${s.weekly.short.toFixed(2)}%</span>
+                        <span class="text-dim ms-2">| ${s.weekly.count} Trades</span>
+                    `;
+                    
+                    document.getElementById('daily-alpha').innerText = (s.daily.alpha >= 0 ? '+' : '') + s.daily.alpha.toFixed(2) + '%';
+                    document.getElementById('daily-details').innerHTML = `
+                        <span class="text-success">L: ${s.daily.long >= 0 ? '+' : ''}${s.daily.long.toFixed(2)}%</span> | 
+                        <span class="text-danger">S: ${s.daily.short >= 0 ? '+' : ''}${s.daily.short.toFixed(2)}%</span>
+                        <span class="text-dim ms-2">| ${s.daily.count} Trades</span>
+                    `;
+
+                    // AI VETOED SNAPSHOTS
+                    if (s.vetoed) {
+                        const dv = s.vetoed.daily.alpha;
+                        const s1v = s.vetoed.daily_s1 ? s.vetoed.daily_s1.alpha : 0;
+                        const s2v = s.vetoed.daily_s2 ? s.vetoed.daily_s2.alpha : 0;
+                        
+                        const dvEl = document.getElementById('veto-daily-pnl');
+                        dvEl.innerText = (dv >= 0 ? '+' : '') + dv.toFixed(2) + '%';
+                        dvEl.className = 'fw-bold ' + (dv > 0 ? 'text-success' : (dv < 0 ? 'text-danger' : 'text-white'));
+                        
+                        const s1El = document.getElementById('veto-s1-pnl');
+                        s1El.innerText = (s1v >= 0 ? '+' : '') + s1v.toFixed(2) + '%';
+                        s1El.className = 'fw-bold ' + (s1v > 0 ? 'text-success' : (s1v < 0 ? 'text-danger' : 'text-white'));
+
+                        const s2El = document.getElementById('veto-s2-pnl');
+                        s2El.innerText = (s2v >= 0 ? '+' : '') + s2v.toFixed(2) + '%';
+                        s2El.className = 'fw-bold ' + (s2v > 0 ? 'text-success' : (s2v < 0 ? 'text-danger' : 'text-white'));
+                    }
+                }
+
+                // 2. UPDATE OPEN AND PENDING TRADES
+                const openBody = document.getElementById('open-signals');
+                const allActiveTrades = [
+                    ...(data.open_trades || []),
+                    ...(data.pending_trades || [])
+                ];
+                
+                if (allActiveTrades.length > 0) {
+                    openBody.innerHTML = '';
+                    allActiveTrades.forEach(t => {
+                        const sideCls = t.side === 'LONG' ? 'side-long' : 'side-short';
+                        const livePnl = t.final_profit_pct || 0;
+                        const livePnlCls = livePnl > 0.05 ? 'positive' : livePnl < -0.05 ? 'negative' : 'neutral';
+                        const livePnlStr = (livePnl >= 0 ? '+' : '') + livePnl.toFixed(2) + '%';
+                        const priceCls = livePnl > 0 ? 'text-accent-long' : (livePnl < 0 ? 'text-accent-short' : 'text-white');
+
+                        // Extension-aware time left (uses extended_exit_time if available)
+                        const extPendingV = t.extension_pending || false;
+                        const extCountV   = t.extension_count   || 0;
+                        let effectiveExpiry = t.exit_time;
+                        if (extPendingV && t.extended_exit_time) effectiveExpiry = t.extended_exit_time;
+                        const expiry = new Date(effectiveExpiry);
+                        const diff   = Math.max(0, Math.floor((expiry - new Date()) / 60000));
+
+                        let timeDisplay;
+                        if (extPendingV && extCountV > 0) {
+                            timeDisplay = `<span class="ext-badge"><i class="bi bi-hourglass-split"></i>+${diff}m EXT #${extCountV}/2</span>`;
+                        } else {
+                            timeDisplay = `<span class="text-info">${diff}m</span>`;
+                        }
+
+                        const isPending = t.status === 'PENDING_ENTRY';
+                        const pendingBadge = isPending ? 
+                            `<span class="badge bg-warning text-dark ms-2" style="font-size: 8px; vertical-align: middle;">PENDING</span>` : '';
+
+                        openBody.innerHTML += `
+                            <tr>
+                                <td class="ticker-name">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">
+                                            ${t.ticker.replace('.NS', '')}
+                                        </a>
+                                        ${pendingBadge}
+                                        <a href="https://www.tradingview.com/chart/?symbol=NSE:${t.ticker.replace('.NS', '')}" target="_blank" class="text-dim" style="font-size: 10px;" title="View TradingView Chart">
+                                            <i class="bi bi-graph-up"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                                <td><span class="side-badge ${sideCls}">${t.side}</span></td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="mono fw-bold ${t.side === 'LONG' ? 'text-accent-long' : 'text-accent-short'}" style="font-size: 11px;">
+                                            ${(t.tech_score || 0).toFixed(4)}
+                                        </span>
+                                        <span class="mono text-dim smallest" style="font-size: 9px;">
+                                            L:${(t.long_score || 0).toFixed(3)} / S:${(t.short_score || 0).toFixed(3)}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="mono">₹${t.entry_price.toFixed(2)}</td>
+                                <td class="mono fw-bold ${priceCls}">₹${(t.exit_price || t.entry_price).toFixed(2)}</td>
+                                <td class="mono text-dim" style="font-size: 10px;">
+                                    <span class="text-danger">-${(t.stop_loss_pct || 0.50).toFixed(2)}%</span> / <span class="text-success">+${(t.take_profit_pct || 1.00).toFixed(2)}%</span>
+                                </td>
+                                <td><span class="live-pnl ${livePnlCls}">${livePnlStr}</span></td>
+                                <td class="peak-pnl text-dim small">+${(t.peak_profit_pct || 0).toFixed(2)}%</td>
+                                <td>${timeDisplay}</td>
+                                <td class="mono smallest text-info">${t.one_hour_prob || 'N/A'}</td>
+                                <td>
+                                    <span class="badge bg-dark text-info border border-info border-opacity-25" style="font-size: 10px;">
+                                        <i class="bi bi-robot me-1"></i> ${getSentimentLabel(t.nlp_sentiment)}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark text-white border border-white border-opacity-10 smallest" style="font-size: 9px;">
+                                        <i class="bi bi-speedometer2 me-1"></i> ${t.tv_sentiment || 'N/A'}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    openBody.innerHTML = '<tr><td colspan="12" class="text-center text-dim py-4">No active trades.</td></tr>';
+                }
+
+                // 2.5 UPDATE VETOED TRADES
+                const vetoBody = document.getElementById('vetoed-signals');
+                if (data.vetoed_trades && data.vetoed_trades.length > 0) {
+                    vetoBody.innerHTML = '';
+                    let lastDate = "";
+                    data.vetoed_trades.forEach((t, index) => {
+                        const dateObj = new Date(t.timestamp);
+                        const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                        
+                        if (dateStr !== lastDate) {
+                            // Calculate daily sum for this specific day group
+                            const dailyVetoSum = data.vetoed_trades
+                                .filter(item => new Date(item.timestamp).toLocaleDateString('en-US') === dateObj.toLocaleDateString('en-US'))
+                                .reduce((acc, item) => acc + ((item.final_profit_pct || 0) - 0.06), 0);
+                            
+                            const sumCls = dailyVetoSum > 0 ? 'text-success' : (dailyVetoSum < 0 ? 'text-danger' : 'text-white');
+
+                            vetoBody.innerHTML += `
+                                <tr class="bg-dark bg-opacity-50">
+                                    <td colspan="12" class="py-2">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
+                                                    <i class="bi bi-calendar3 me-1"></i> ${dateStr}
+                                                </span>
+                                                <div style="width: 50px;" class="border-bottom border-secondary border-opacity-10"></div>
+                                            </div>
+                                            <div class="pe-3">
+                                                <span class="smallest text-dim text-uppercase me-2" style="letter-spacing: 1px;">Daily Avoided:</span>
+                                                <span class="mono smallest fw-bold ${sumCls}">${dailyVetoSum >= 0 ? '+' : ''}${dailyVetoSum.toFixed(2)}%</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                            lastDate = dateStr;
+                        }
+
+                        const sideCls = t.side === 'LONG' ? 'side-long' : 'side-short';
+                        const livePnl = (t.final_profit_pct || 0) - 0.06;
+                        const livePnlCls = livePnl > 0.05 ? 'positive' : livePnl < -0.05 ? 'negative' : 'neutral';
+                        const livePnlStr = (livePnl >= 0 ? '+' : '') + livePnl.toFixed(2) + '%';
+                        const priceCls = livePnl > 0 ? 'text-accent-long' : (livePnl < 0 ? 'text-accent-short' : 'text-white');
+                        const expiry = new Date(t.exit_time);
+                        const diff = Math.max(0, Math.floor((expiry - new Date()) / 60000));
+                        const isExpired = diff <= 0;
+                        const statusLabel = isExpired ? '<span class="text-dim smallest">FINISHED</span>' : `<span class="text-info">${diff}m left</span>`;
+                        const priceLabel = isExpired ? '<span class="smallest text-dim me-1">CLOSE</span>' : '<span class="smallest text-info me-1">LIVE</span>';
+                        const vetoTime = new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                        // ── Veto Stage + LLM Reason parsing ──────────────────────────────
+                        const rawComment = t.comment || '';
+                        const isS1 = rawComment.includes('[S1-VETO]') || rawComment.includes('[S1-');
+                        const vetoStage = isS1 ? 'S1' : 'S2';
+                        const stageColor  = isS1 ? '#ffc107' : '#ff6b6b';
+                        const stageBg     = isS1 ? 'rgba(255,193,7,0.12)'  : 'rgba(255,107,107,0.12)';
+                        const stageBorder = isS1 ? 'rgba(255,193,7,0.35)'  : 'rgba(255,107,107,0.35)';
+                        const stageTitle  = isS1 ? 'Stage 1: Technical Audit (Gemini S1)' : 'Stage 2: Governance / News Audit (Gemini S2)';
+
+                        // Strip the leading stage prefix tags for the clean reason text
+                        const cleanReason = rawComment
+                            .replace(/^\[S[12]-VETO\]\s*/i, '')
+                            .replace(/^\[VETOED by [^\]]+\]\s*/i, '')
+                            .trim() || 'No reason recorded.';
+
+                        // Expandable LLM reason — unique ID per row
+                        const rowId = `vr-${index}-${t.ticker.replace(/[^a-zA-Z0-9]/g,'')}`;
+                        const previewLen = 55;
+                        const isLong = cleanReason.length > previewLen;
+                        const preview = isLong ? cleanReason.substring(0, previewLen) + '…' : cleanReason;
+                        const llmReasonHtml = isLong
+                            ? `<span id="${rowId}-short" style="font-size:10px; color:var(--text-dim); line-height:1.3;">${preview}
+                                <a href="javascript:void(0)" onclick="document.getElementById('${rowId}-short').style.display='none';document.getElementById('${rowId}-full').style.display='block';" class="text-info text-decoration-none" style="font-size:9px;"> more</a>
+                              </span>
+                              <span id="${rowId}-full" style="display:none; font-size:10px; color:var(--text-dim); line-height:1.4;">${cleanReason}
+                                <a href="javascript:void(0)" onclick="document.getElementById('${rowId}-full').style.display='none';document.getElementById('${rowId}-short').style.display='block';" class="text-info text-decoration-none" style="font-size:9px;"> less</a>
+                              </span>`
+                            : `<span style="font-size:10px; color:var(--text-dim);">${cleanReason}</span>`;
+
+                        vetoBody.innerHTML += `
+                            <tr style="opacity: ${isExpired ? '0.6' : '0.9'}; border-left: 3px solid ${isExpired ? 'transparent' : 'var(--accent-blue)'}">
+                                <td class="ticker-name">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">
+                                            ${t.ticker.replace('.NS', '')}
+                                        </a>
+                                        <a href="https://www.tradingview.com/chart/?symbol=NSE:${t.ticker.replace('.NS', '')}" target="_blank" class="text-dim" style="font-size: 10px;" title="View TradingView Chart">
+                                            <i class="bi bi-graph-up"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                                <td><span class="side-badge ${sideCls}">${t.side}</span></td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="mono fw-bold ${t.side === 'LONG' ? 'text-accent-long' : 'text-accent-short'}" style="font-size: 11px;">
+                                            ${(t.tech_score || 0).toFixed(4)}
+                                        </span>
+                                        <span class="mono text-dim smallest" style="font-size: 9px;">
+                                            L:${(t.long_score || 0).toFixed(3)} / S:${(t.short_score || 0).toFixed(3)}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td><span class="text-dim small">${vetoTime}</span></td>
+                                <td class="mono">₹${t.entry_price.toFixed(2)}</td>
+                                <td class="mono ${priceCls}">${priceLabel}₹${(t.exit_price || t.entry_price).toFixed(2)}</td>
+                                <td><span class="live-pnl ${livePnlCls}">${livePnlStr}</span></td>
+                                <td>
+                                    <span title="${stageTitle}" style="
+                                        display: inline-flex; align-items: center; gap: 4px;
+                                        padding: 3px 8px; border-radius: 6px; font-size: 10px;
+                                        font-family: 'JetBrains Mono'; font-weight: 700; letter-spacing: 0.5px;
+                                        background: ${stageBg}; border: 1px solid ${stageBorder}; color: ${stageColor};
+                                    ">
+                                        <i class="bi bi-shield-slash" style="font-size:9px;"></i> ${vetoStage}
+                                    </span>
+                                </td>
+                                <td style="max-width: 220px; word-break: break-word;">${llmReasonHtml}</td>
+                                <td>
+                                    <span class="badge bg-dark text-white border border-white border-opacity-10 smallest" style="font-size: 9px;">
+                                        <i class="bi bi-speedometer2 me-1"></i> ${t.tv_sentiment || 'N/A'}
+                                    </span>
+                                </td>
+                                <td class="mono smallest text-info">${t.one_hour_prob || 'N/A'}</td>
+                                <td>${statusLabel}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    vetoBody.innerHTML = '<tr><td colspan="12" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
+                }
+
+                // 3. UPDATE CLOSED TRADES
+                const closedBody = document.getElementById('closed-signals');
+                if (data.closed_trades) {
+                    closedBody.innerHTML = '';
+                    let lastDate = "";
+                    data.closed_trades.forEach(t => {
+                        const dateObj = new Date(t.timestamp);
+                        const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                        
+                        if (dateStr !== lastDate) {
+                            closedBody.innerHTML += `
+                                <tr class="bg-dark bg-opacity-50">
+                                    <td colspan="9" class="py-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
+                                                <i class="bi bi-calendar3 me-1"></i> ${dateStr}
+                                            </span>
+                                            <div class="flex-grow-1 border-bottom border-secondary border-opacity-10"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                            lastDate = dateStr;
+                        }
+
+                        const sideCls = t.side === 'LONG' ? 'side-long' : 'side-short';
+                        const profitCls = t.final_profit_pct > 0 ? 'text-success' : 'text-danger';
+                        const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                        closedBody.innerHTML += `
+                            <tr>
+                                <td class="ticker-name">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">
+                                            ${t.ticker.replace('.NS', '')}
+                                        </a>
+                                        <a href="https://www.tradingview.com/chart/?symbol=NSE:${t.ticker.replace('.NS', '')}" target="_blank" class="text-dim" style="font-size: 10px;" title="View TradingView Chart">
+                                            <i class="bi bi-graph-up"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                                <td><span class="side-badge ${sideCls}">${t.side}</span></td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="mono fw-bold ${t.side === 'LONG' ? 'text-accent-long' : 'text-accent-short'}" style="font-size: 11px;">
+                                            ${(t.tech_score || 0).toFixed(4)}
+                                        </span>
+                                        <span class="mono text-dim smallest" style="font-size: 9px;">
+                                            L:${(t.long_score || 0).toFixed(3)} / S:${(t.short_score || 0).toFixed(3)}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="text-dim small">${time}</td>
+                                <td class="mono fw-bold ${profitCls}">${t.final_profit_pct > 0 ? '+' : ''}${t.final_profit_pct.toFixed(2)}%</td>
+                                <td class="mono smallest text-info">${t.one_hour_prob || 'N/A'}</td>
+                                <td>
+                                    <span class="badge bg-dark text-info border border-info border-opacity-10" style="font-size: 9px;">
+                                        <i class="bi bi-robot me-1"></i> ${getSentimentLabel(t.nlp_sentiment)}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark text-white border border-white border-opacity-10 smallest" style="font-size: 9px;">
+                                        <i class="bi bi-speedometer2 me-1"></i> ${t.tv_sentiment || 'N/A'}
+                                    </span>
+                                </td>
+                                <td class="text-dim smallest" style="max-width:300px;">${formatComment(t.comment)}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (e) { console.error("Sync Error:", e); }
+        }
+
+        let currentAnalysisScores = [];
+        let currentAnalysisMode = 'LONG';
+
+        function setAnalysisMode(mode) {
+            currentAnalysisMode = mode;
+            
+            // Update UI
+            document.getElementById('tab-long').classList.toggle('active', mode === 'LONG');
+            document.getElementById('tab-long').classList.toggle('long', mode === 'LONG');
+            document.getElementById('tab-short').classList.toggle('active', mode === 'SHORT');
+            document.getElementById('tab-short').classList.toggle('short', mode === 'SHORT');
+            
+            renderAnalysis();
+        }
+
+        function renderAnalysis() {
+            const body = document.getElementById('analysis-body');
+            if (!currentAnalysisScores || currentAnalysisScores.length === 0) {
+                body.innerHTML = '<tr><td colspan="8" class="text-center text-dim py-4">No data available.</td></tr>';
+                return;
+            }
+
+            // Sort data based on mode
+            const sortedData = [...currentAnalysisScores].sort((a, b) => {
+                if (currentAnalysisMode === 'LONG') {
+                    return a.Long_Rank - b.Long_Rank;
+                } else {
+                    return a.Short_Rank - b.Short_Rank;
+                }
+            });
+
+            body.innerHTML = '';
+            sortedData.forEach((s, i) => {
+                const conviction = currentAnalysisMode === 'LONG' ? s.Long_Conviction : s.Short_Conviction;
+                const bias = s.Long_Conviction > s.Short_Conviction ? 'BULLISH' : 'BEARISH';
+                const biasCls = bias === 'BULLISH' ? 'text-success' : 'text-danger';
+                const rank = currentAnalysisMode === 'LONG' ? s.Long_Rank : s.Short_Rank;
+                
+                body.innerHTML += `
+                    <tr>
+                        <td class="text-dim">#${rank}</td>
+                        <td class="ticker-name">
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="/ticker/${encodeURIComponent(s.ticker)}" class="ticker-link">
+                                    ${s.ticker.replace('.NS', '')}
+                                </a>
+                                <a href="https://www.tradingview.com/chart/?symbol=NSE:${s.ticker.replace('.NS', '')}" target="_blank" class="text-dim" style="font-size: 10px;" title="View TradingView Chart">
+                                    <i class="bi bi-graph-up"></i>
+                                </a>
+                            </div>
+                        </td>
+                        <td class="mono small text-dim">
+                            <span class="${currentAnalysisMode === 'LONG' ? 'text-accent-long fw-bold' : ''}">${s.long_score.toFixed(3)}</span> / 
+                            <span class="${currentAnalysisMode === 'SHORT' ? 'text-accent-short fw-bold' : ''}">${s.short_score.toFixed(3)}</span>
+                        </td>
+                        <td class="mono fw-bold ${currentAnalysisMode === 'LONG' ? 'text-accent-long' : 'text-accent-short'}">${conviction.toFixed(4)}</td>
+                        <td class="mono small">${(s.dv_raw / 10000000).toFixed(1)} Cr</td>
+                        <td class="mono small">${s.rvol_raw.toFixed(2)}x</td>
+                        <td class="mono small">${(s.dist_52h_actual * 100).toFixed(1)}%</td>
+                        <td class="fw-bold ${biasCls} small">${bias}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('analysis-updated').innerText = `Last scan: ${new Date().toLocaleTimeString()}`;
+        }
+
+        async function fetchAnalysis() {
+            try {
+                fetchUpstoxData();
+                
+                const res = await fetch('/live_scores');
+                const data = await res.json();
+                if (!data.scores) return;
+                
+                currentAnalysisScores = data.scores;
+                renderAnalysis();
+            } catch (e) { console.error("Analysis Error:", e); }
+        }
+
+        // --- MANUAL RECALCULATE ---
+        function recalculateAll() {
+            console.log("Manual Recalculation Triggered...");
+            fetchStatus();
+            fetchUpstoxData();
+            fetchAnalysis();
+        }
+
+        function switchToUpstoxTab() {
+            const upstoxTab = document.getElementById('upstox-tab');
+            const tab = new bootstrap.Tab(upstoxTab);
+            tab.show();
+        }
+
+        setInterval(fetchStatus, 5000);
+        setInterval(fetchUpstoxData, 10000);
+        setInterval(fetchAnalysis, 30000);
+        
+        // Initial Fetch
+        fetchStatus(); 
+        fetchAnalysis();
+        fetchUpstoxData();
+        function searchTicker() {
+            let ticker = document.getElementById('tickerSearch').value.trim().toUpperCase();
+            if (ticker) {
+                // Auto-add .NS if not present
+                if (!ticker.endsWith('.NS') && !ticker.includes('.')) {
+                    ticker += '.NS';
+                }
+                window.location.href = `/ticker/${ticker}`;
+            }
+        }
+
+        // Add event listener for Enter key on search
+        document.getElementById('tickerSearch').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchTicker();
+            }
+        });
+
+        // ================================================================
+        // MARKET & MODEL SNAPSHOT HELPERS
+        // ================================================================
+
+        // Colour helpers
+        function sentimentClass(s) {
+            if (!s) return 'sentiment-unavailable';
+            const u = s.toUpperCase();
+            if (u === 'BULLISH') return 'sentiment-bullish';
+            if (u === 'BEARISH') return 'sentiment-bearish';
+            if (u === 'NEUTRAL') return 'sentiment-neutral';
+            if (u === 'MIXED')   return 'sentiment-mixed';
+            return 'sentiment-unavailable';
+        }
+        function pctColor(v) {
+            if (v === null || v === undefined) return '';
+            return v >= 0 ? 'text-success' : 'text-danger';
+        }
+        function fmtPct(v) {
+            if (v === null || v === undefined) return '—';
+            const s = v >= 0 ? '+' : '';
+            return `${s}${parseFloat(v).toFixed(2)}%`;
+        }
+        function sentimentBadgeStyle(s) {
+            const u = (s || '').toUpperCase();
+            if (u === 'BULLISH') return 'color:#00ff88;border-color:#00ff88;background:rgba(0,255,136,0.08)';
+            if (u === 'BEARISH') return 'color:#ff4d4d;border-color:#ff4d4d;background:rgba(255,77,77,0.08)';
+            if (u === 'NEUTRAL') return 'color:#f0c040;border-color:#f0c040;background:rgba(240,192,64,0.08)';
+            if (u === 'MIXED')   return 'color:#f0c040;border-color:#f0c040;background:rgba(240,192,64,0.08)';
+            return 'color:#8b949e;border-color:#8b949e;background:rgba(139,148,158,0.08)';
+        }
+
+        // ── MODEL SNAPSHOT ──────────────────────────────────────────────
+        let _modelData = null;
+
+        async function fetchModelSnapshot() {
+            try {
+                const res  = await fetch('/api/model_snapshot');
+                const data = await res.json();
+                _modelData = data;
+
+                const sent  = data.overall_sentiment || 'UNAVAILABLE';
+                const cls   = sentimentClass(sent);
+                const str   = data.sentiment_strength !== undefined ? `${data.sentiment_strength}%` : '—';
+
+                // Header widget
+                const wv = document.getElementById('model-sentiment-widget');
+                const ws = document.getElementById('model-strength-widget');
+                if (wv) { wv.className = `widget-value ${cls}`; wv.textContent = sent; }
+                if (ws) { ws.textContent = `Strength: ${str}`; }
+
+            } catch(e) {
+                const wv = document.getElementById('model-sentiment-widget');
+                if (wv) { wv.className = 'widget-value sentiment-unavailable'; wv.textContent = 'ERR'; }
+            }
+        }
+
+        function openModelModal() {
+            if (!_modelData) { fetchModelSnapshot(); }
+            const d = _modelData || {};
+
+            const sent = d.overall_sentiment || 'UNAVAILABLE';
+            const badge = document.getElementById('model-modal-sentiment-badge');
+            if (badge) { badge.textContent = sent; badge.setAttribute('style', `font-size:1.1rem;font-family:'Outfit';letter-spacing:1px;border:2px solid;${sentimentBadgeStyle(sent)}`); }
+
+            const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+            setTxt('model-modal-strength',   d.sentiment_strength !== undefined ? `${d.sentiment_strength}%` : '—');
+            setTxt('mm-bull-count',  d.bullish_count  ?? '—');
+            setTxt('mm-bull-pct',    d.bullish_pct    ?? '—');
+            setTxt('mm-bear-count',  d.bearish_count  ?? '—');
+            setTxt('mm-bear-pct',    d.bearish_pct    ?? '—');
+            setTxt('mm-avg-long',    d.avg_long_conviction  !== undefined ? d.avg_long_conviction.toFixed(4)  : '—');
+            setTxt('mm-avg-short',   d.avg_short_conviction !== undefined ? d.avg_short_conviction.toFixed(4) : '—');
+            setTxt('mm-top-long-ticker',  d.top_long_ticker  || '—');
+            setTxt('mm-top-long-conv',    `conv: ${d.top_long_conviction  !== undefined ? d.top_long_conviction.toFixed(4)  : '—'}`);
+            setTxt('mm-top-short-ticker', d.top_short_ticker || '—');
+            setTxt('mm-top-short-conv',   `conv: ${d.top_short_conviction !== undefined ? d.top_short_conviction.toFixed(4) : '—'}`);
+            setTxt('mm-total',      d.total_tickers ?? '—');
+            setTxt('model-modal-ts', d.timestamp ? `Last scan: ${d.timestamp}` : '—');
+
+            const ageEl = document.getElementById('mm-score-age');
+            if (ageEl) {
+                const age = d.scores_age_seconds;
+                ageEl.textContent = age >= 0 ? `${Math.round(age)}s ago` : '—';
+            }
+
+            // Bullish bar
+            const bar = document.getElementById('mm-bull-bar');
+            if (bar) bar.style.width = `${d.bullish_pct ?? 50}%`;
+
+            // Top-5 long table
+            const longBody = document.getElementById('mm-top5-long-body');
+            if (longBody && d.top5_long) {
+                longBody.innerHTML = d.top5_long.map(r =>
+                    `<tr>
+                        <td class="text-info">#${r.rank}</td>
+                        <td class="fw-bold text-white">${r.ticker}</td>
+                        <td class="text-success">${r.conviction.toFixed(4)}</td>
+                        <td class="text-dim">${r.long_score.toFixed(4)}</td>
+                    </tr>`
+                ).join('') || '<tr><td colspan="4" class="text-dim text-center">No data</td></tr>';
+            }
+
+            // Top-5 short table
+            const shortBody = document.getElementById('mm-top5-short-body');
+            if (shortBody && d.top5_short) {
+                shortBody.innerHTML = d.top5_short.map(r =>
+                    `<tr>
+                        <td class="text-info">#${r.rank}</td>
+                        <td class="fw-bold text-white">${r.ticker}</td>
+                        <td class="text-danger">${r.conviction.toFixed(4)}</td>
+                        <td class="text-dim">${r.short_score.toFixed(4)}</td>
+                    </tr>`
+                ).join('') || '<tr><td colspan="4" class="text-dim text-center">No data</td></tr>';
+            }
+
+            new bootstrap.Modal(document.getElementById('modelModal')).show();
+        }
+
+        // ── MARKET SNAPSHOT ─────────────────────────────────────────────
+        let _marketData = null;
+
+        async function fetchMarketSnapshot() {
+            try {
+                const res  = await fetch('/api/market_snapshot');
+                const data = await res.json();
+                _marketData = data;
+
+                const price = data.nifty_price;
+                const chPct = data.nifty_change_pct;
+                const sent  = data.market_sentiment || 'UNAVAILABLE';
+                const cls   = sentimentClass(sent);
+
+                // Header widget
+                const wv = document.getElementById('nifty-price-widget');
+                const ws = document.getElementById('nifty-change-widget');
+                if (wv) { wv.className = `widget-value ${cls}`; wv.textContent = price ? price.toLocaleString('en-IN') : '—'; }
+                if (ws) {
+                    ws.className = `widget-sub ${pctColor(chPct)}`;
+                    ws.textContent = chPct !== null && chPct !== undefined ? fmtPct(chPct) + ' today' : 'Unavailable';
+                }
+
+            } catch(e) {
+                const wv = document.getElementById('nifty-price-widget');
+                if (wv) { wv.textContent = 'ERR'; }
+            }
+        }
+
+        function openMarketModal() {
+            if (!_marketData) { fetchMarketSnapshot(); }
+            const d = _marketData || {};
+
+            const sent  = d.market_sentiment || 'UNAVAILABLE';
+            const badge = document.getElementById('market-modal-sentiment-badge');
+            if (badge) { badge.textContent = sent; badge.setAttribute('style', `font-size:1.1rem;font-family:'Outfit';letter-spacing:1px;border:2px solid;${sentimentBadgeStyle(sent)}`); }
+
+            const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val ?? '—'; };
+
+            setTxt('market-modal-ts', d.timestamp ? `Updated: ${d.timestamp}${d.cached ? ' (cached)' : ''}` : '—');
+
+            // VIX row
+            const vixRow = document.getElementById('market-modal-vix-row');
+            if (vixRow) {
+                if (d.india_vix) {
+                    const vixColor = d.vix_regime === 'HIGH' ? '#ff4d4d' : d.vix_regime === 'LOW' ? '#00ff88' : '#f0c040';
+                    vixRow.innerHTML = `India VIX: <strong style="color:${vixColor}">${d.india_vix}</strong> <span style="opacity:0.6">(${d.vix_regime})</span>`;
+                } else {
+                    vixRow.textContent = '';
+                }
+            }
+
+            // Populating sector indices table
+            const indicesBody = document.getElementById('market-indices-tbody');
+            if (indicesBody && d.indices) {
+                let html = '';
+                for (const [name, idx] of Object.entries(d.indices)) {
+                    if (name === "INDIA VIX") continue;
+                    const sign = idx.change_pts >= 0 ? '+' : '';
+                    const cl = idx.change_pct >= 0 ? 'text-success' : 'text-danger';
+                    
+                    // Map index name to its corresponding TradingView symbol
+                    let tvSym = '';
+                    if (name === 'NIFTY 50') {
+                        tvSym = 'NSE:NIFTY';
+                    } else if (name === 'SENSEX') {
+                        tvSym = 'BSE:SENSEX';
+                    } else if (name === 'NIFTY BANK') {
+                        tvSym = 'NSE:BANKNIFTY';
+                    } else if (name === 'NIFTY IT') {
+                        tvSym = 'NSE:CNXIT';
+                    } else if (name === 'INDIA VIX') {
+                        tvSym = 'NSE:INDIAVIX';
+                    } else {
+                        tvSym = `NSE:${name.replace(' ', '')}`;
+                    }
+
+                    html += `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.02);">
+                            <td style="padding:10px; font-weight:600;" class="text-white">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-graph-up me-2 text-info"></i>
+                                    <span>${name}</span>
+                                    <a href="https://www.tradingview.com/chart/?symbol=${tvSym}" target="_blank" class="text-dim ms-2" style="font-size: 10px;" title="View TradingView Chart">
+                                        <i class="bi bi-box-arrow-up-right"></i>
+                                    </a>
+                                </div>
+                            </td>
+                            <td style="padding:10px; text-align:right;" class="mono">${idx.price.toLocaleString('en-IN')}</td>
+                            <td style="padding:10px; text-align:right;" class="mono ${cl}">${sign}${idx.change_pts.toFixed(2)} (${idx.change_pct >= 0 ? '+' : ''}${idx.change_pct.toFixed(2)}%)</td>
+                            <td style="padding:10px; text-align:right;" class="mono ${pctColor(idx.weekly_pct)}">${fmtPct(idx.weekly_pct)}</td>
+                            <td style="padding:10px; text-align:right;" class="mono ${pctColor(idx.monthly_pct)}">${fmtPct(idx.monthly_pct)}</td>
+                            <td style="padding:10px; text-align:right;" class="mono text-dim d-none d-md-table-cell">${idx.high_52w.toLocaleString('en-IN')}</td>
+                            <td style="padding:10px; text-align:right;" class="mono text-dim d-none d-md-table-cell">${idx.low_52w.toLocaleString('en-IN')}</td>
+                        </tr>
+                    `;
+                }
+                indicesBody.innerHTML = html || '<tr><td colspan="7" class="text-center text-dim">No indices available</td></tr>';
+            }
+
+            // General Market Analytics
+            if (d.analytics) {
+                const a = d.analytics;
+                setTxt('ma-bullish-count', a.bullish_count);
+                setTxt('ma-bullish-pct',   a.bullish_pct);
+                setTxt('ma-bearish-count', a.bearish_count);
+                setTxt('ma-bearish-pct',   a.bearish_pct);
+                setTxt('ma-neutral-count', a.neutral_count);
+                setTxt('ma-universe-size', a.universe_size);
+                
+                setTxt('ma-total-volume',   a.total_volume_crores !== undefined ? `${a.total_volume_crores.toLocaleString('en-IN')} Cr` : '—');
+                setTxt('ma-avg-rvol',       a.avg_rvol !== undefined ? `${a.avg_rvol}x` : '—');
+                setTxt('ma-high-vol-count',  a.high_vol_count !== undefined ? `${a.high_vol_count} tickers` : '—');
+                setTxt('ma-near-52w-count',  a.near_52w_high_count !== undefined ? `${a.near_52w_high_count} tickers` : '—');
+                
+                const mbar = document.getElementById('ma-bullish-bar');
+                if (mbar) mbar.style.width = `${a.bullish_pct ?? 50}%`;
+            }
+
+            new bootstrap.Modal(document.getElementById('marketModal')).show();
+        }
+
+        // ── AUTO-POLL ON LOAD ────────────────────────────────────────────
+        fetchModelSnapshot();
+        fetchMarketSnapshot();
+        setInterval(fetchModelSnapshot,  60000);   // every 60s
+        setInterval(fetchMarketSnapshot, 300000);  // every 5 min
+
+    </script>
+
+    <!-- ===== MARKET MODAL ===== -->
+    <div class="modal fade" id="marketModal" tabindex="-1" aria-labelledby="marketModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content glass-modal">
+                <div class="modal-header glass-modal-header">
+                    <div>
+                        <div class="widget-label mb-1"><i class="bi bi-bar-chart-line me-1"></i>Market Overview</div>
+                        <h5 class="modal-title outfit fw-bold" id="marketModalLabel">Indian Indices & Market Analytics</h5>
+                        <div style="font-size:10px; color:var(--text-dim); font-family:'JetBrains Mono';" id="market-modal-ts">—</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Sentiment badge & VIX row -->
+                    <div class="text-center mb-4">
+                        <div class="widget-label mb-2">Overall NIFTY 50 Sentiment</div>
+                        <div id="market-modal-sentiment-badge" class="d-inline-block px-4 py-2 rounded-pill fw-bold"
+                            style="font-size:1.1rem; font-family:'Outfit'; letter-spacing:1px; border:2px solid;">—</div>
+                        <div id="market-modal-vix-row" class="mt-2" style="font-size:11px; color:var(--text-dim); font-family:'JetBrains Mono';"></div>
+                    </div>
+
+                    <!-- 1. Major Indian Indices Table -->
+                    <div class="mb-4">
+                        <div style="font-size:11px; font-weight:700; color:var(--accent-blue); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">
+                            <i class="bi bi-layers me-1"></i>Key Indian Market Indices
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-dark align-middle mb-0" style="background:rgba(0,0,0,0.15); border:1px solid rgba(255,255,255,0.05); font-size:13px;">
+                                <thead>
+                                    <tr style="font-size:10px; text-transform:uppercase; color:var(--text-dim); border-bottom:1px solid rgba(255,255,255,0.08);">
+                                        <th style="padding:10px;">Index</th>
+                                        <th style="padding:10px; text-align:right;">Last Price</th>
+                                        <th style="padding:10px; text-align:right;">Daily Chg</th>
+                                        <th style="padding:10px; text-align:right;">Weekly Chg</th>
+                                        <th style="padding:10px; text-align:right;">Monthly Chg</th>
+                                        <th style="padding:10px; text-align:right;" class="d-none d-md-table-cell">52W High</th>
+                                        <th style="padding:10px; text-align:right;" class="d-none d-md-table-cell">52W Low</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="market-indices-tbody">
+                                    <tr><td colspan="7" class="text-center text-dim py-3">Loading indices...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <hr class="my-4 border-secondary border-opacity-10">
+
+                    <!-- 2. General Indian Stock Market Analytics (Scanned Universe) -->
+                    <div class="row g-4">
+                        <!-- Breadth -->
+                        <div class="col-md-6">
+                            <div style="font-size:11px; font-weight:700; color:var(--accent-blue); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">
+                                <i class="bi bi-funnel me-1"></i>Universe Breadth (172 Active Scans)
+                            </div>
+                            <div class="metric-card p-3 h-100">
+                                <div class="d-flex justify-content-between mb-2" style="font-size:11px; font-family:'JetBrains Mono';">
+                                    <span class="text-success">Bullish Bias: <span id="ma-bullish-count">—</span> (<span id="ma-bullish-pct">—</span>%)</span>
+                                    <span class="text-danger">Bearish Bias: <span id="ma-bearish-count">—</span> (<span id="ma-bearish-pct">—</span>%)</span>
+                                </div>
+                                <div class="conviction-bar-wrap mb-3" style="height:8px;">
+                                    <div id="ma-bullish-bar" class="conviction-bar-fill" style="background: linear-gradient(90deg,#00ff88,#00cc66); width:50%;"></div>
+                                </div>
+                                
+                                <div class="row g-2 mt-2">
+                                    <div class="col-6">
+                                        <div style="font-size:9px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px;">Neutral Tickers</div>
+                                        <div class="fw-bold text-warning mono" style="font-size:15px;" id="ma-neutral-count">—</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div style="font-size:9px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px;">Scanned Universe</div>
+                                        <div class="fw-bold text-white mono" style="font-size:15px;" id="ma-universe-size">—</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Volatility & Activity -->
+                        <div class="col-md-6">
+                            <div style="font-size:11px; font-weight:700; color:var(--accent-blue); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">
+                                <i class="bi bi-activity me-1"></i>Universe Traded Volume & Valuation
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="metric-card p-2 text-center">
+                                        <div style="font-size:9px; color:var(--text-dim); text-transform:uppercase;">Daily Traded Vol</div>
+                                        <div class="fw-bold text-white mono" style="font-size:14px;" id="ma-total-volume">— Cr</div>
+                                        <div style="font-size:8px; opacity:0.5;">scanned universe total</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="metric-card p-2 text-center">
+                                        <div style="font-size:9px; color:var(--text-dim); text-transform:uppercase;">Avg Rel Vol (RVOL)</div>
+                                        <div class="fw-bold text-white mono" style="font-size:14px;" id="ma-avg-rvol">—x</div>
+                                        <div style="font-size:8px; opacity:0.5;">>1.0x indicates expansion</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="metric-card p-2 text-center">
+                                        <div style="font-size:9px; color:var(--text-dim); text-transform:uppercase;">Active Vol Tickers</div>
+                                        <div class="fw-bold text-info mono" style="font-size:14px;" id="ma-high-vol-count">—</div>
+                                        <div style="font-size:8px; opacity:0.5;">rvol > 1.5x today</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="metric-card p-2 text-center">
+                                        <div style="font-size:9px; color:var(--text-dim); text-transform:uppercase;">Near 52W High</div>
+                                        <div class="fw-bold text-success mono" style="font-size:14px;" id="ma-near-52w-count">—</div>
+                                        <div style="font-size:8px; opacity:0.5;">within 5% of peak</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer glass-modal-footer">
+                    <span style="font-size:10px; color:var(--text-dim);">Sector indices via yfinance · Breadth & Volume computed from active XGBoost rankings scan</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODEL MODAL ===== -->
+    <div class="modal fade" id="modelModal" tabindex="-1" aria-labelledby="modelModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content glass-modal">
+                <div class="modal-header glass-modal-header">
+                    <div>
+                        <div class="widget-label mb-1"><i class="bi bi-cpu me-1"></i>XGBoost Engine</div>
+                        <h5 class="modal-title outfit fw-bold" id="modelModalLabel">Model Conviction Snapshot</h5>
+                        <div style="font-size:10px; color:var(--text-dim); font-family:'JetBrains Mono';" id="model-modal-ts">—</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Overall sentiment -->
+                    <div class="text-center mb-4">
+                        <div class="widget-label mb-2">Engine Sentiment (Current Scan)</div>
+                        <div id="model-modal-sentiment-badge" class="d-inline-block px-4 py-2 rounded-pill fw-bold"
+                            style="font-size:1.1rem; font-family:'Outfit'; letter-spacing:1px; border:2px solid;">—</div>
+                        <div style="font-size:11px; color:var(--text-dim); font-family:'JetBrains Mono'; margin-top:6px;">
+                            Strength: <span id="model-modal-strength" class="fw-bold text-white">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Bull / Bear bar -->
+                    <div class="mb-4 px-2">
+                        <div class="d-flex justify-content-between mb-1" style="font-size:11px; font-family:'JetBrains Mono';">
+                            <span class="text-success">BULLISH <span id="mm-bull-count">0</span> tickers (<span id="mm-bull-pct">0</span>%)</span>
+                            <span class="text-danger">BEARISH <span id="mm-bear-count">0</span> tickers (<span id="mm-bear-pct">0</span>%)</span>
+                        </div>
+                        <div class="conviction-bar-wrap">
+                            <div id="mm-bull-bar" class="conviction-bar-fill" style="background: linear-gradient(90deg,#00ff88,#00cc66); width:50%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Conviction averages + top tickers -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="mc-label">Avg Long Conviction</div>
+                                <div class="mc-value text-success" id="mm-avg-long">—</div>
+                                <div class="mc-sub">across bullish tickers</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="mc-label">Avg Short Conviction</div>
+                                <div class="mc-value text-danger" id="mm-avg-short">—</div>
+                                <div class="mc-sub">across bearish tickers</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="mc-label">Top Long</div>
+                                <div class="mc-value text-success" id="mm-top-long-ticker">—</div>
+                                <div class="mc-sub" id="mm-top-long-conv">conv: —</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <div class="mc-label">Top Short</div>
+                                <div class="mc-value text-danger" id="mm-top-short-ticker">—</div>
+                                <div class="mc-sub" id="mm-top-short-conv">conv: —</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top 5 tables -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div style="font-size:11px; font-weight:700; color:var(--accent-long); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+                                <i class="bi bi-graph-up-arrow me-1"></i>Top 5 Long Ranked
+                            </div>
+                            <table class="table table-dark mini-rank-table mb-0">
+                                <thead>
+                                    <tr><th>#</th><th>Ticker</th><th>Conviction</th><th>Score</th></tr>
+                                </thead>
+                                <tbody id="mm-top5-long-body">
+                                    <tr><td colspan="4" class="text-center text-dim py-3">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <div style="font-size:11px; font-weight:700; color:var(--accent-short); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+                                <i class="bi bi-graph-down-arrow me-1"></i>Top 5 Short Ranked
+                            </div>
+                            <table class="table table-dark mini-rank-table mb-0">
+                                <thead>
+                                    <tr><th>#</th><th>Ticker</th><th>Conviction</th><th>Score</th></tr>
+                                </thead>
+                                <tbody id="mm-top5-short-body">
+                                    <tr><td colspan="4" class="text-center text-dim py-3">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer glass-modal-footer">
+                    <span style="font-size:10px; color:var(--text-dim);">
+                        Total tickers scanned: <span id="mm-total" class="fw-bold text-white">—</span> ·
+                        Scores from: <span id="mm-score-age" class="fw-bold text-white">—</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

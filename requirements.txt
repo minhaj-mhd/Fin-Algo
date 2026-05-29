@@ -1,0 +1,13 @@
+pandas
+numpy
+xgboost
+yfinance
+scikit-learn
+scipy
+tqdm
+google-genai
+tradingview-ta
+flask
+upstox-python-sdk
+python-dotenv
+protobuf>=4.25.0

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Realtime Trader Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 18px; }
+        .stat { font-size: 1.05rem; }
+        table th, table td { vertical-align: middle; }
+        .gain-positive { color: #198754; }
+        .gain-negative { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center gap-3">
+                <h3 class="mb-0">Realtime Trader Dashboard</h3>
+                <div class="input-group input-group-sm" style="width: 280px;">
+                    <span class="input-group-text bg-light border-secondary"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control border-secondary" id="tickerSearch" placeholder="SEARCH TICKER..." style="font-size: 11px; font-weight: 600;">
+                    <button class="btn btn-outline-secondary" type="button" onclick="searchTicker()">GO</button>
+                </div>
+            </div>
+            <div class="text-end">
+                <div class="stat">Capital: <strong id="capital">-</strong></div>
+                <div class="stat">Cumulative gain: <strong id="cumulative">-</strong></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 mb-3">
+                <div class="card">
+                    <div class="card-header">Last Rankings (snapshot)</div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped mb-0">
+                                <thead class="table-light"><tr><th>#</th><th>Ticker</th><th>Hourly (rank)</th><th>Live (realtime)</th><th>Gain</th><th>Score</th></tr></thead>
+                                <tbody id="ranks"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-3">
+                <div class="card mb-3">
+                    <div class="card-header">Open Trades</div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped mb-0">
+                                <thead class="table-light"><tr><th>Ticker</th><th>Entry (hourly)</th><th>Entry (live)</th><th>Shares</th><th>Target+</th><th>Target-</th><th>Status</th></tr></thead>
+                                <tbody id="open"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Recent Trades</div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped mb-0">
+                                <thead class="table-light"><tr><th>Ticker</th><th>Entry</th><th>Exit</th><th>Profit</th></tr></thead>
+                                <tbody id="hist"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function fmt(n, d=2){ return (typeof n === 'number')? n.toFixed(d): '-'; }
+        async function refresh(){
+            try{
+                const r = await fetch('/status');
+                const j = await r.json();
+                document.getElementById('capital').innerText = fmt(j.capital,2);
+                document.getElementById('cumulative').innerText = fmt(j.cumulative_gain,2);
+
+                const tb = document.querySelector('#open'); tb.innerHTML='';
+                j.open_trades.forEach(t=>{ tb.innerHTML += `<tr><td>${t.ticker}</td><td>${fmt(t.entry_price,2)}</td><td>${fmt(t.entry_price_live,2)}</td><td>${fmt(t.shares,2)}</td><td>${fmt(t.target_up,4)}</td><td>${fmt(t.target_down,4)}</td><td>${t.status}</td></tr>` });
+
+                const tr = document.querySelector('#ranks'); tr.innerHTML='';
+                j.last_rankings.slice(0,50).forEach((rk, i)=>{
+                    const gain = rk.gain || 0;
+                    const cls = gain>=0? 'gain-positive':'gain-negative';
+                    const hourly = (rk.hourly_price !== undefined)? rk.hourly_price : (rk.snapshot_price !== undefined? rk.snapshot_price : rk.price);
+                    const live = (rk.live_price !== undefined)? rk.live_price : rk.current_price;
+                    tr.innerHTML += `<tr><td>${i+1}</td><td>${rk.ticker}</td><td>${fmt(hourly,2)}</td><td>${fmt(live,2)}</td><td class='${cls}'>${(gain*100).toFixed(2)}%</td><td>${fmt(rk.score,4)}</td></tr>`;
+                });
+
+                const th = document.querySelector('#hist'); th.innerHTML='';
+                j.trade_history.slice(-20).reverse().forEach(h=>{ th.innerHTML += `<tr><td>${h.ticker}</td><td>${fmt(h.entry_price,2)}</td><td>${h.exit_price? fmt(h.exit_price,2): '-'}</td><td>${h.profit? fmt(h.profit,2): '-'}</td></tr>` });
+            }catch(e){ console.warn('refresh error', e); }
+        }
+        function searchTicker() {
+            let ticker = document.getElementById('tickerSearch').value.trim().toUpperCase();
+            if (ticker) {
+                if (!ticker.endsWith('.NS') && !ticker.includes('.')) {
+                    ticker += '.NS';
+                }
+                window.location.href = `/ticker/${ticker}`;
+            }
+        }
+        document.getElementById('tickerSearch').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchTicker();
+            }
+        });
+
+        setInterval(refresh, 10000);
+        refresh();
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</body>
+</html>

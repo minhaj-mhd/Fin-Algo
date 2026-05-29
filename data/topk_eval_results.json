@@ -1,0 +1,42 @@
+{
+  "v1_yfinance": {
+    "long_prec@1": 0.525908739365816,
+    "long_prec@3": 0.525650940964166,
+    "long_prec@5": 0.5274555297757154,
+    "short_prec@3": 0.554266563547306,
+    "avg_top3_long_return": 0.00040021893739877637,
+    "avg_random_return": 2.5075773980477998e-05
+  },
+  "v2_feature_fix": {
+    "long_prec@1": 0.49729311678267596,
+    "long_prec@3": 0.5094096416602217,
+    "long_prec@5": 0.502861562258314,
+    "short_prec@3": 0.5444702242846094,
+    "avg_top3_long_return": 0.00016775055825449646,
+    "avg_random_return": 2.5075773980477998e-05
+  },
+  "v3_sector_momentum": {
+    "long_prec@1": 0.5243619489559165,
+    "long_prec@3": 0.5186903841196184,
+    "long_prec@5": 0.5184841453982986,
+    "short_prec@3": 0.5106986336684712,
+    "avg_top3_long_return": 0.00018682310208912965,
+    "avg_random_return": 2.5075773980477998e-05
+  },
+  "v6_feature_fixed": {
+    "long_prec@1": 0.4957463263727765,
+    "long_prec@3": 0.5070894560453725,
+    "long_prec@5": 0.5189481825212684,
+    "short_prec@3": 0.5439546274813096,
+    "avg_top3_long_return": 0.0005094668863026915,
+    "avg_random_return": 2.5075773980477998e-05
+  },
+  "v8_upstox_3y": {
+    "long_prec@1": 0.5924207269914926,
+    "long_prec@3": 0.5581335395720547,
+    "long_prec@5": 0.5509667440061872,
+    "short_prec@3": 0.5733436452693993,
+    "avg_top3_long_return": 0.0008102150051474528,
+    "avg_random_return": 2.5075773980477998e-05
+  }
+}

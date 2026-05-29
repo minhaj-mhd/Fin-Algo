@@ -1,0 +1,188 @@
+[
+  {
+    "strategy": "A. Baseline (Top-1, Max 5/day)",
+    "total_trades": 285,
+    "total_wins": 155,
+    "total_losses": 130,
+    "overall_win_rate": 0.543859649122807,
+    "avg_trades_per_day": 5.0,
+    "avg_wins_per_day": 2.719298245614035,
+    "avg_losses_per_day": 2.280701754385965,
+    "avg_daily_win_rate": 0.543859649122807,
+    "avg_gross_return_per_trade": 0.0008025209415729753,
+    "avg_net_return_per_trade": 0.0005025209415729754,
+    "avg_daily_pnl": 0.0025126047078648764,
+    "green_days": 36,
+    "total_days": 57,
+    "green_day_rate": 0.631578947368421,
+    "avg_win_size": 0.0047159397927591384,
+    "avg_loss_size": -0.004521170765610524,
+    "profit_factor": 1.2436715140546948,
+    "max_drawdown": -0.07613925701504656,
+    "best_day": {
+      "date": "2026-03-09",
+      "pnl": 0.0425725699452443,
+      "trades": 5
+    },
+    "worst_day": {
+      "date": "2026-04-23",
+      "pnl": -0.029160720603113904,
+      "trades": 5
+    }
+  },
+  {
+    "strategy": "B. High-Conviction (Spread > P70)",
+    "total_trades": 342,
+    "total_wins": 184,
+    "total_losses": 158,
+    "overall_win_rate": 0.5380116959064327,
+    "avg_trades_per_day": 6.0,
+    "avg_wins_per_day": 3.2280701754385963,
+    "avg_losses_per_day": 2.7719298245614037,
+    "avg_daily_win_rate": 0.5380116959064327,
+    "avg_gross_return_per_trade": 0.0005258590044054618,
+    "avg_net_return_per_trade": 0.0002258590044054619,
+    "avg_daily_pnl": 0.0013551540264327708,
+    "green_days": 32,
+    "total_days": 57,
+    "green_day_rate": 0.5614035087719298,
+    "avg_win_size": 0.004173582527884325,
+    "avg_loss_size": -0.004371489909012962,
+    "profit_factor": 1.1118347955954297,
+    "max_drawdown": -0.08352635804741686,
+    "best_day": {
+      "date": "2026-03-09",
+      "pnl": 0.045908080675864694,
+      "trades": 6
+    },
+    "worst_day": {
+      "date": "2026-04-01",
+      "pnl": -0.033261792471140604,
+      "trades": 6
+    }
+  },
+  {
+    "strategy": "C. IBS Confluence (L<0.30, S>0.70)",
+    "total_trades": 342,
+    "total_wins": 176,
+    "total_losses": 166,
+    "overall_win_rate": 0.5146198830409356,
+    "avg_trades_per_day": 6.0,
+    "avg_wins_per_day": 3.087719298245614,
+    "avg_losses_per_day": 2.912280701754386,
+    "avg_daily_win_rate": 0.5146198830409356,
+    "avg_gross_return_per_trade": 0.00047543061287985683,
+    "avg_net_return_per_trade": 0.00017543061287985675,
+    "avg_daily_pnl": 0.0010525836772791405,
+    "green_days": 36,
+    "total_days": 57,
+    "green_day_rate": 0.631578947368421,
+    "avg_win_size": 0.004167550220736945,
+    "avg_loss_size": -0.004057178127980671,
+    "profit_factor": 1.0890839207863998,
+    "max_drawdown": -0.13215320047922227,
+    "best_day": {
+      "date": "2026-03-25",
+      "pnl": 0.0306894475923654,
+      "trades": 6
+    },
+    "worst_day": {
+      "date": "2026-03-27",
+      "pnl": -0.028945578012233002,
+      "trades": 6
+    }
+  },
+  {
+    "strategy": "D. Time-Filtered (10-14 only)",
+    "total_trades": 342,
+    "total_wins": 187,
+    "total_losses": 155,
+    "overall_win_rate": 0.5467836257309941,
+    "avg_trades_per_day": 6.0,
+    "avg_wins_per_day": 3.280701754385965,
+    "avg_losses_per_day": 2.719298245614035,
+    "avg_daily_win_rate": 0.5467836257309941,
+    "avg_gross_return_per_trade": 0.0005761954450640492,
+    "avg_net_return_per_trade": 0.0002761954450640492,
+    "avg_daily_pnl": 0.001657172670384296,
+    "green_days": 34,
+    "total_days": 57,
+    "green_day_rate": 0.5964912280701754,
+    "avg_win_size": 0.003034409547686636,
+    "avg_loss_size": -0.0030514564077773945,
+    "profit_factor": 1.1997118109519305,
+    "max_drawdown": -0.04431851081726801,
+    "best_day": {
+      "date": "2026-04-08",
+      "pnl": 0.0335130610542331,
+      "trades": 6
+    },
+    "worst_day": {
+      "date": "2026-03-17",
+      "pnl": -0.028712178122590602,
+      "trades": 6
+    }
+  },
+  {
+    "strategy": "E. Combined (Time+IBS+Conviction)",
+    "total_trades": 399,
+    "total_wins": 214,
+    "total_losses": 185,
+    "overall_win_rate": 0.5363408521303258,
+    "avg_trades_per_day": 7.0,
+    "avg_wins_per_day": 3.754385964912281,
+    "avg_losses_per_day": 3.245614035087719,
+    "avg_daily_win_rate": 0.5363408521303257,
+    "avg_gross_return_per_trade": 0.0005743166777242138,
+    "avg_net_return_per_trade": 0.00027431667772421386,
+    "avg_daily_pnl": 0.0019202167440694968,
+    "green_days": 37,
+    "total_days": 57,
+    "green_day_rate": 0.6491228070175439,
+    "avg_win_size": 0.0026717812636549466,
+    "avg_loss_size": -0.0024989666811362017,
+    "profit_factor": 1.2367515952248576,
+    "max_drawdown": -0.06972716981542107,
+    "best_day": {
+      "date": "2026-03-16",
+      "pnl": 0.026758718115125903,
+      "trades": 7
+    },
+    "worst_day": {
+      "date": "2026-04-06",
+      "pnl": -0.026996180915249145,
+      "trades": 7
+    }
+  },
+  {
+    "strategy": "F. Relaxed IBS (L<0.40, S>0.60)",
+    "total_trades": 399,
+    "total_wins": 217,
+    "total_losses": 182,
+    "overall_win_rate": 0.543859649122807,
+    "avg_trades_per_day": 7.0,
+    "avg_wins_per_day": 3.807017543859649,
+    "avg_losses_per_day": 3.192982456140351,
+    "avg_daily_win_rate": 0.543859649122807,
+    "avg_gross_return_per_trade": 0.00047295937617485636,
+    "avg_net_return_per_trade": 0.0001729593761748564,
+    "avg_daily_pnl": 0.001210715633223995,
+    "green_days": 34,
+    "total_days": 57,
+    "green_day_rate": 0.5964912280701754,
+    "avg_win_size": 0.0031984436024134096,
+    "avg_loss_size": -0.003434348739724957,
+    "profit_factor": 1.1104081733048592,
+    "max_drawdown": -0.1285602335941229,
+    "best_day": {
+      "date": "2026-03-09",
+      "pnl": 0.036227055175404914,
+      "trades": 7
+    },
+    "worst_day": {
+      "date": "2026-03-17",
+      "pnl": -0.0279834350141547,
+      "trades": 7
+    }
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "model_name": "v8_upstox_3y",
+  "spearman_long_mean": 0.04614248171494894,
+  "spearman_short_mean": 0.04895606109287427,
+  "avg_top3_long_return_pct": 0.08102150051474527,
+  "avg_top3_short_return_pct": 0.1298585403470586,
+  "wr_top3_long_pct": 55.9938128383604,
+  "wr_top3_short_pct": 58.93271461716937,
+  "avg_market_return_pct": 0.0025075773980478,
+  "dataset_used": "data/ranking_data_upstox_3y.csv",
+  "backtested_at": "2026-05-28T19:34:43.467731"
+}

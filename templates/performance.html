@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Intelligence | Vanguard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg-dark: #05070a;
+            --card-bg: rgba(13, 17, 23, 0.75);
+            --accent-long: #00ff88;
+            --accent-short: #ff4d4d;
+            --accent-blue: #00d4ff;
+            --text-main: #e6edf3;
+            --text-dim: #8b949e;
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 2rem 0;
+        }
+
+        /* --- PREMIUM CARD HOVER SYSTEM --- */
+        .card-glass {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .card-glass:hover {
+            border-color: rgba(0, 212, 255, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.05);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            height: 100%;
+            transition: all 0.25s ease-in-out;
+            text-align: center;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-blue);
+            background: rgba(0, 212, 255, 0.04);
+            box-shadow: 0 8px 24px rgba(0, 212, 255, 0.1);
+        }
+
+        .stat-label {
+            font-family: 'Outfit';
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-family: 'Outfit';
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .stat-value.positive { color: var(--accent-long); }
+        .stat-value.negative { color: var(--accent-short); }
+
+        .section-title {
+            font-family: 'Outfit';
+            font-weight: 800;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--accent-blue);
+        }
+
+        /* --- PREMIUM DARK TABLES --- */
+        .table {
+            --bs-table-bg: transparent;
+            --bs-table-hover-bg: rgba(255, 255, 255, 0.02);
+            --bs-table-color: var(--text-main);
+            --bs-table-border-color: rgba(255, 255, 255, 0.04);
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            color: var(--text-dim);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-family: 'Outfit';
+            font-weight: 600;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 15px;
+        }
+
+        .table td {
+            vertical-align: middle;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 1rem 0.5rem;
+            font-size: 14px;
+            font-family: 'JetBrains Mono';
+        }
+
+        .period-label {
+            font-family: 'Outfit';
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .back-link {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2rem;
+            transition: color 0.2s;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            color: var(--accent-blue);
+        }
+
+        .chart-container {
+            height: 350px;
+            margin-bottom: 1rem;
+        }
+
+        .pnl-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 12px;
+            font-family: 'Outfit';
+        }
+
+        .pnl-positive {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-long);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .pnl-negative {
+            background: rgba(255, 77, 77, 0.1);
+            color: var(--accent-short);
+            border: 1px solid rgba(255, 77, 77, 0.2);
+        }
+
+        /* Accent classes matching server rendering */
+        .text-accent-long {
+            color: var(--accent-long) !important;
+        }
+
+        .text-accent-short {
+            color: var(--accent-short) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid px-3 px-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="/" class="back-link mb-0"><i class="bi bi-arrow-left"></i> BACK TO COMMAND CENTER</a>
+            <div class="input-group input-group-sm shadow-sm" style="width: 280px;">
+                <span class="input-group-text bg-dark border-secondary text-dim" style="border-right: none; background: rgba(13, 17, 23, 0.8) !important;"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control bg-dark border-secondary text-white" id="tickerSearch" placeholder="SEARCH TICKER..." style="border-left: none; border-right: none; font-size: 10px; letter-spacing: 1px; font-weight: 600; background: rgba(13, 17, 23, 0.8) !important;">
+                <button class="btn btn-outline-info" type="button" onclick="searchTicker()" style="font-size: 10px; font-weight: 800; border-color: #666; color: #aaa;">GO</button>
+            </div>
+        </div>
+
+        <div class="section-title">
+            <i class="bi bi-graph-up-arrow"></i> Performance Intelligence
+        </div>
+
+        <!-- SUMMARY STATS -->
+        <div class="row g-4 mb-5">
+            <div class="col-sm-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-label">All-Time Alpha</div>
+                    <div class="stat-value positive" id="sum-alpha">0.00%</div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-label">Total Executions</div>
+                    <div class="stat-value" id="sum-count">0</div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-label">Win Rate</div>
+                    <div class="stat-value text-info" id="sum-winrate">0%</div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="stat-card">
+                    <div class="stat-label">Avg Profit / Trade</div>
+                    <div class="stat-value" id="sum-avg">0.00%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EQUITY CURVE -->
+        <div class="card card-glass mb-5">
+            <div class="card-body p-4">
+                <div class="stat-label mb-3">Cumulative Equity Curve</div>
+                <div class="chart-container">
+                    <canvas id="equityChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- DAILY FEED -->
+            <div class="col-lg-8">
+                <div class="card card-glass h-100">
+                    <div class="card-body p-4">
+                        <div class="stat-label mb-4">Day-by-Day Performance Feed</div>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Alpha Gain</th>
+                                        <th>Trades</th>
+                                        <th>Win Rate</th>
+                                        <th>Performance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="daily-table">
+                                    <!-- Data injects here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WEEKLY/MONTHLY AGGREGATES -->
+            <div class="col-lg-4">
+                <div class="d-flex flex-column gap-4 h-100">
+                    <div class="card card-glass flex-fill">
+                        <div class="card-body p-4">
+                            <div class="stat-label mb-4">Monthly Aggregates</div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Month</th>
+                                            <th>P&L</th>
+                                            <th>Vol</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="monthly-table">
+                                        <!-- Data injects here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card card-glass flex-fill">
+                        <div class="card-body p-4">
+                            <div class="stat-label mb-4">Weekly Snapshots</div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Week</th>
+                                            <th>P&L</th>
+                                            <th>Vol</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="weekly-table">
+                                        <!-- Data injects here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadPerformance() {
+            try {
+                const res = await fetch('/api/performance_data');
+                const data = await res.json();
+
+                // 1. Summary Stats
+                let totalPnl = 0;
+                let totalTrades = 0;
+                let totalWins = 0;
+
+                data.daily.forEach(d => {
+                    totalPnl += d.total_pnl;
+                    totalTrades += d.trade_count;
+                    totalWins += d.wins;
+                });
+
+                document.getElementById('sum-alpha').innerText = (totalPnl >= 0 ? '+' : '') + totalPnl.toFixed(2) + '%';
+                document.getElementById('sum-alpha').className = 'stat-value ' + (totalPnl >= 0 ? 'positive' : 'negative');
+                document.getElementById('sum-count').innerText = totalTrades;
+                document.getElementById('sum-winrate').innerText = totalTrades > 0 ? ((totalWins / totalTrades) * 100).toFixed(1) + '%' : '0%';
+                document.getElementById('sum-avg').innerText = totalTrades > 0 ? (totalPnl / totalTrades).toFixed(2) + '%' : '0.00%';
+
+                // 2. Daily Table
+                const dailyBody = document.getElementById('daily-table');
+                dailyBody.innerHTML = '';
+                data.daily.forEach(d => {
+                    const pnlCls = d.total_pnl > 0 ? 'pnl-positive' : 'pnl-negative';
+                    const winRate = ((d.wins / d.trade_count) * 100).toFixed(0);
+                    dailyBody.innerHTML += `
+                        <tr>
+                            <td class="period-label">${d.period}</td>
+                            <td class="fw-bold ${d.total_pnl >= 0 ? 'text-accent-long' : 'text-accent-short'}">${d.total_pnl >= 0 ? '+' : ''}${d.total_pnl.toFixed(2)}%</td>
+                            <td>${d.trade_count}</td>
+                            <td class="text-dim">${winRate}%</td>
+                            <td><span class="pnl-badge ${pnlCls}">${d.total_pnl > 0 ? 'BULLISH' : 'BEARISH'}</span></td>
+                        </tr>
+                    `;
+                });
+
+                // 3. Monthly Table
+                const monthlyBody = document.getElementById('monthly-table');
+                monthlyBody.innerHTML = '';
+                data.monthly.forEach(m => {
+                    monthlyBody.innerHTML += `
+                        <tr>
+                            <td class="period-label">${m.period}</td>
+                            <td class="fw-bold ${m.total_pnl >= 0 ? 'text-accent-long' : 'text-accent-short'}">${m.total_pnl >= 0 ? '+' : ''}${m.total_pnl.toFixed(1)}%</td>
+                            <td class="text-dim">${m.trade_count}t</td>
+                        </tr>
+                    `;
+                });
+
+                // 4. Weekly Table
+                const weeklyBody = document.getElementById('weekly-table');
+                weeklyBody.innerHTML = '';
+                data.weekly.forEach(w => {
+                    weeklyBody.innerHTML += `
+                        <tr>
+                            <td class="period-label">${w.period.replace('-W', ' W')}</td>
+                            <td class="fw-bold ${w.total_pnl >= 0 ? 'text-accent-long' : 'text-accent-short'}">${w.total_pnl >= 0 ? '+' : ''}${w.total_pnl.toFixed(1)}%</td>
+                            <td class="text-dim">${w.trade_count}t</td>
+                        </tr>
+                    `;
+                });
+
+                // 5. Equity Chart
+                const ctx = document.getElementById('equityChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.equity_curve.map(p => new Date(p.t).toLocaleDateString()),
+                        datasets: [{
+                            label: 'Cumulative Alpha (%)',
+                            data: data.equity_curve.map(p => p.y),
+                            borderColor: '#00d4ff',
+                            borderWidth: 3,
+                            backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: '#8b949e', maxRotation: 45, minRotation: 45 }
+                            },
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: '#8b949e' }
+                            }
+                        }
+                    }
+                });
+
+            } catch (e) { console.error("Performance Load Error:", e); }
+        }
+
+        loadPerformance();
+
+        function searchTicker() {
+            let ticker = document.getElementById('tickerSearch').value.trim().toUpperCase();
+            if (ticker) {
+                if (!ticker.endsWith('.NS') && !ticker.includes('.')) {
+                    ticker += '.NS';
+                }
+                window.location.href = `/ticker/${ticker}`;
+            }
+        }
+
+        document.getElementById('tickerSearch').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchTicker();
+            }
+        });
+    </script>
+</body>
+</html>

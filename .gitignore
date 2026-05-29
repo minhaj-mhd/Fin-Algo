@@ -1,0 +1,19 @@
+env/
+venv/
+*.pyc
+__pycache__/
+data/ranking_data_full.csv
+ranking_data_full.csv
+.env
+*.db
+data/*.db
+data/latest_scores.json
+
+# Large datasets, logs, and caches
+data/*.csv
+data/historical/
+data/raw_upstox_cache/
+data/vanguard_system.log
+
+# Temporary files
+scratch/
