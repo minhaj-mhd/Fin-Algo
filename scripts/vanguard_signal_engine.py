@@ -22,6 +22,7 @@ from scripts.database_manager import init_db, log_trade, get_trades_by_status
 from scripts.upstox_broker import UpstoxSandboxBroker
 from scripts.tv_ta import get_tv_sentiment
 from scripts.terminal_utils import log
+from scripts.strategy_filters import StrategyFilters
 
 # Load API keys from .env
 load_dotenv()
@@ -138,11 +139,16 @@ class GeminiRateTracker:
 
 
 
+# Daily macro PyTorch Transformer code retired completely.
+
+
 class VanguardEngine:
     def __init__(self, model_path, scaler_path, meta_path):
         log("\n" + "=" * 60)
         log("VANGUARD ENSEMBLE V2.3 - INDUSTRIAL HARDENED")
         log("=" * 60)
+
+        self.strategy_filters = StrategyFilters()
 
         # 1. LOAD MODELS (via Model Registry — falls back to legacy paths)
         try:
@@ -185,6 +191,26 @@ class VanguardEngine:
             log(f"[OK] ML Models: {len(self.feature_cols)} features | LOADED ({self._active_model_name})")
         except Exception as e:
             log(f"[ERROR] Critical Load Error: {e}")
+            sys.exit(1)
+
+        # 1b. LOAD DAILY MACRO TREND GATEKEEPER MODELS
+        try:
+            log("[INFO] Loading Daily Macro Trend Gatekeeper Models...")
+            self.daily_xgb_long = xgb.Booster()
+            self.daily_xgb_long.load_model("models/daily_xgb/xgb_long_model.json")
+            self.daily_xgb_long.set_param({'device': 'cuda'})
+
+            self.daily_xgb_short = xgb.Booster()
+            self.daily_xgb_short.load_model("models/daily_xgb/xgb_short_model.json")
+            self.daily_xgb_short.set_param({'device': 'cuda'})
+
+            # Load Daily XGBoost Metadata
+            daily_meta = json.load(open("models/daily_xgb/metadata.json"))
+            self.daily_feature_cols = daily_meta["features"]
+
+            log("[OK] Daily Macro Gatekeepers loaded successfully.")
+        except Exception as daily_load_err:
+            log(f"[ERROR] Failed to load Daily Macro Gatekeepers: {daily_load_err}")
             sys.exit(1)
 
         # 2. INITIALIZE DB
@@ -287,8 +313,212 @@ class VanguardEngine:
         # 6. RESUME OPEN TRADES FROM DATABASE
         self.load_open_trades()
 
+        # Run initial scan to select daily macro trend gatekeeper tickers
+        self.update_daily_macro_filters()
+
         # Start Shadow Tracker Thread
         threading.Thread(target=self.shadow_tracker_loop, daemon=True).start()
+
+    def update_daily_macro_filters(self):
+        """
+        Runs once daily at startup or day-start.
+        Fetches 1 year of daily historical candles from yfinance for ALL tickers,
+        computes technical features using scripts.feature_utils.compute_features_daily_xgb,
+        normalizes features cross-sectionally daily,
+        runs inference using Daily Macro XGBoost models (GPU/CPU),
+        ranks their conviction scores, and registers long_eligible_tickers and short_eligible_tickers.
+        """
+        log("\n" + "=" * 60)
+        log("RUNNING DAILY MACRO TREND SCAN (GATEKEEPER SELECTION)")
+        log("=" * 60)
+        
+        try:
+            # 1. Fetch 1 year of daily data for all tickers in single yfinance download
+            tickers = list(TICKERS)
+            log(f"[DAILY-SCAN] Fetching 1y daily bars for {len(tickers)} symbols via yfinance...")
+            
+            df_batch = yf.download(
+                tickers,
+                period="1y",
+                interval="1d",
+                progress=False,
+                auto_adjust=True,
+                timeout=45
+            )
+            
+            if df_batch.empty:
+                raise ValueError("Downloaded empty batch from yfinance.")
+                
+            from scripts.feature_utils import compute_features_daily_xgb
+            
+            # 2. Compute features for each ticker
+            all_ticker_dfs = {}
+            for ticker in tickers:
+                try:
+                    # Extract single ticker's columns from multi-index dataframe
+                    if len(tickers) > 1:
+                        if ticker in df_batch.columns.get_level_values(1):
+                            ticker_df = df_batch.xs(ticker, level=1, axis=1).copy()
+                        else:
+                            continue
+                    else:
+                        ticker_df = df_batch.copy()
+                        
+                    ticker_df = ticker_df.dropna(subset=['Close'])
+                    if len(ticker_df) < 50:
+                        continue
+                        
+                    # Standardize columns to match compute_features expectations
+                    ticker_df = ticker_df.rename(columns={
+                        'Open': 'Open', 'High': 'High', 'Low': 'Low',
+                        'Close': 'Close', 'Volume': 'Volume'
+                    })
+                    ticker_df['Ticker'] = ticker
+                    
+                    # Compute standard indicators for daily XGBoost gatekeeper
+                    df_feat = compute_features_daily_xgb(ticker_df)
+                    
+                    # Fix 52W High/Low for daily candles (250 days, not 1625 hourly)
+                    high_52w = df_feat['High'].rolling(250, min_periods=50).max()
+                    low_52w  = df_feat['Low'].rolling(250, min_periods=50).min()
+                    df_feat['Dist_52W_High'] = (df_feat['Close'] - high_52w) / (high_52w + 1e-8)
+                    df_feat['Dist_52W_Low']  = (df_feat['Close'] - low_52w)  / (low_52w  + 1e-8)
+                    
+                    # Clear any infinite values
+                    df_feat = df_feat.replace([np.inf, -np.inf], np.nan)
+                    all_ticker_dfs[ticker] = df_feat
+                except Exception as ticker_err:
+                    pass
+
+            if not all_ticker_dfs:
+                raise ValueError("Could not compute daily features for any ticker.")
+
+            # 3. Align all tickers across dates (taking the last 15 trading days)
+            all_dates = []
+            for t, df_t in all_ticker_dfs.items():
+                all_dates.extend(df_t.index.tolist())
+            unique_dates = sorted(list(set(all_dates)))
+            
+            # Keep only the last 15 trading days to Z-score
+            recent_dates = unique_dates[-15:]
+            log(f"[DAILY-SCAN] Z-scoring over last {len(recent_dates)} dates: {recent_dates[0].strftime('%Y-%m-%d')} to {recent_dates[-1].strftime('%Y-%m-%d')}")
+            
+            aligned_records = []
+            for ticker, df_t in all_ticker_dfs.items():
+                for dt in recent_dates:
+                    if dt in df_t.index:
+                        row = df_t.loc[dt].copy()
+                        row['DateTime'] = dt
+                        row['Ticker'] = ticker
+                        aligned_records.append(row)
+                        
+            df_aligned = pd.DataFrame(aligned_records)
+            df_aligned['Query_ID'] = df_aligned.groupby(df_aligned['DateTime'].dt.date).ngroup()
+            
+            # 4. Market Context Features
+            df_aligned['Market_Mean_Return']     = df_aligned.groupby('Query_ID')['Return'].transform('mean')
+            df_aligned['Relative_Return']        = df_aligned['Return'] - df_aligned['Market_Mean_Return']
+            df_aligned['Market_Mean_Volatility'] = df_aligned.groupby('Query_ID')['HL_Range'].transform('mean')
+            df_aligned['Relative_Volatility']    = df_aligned['HL_Range'] / (df_aligned['Market_Mean_Volatility'] + 1e-8)
+            
+            # 5. Cross-sectional Z-scoring per date (Query_ID)
+            exclude_cols = {
+                'DateTime', 'Query_ID', 'Ticker', 'Next_Day_Return',
+                'Open', 'High', 'Low', 'Close', 'Volume',
+                'Market_Mean_Return', 'Relative_Return',
+                'Market_Mean_Volatility', 'Relative_Volatility',
+                'Hour', 'DayOfWeek', 'Is_Open_Hour', 'Is_Close_Hour', 'Time_To_Close'
+            }
+            feature_cols = [c for c in self.daily_feature_cols if c not in exclude_cols]
+            
+            for col in feature_cols:
+                if col in df_aligned.columns:
+                    grp_mean = df_aligned.groupby('Query_ID')[col].transform('mean')
+                    grp_std  = df_aligned.groupby('Query_ID')[col].transform('std')
+                    df_aligned[col] = (df_aligned[col] - grp_mean) / (grp_std + 1e-8)
+                    
+            df_aligned[self.daily_feature_cols] = df_aligned[self.daily_feature_cols].fillna(0)
+            df_aligned = df_aligned.sort_values(['Ticker', 'DateTime']).reset_index(drop=True)
+            
+            # 6. Run inference for each ticker
+            xgb_long_scores = {}
+            xgb_short_scores = {}
+            
+            for ticker, g in df_aligned.groupby('Ticker'):
+                if len(g) < 10:
+                    continue
+                    
+                # A. XGBoost Daily Ranker: latest day's features (165 columns mapped correctly)
+                latest_row = g.iloc[-1]
+                X_xgb = latest_row[self.daily_feature_cols].values.astype(np.float32).reshape(1, -1)
+                
+                dmatrix_te = xgb.DMatrix(X_xgb)
+                xgb_l = float(self.daily_xgb_long.predict(dmatrix_te)[0])
+                xgb_s = float(self.daily_xgb_short.predict(dmatrix_te)[0])
+                xgb_long_scores[ticker] = xgb_l
+                xgb_short_scores[ticker] = xgb_s
+                
+            # 7. Rank Tickers
+            tickers_evaluated = list(xgb_long_scores.keys())
+            if not tickers_evaluated:
+                raise ValueError("No tickers were successfully evaluated.")
+                
+            df_ranks = pd.DataFrame({
+                'Ticker': tickers_evaluated,
+                'xgb_l': [xgb_long_scores[t] for t in tickers_evaluated],
+                'xgb_s': [xgb_short_scores[t] for t in tickers_evaluated]
+            })
+            
+            df_ranks['xgb_l_rank'] = df_ranks['xgb_l'].rank(ascending=False, method='min')
+            df_ranks['xgb_s_rank'] = df_ranks['xgb_s'].rank(ascending=False, method='min')
+            
+            # Select top 40% as eligible
+            k_eligible = max(2, int(len(df_ranks) * 0.40))
+            
+            long_eligible = df_ranks.sort_values('xgb_l_rank').head(k_eligible)['Ticker'].tolist()
+            short_eligible = df_ranks.sort_values('xgb_s_rank').head(k_eligible)['Ticker'].tolist()
+            
+            with self.lock:
+                self.long_eligible_tickers = set(long_eligible)
+                self.short_eligible_tickers = set(short_eligible)
+                
+            # Save daily gatekeepers results to json file for the dashboard
+            gatekeeper_data = {
+                "timestamp": datetime.now().isoformat(),
+                "long_eligible": [t.replace('.NS', '') for t in long_eligible],
+                "short_eligible": [t.replace('.NS', '') for t in short_eligible],
+                "long_eligible_count": len(long_eligible),
+                "short_eligible_count": len(short_eligible)
+            }
+            os.makedirs("data", exist_ok=True)
+            with open("data/daily_gatekeepers.json", "w") as f:
+                json.dump(gatekeeper_data, f)
+                
+            log(f"[DAILY-SCAN] Macro Trend Gatekeepers updated (XGBoost Pure):")
+            log(f"  • Evaluated Tickers    : {len(df_ranks)}")
+            log(f"  • LONG Eligible (Top40%): {len(self.long_eligible_tickers)} tickers")
+            log(f"  • SHORT Eligible (Top40%): {len(self.short_eligible_tickers)} tickers")
+            log(f"  • Top 5 LONG Candidates: {long_eligible[:5]}")
+            log(f"  • Top 5 SHORT Candidates: {short_eligible[:5]}")
+            log("=" * 60)
+            
+        except Exception as scan_err:
+            log(f"[ERROR] Daily Macro Scan failed: {scan_err}")
+            log("[WARN] Falling back to allowing ALL tickers (Gatekeeper disabled due to error).")
+            with self.lock:
+                self.long_eligible_tickers = set(TICKERS)
+                self.short_eligible_tickers = set(TICKERS)
+            
+            fallback_data = {
+                "timestamp": datetime.now().isoformat(),
+                "long_eligible": [t.replace('.NS', '') for t in TICKERS],
+                "short_eligible": [t.replace('.NS', '') for t in TICKERS],
+                "long_eligible_count": len(TICKERS),
+                "short_eligible_count": len(TICKERS)
+            }
+            os.makedirs("data", exist_ok=True)
+            with open("data/daily_gatekeepers.json", "w") as f:
+                json.dump(fallback_data, f)
 
     def _start_websocket(self):
         """
@@ -958,11 +1188,18 @@ class VanguardEngine:
             scores_df["dist_52h_actual"] = raw_display_aligned["High_52W_Actual"]
             scores_df["Return_Raw"] = raw_display_aligned["Return"]
 
+            with self.lock:
+                long_el = getattr(self, "long_eligible_tickers", set())
+                short_el = getattr(self, "short_eligible_tickers", set())
+
+            scores_df["daily_long_eligible"] = scores_df["ticker"].apply(lambda x: x in long_el)
+            scores_df["daily_short_eligible"] = scores_df["ticker"].apply(lambda x: x in short_el)
+
             # Save for dashboard
             dashboard_cols = [
                 "ticker", "Close", "long_score", "short_score", "Long_Conviction",
                 "Short_Conviction", "Long_Rank", "Short_Rank", "dv_raw", "rvol_raw",
-                "dist_52h_model", "dist_52h_actual",
+                "dist_52h_model", "dist_52h_actual", "daily_long_eligible", "daily_short_eligible"
             ]
             latest_data = (
                 scores_df[dashboard_cols]
@@ -1740,6 +1977,7 @@ IMPORTANT:
         one_hour_prob="N/A",
         long_score=None,
         short_score=None,
+        strategy_id=None,
     ):
         # GUARD 0 — COOLDOWN: block re-entry on any ticker closed in the last 30 min.
         # This is the primary defence against the restart-duplicate bug: even if a resumed
@@ -1783,10 +2021,7 @@ IMPORTANT:
         # Dynamic ATR-based stop-loss and take-profit
         stop_loss_pct, take_profit_pct = self.compute_15min_atr(ticker)
         
-        # Apply Slippage (2 bps)
-        SLIPPAGE_BPS = 2
-        slippage = entry_price * (SLIPPAGE_BPS / 10000)
-        entry_price = entry_price + slippage if side == "LONG" else entry_price - slippage
+        # Execution price is raw market/broker fill price to prevent double-counting slippage.
 
         quantity = self.calculate_trade_quantity(entry_price, stop_loss_pct)
         trade_value = quantity * entry_price
@@ -1847,11 +2082,26 @@ IMPORTANT:
         # 4. FETCH TRADINGVIEW SENTIMENT (Analytics only)
         tv_sentiment = get_tv_sentiment(ticker)
 
+        # Determine strategy-specific holding period
+        if strategy_id == 19:
+            # S19 holds till end of day
+            today_1515 = datetime.now().replace(hour=15, minute=15, second=0, microsecond=0)
+            if datetime.now() > today_1515: today_1515 += timedelta(days=1)
+            exit_time_str = today_1515.isoformat()
+        elif strategy_id == 18:
+            # S18 is a quick fade
+            exit_time_str = (datetime.now() + timedelta(minutes=30)).isoformat()
+        elif strategy_id in [35, 36, 39, 42]:
+            exit_time_str = (datetime.now() + timedelta(hours=2)).isoformat()
+        else:
+            exit_time_str = (datetime.now() + timedelta(hours=1)).isoformat()
+
         trade = {
             "trade_id": f"T-{int(time.time())}-{ticker}",
             "timestamp": datetime.now().isoformat(),
             "ticker": ticker,
             "side": side,
+            "strategy_id": strategy_id,
             "tech_score": float(score),
             "nlp_sentiment": float(sentiment),
             "long_score": float(long_score) if long_score is not None else None,
@@ -1860,7 +2110,7 @@ IMPORTANT:
             "peak_price": entry_price,
             "peak_profit_pct": 0.0,
             "final_profit_pct": 0.0,
-            "exit_time": (datetime.now() + timedelta(hours=1)).isoformat(),
+            "exit_time": exit_time_str,
             "status": status,
             "comment": f"{comment} | UpstoxID: {upstox_order_id}" + (f" | {early_entry_reason}" if is_immediate_entry else ""),
             "one_hour_prob": one_hour_prob,
@@ -1904,6 +2154,7 @@ IMPORTANT:
         one_hour_prob="N/A",
         long_score=None,
         short_score=None,
+        strategy_id=None,
     ):
         """Logs a vetoed signal to the DB and tracks it for 1 hour to see potential performance."""
         # GUARD: Don't duplicate if already being tracked (Open or Vetoed for the same side)
@@ -1928,6 +2179,7 @@ IMPORTANT:
             "timestamp": datetime.now().isoformat(),
             "ticker": ticker,
             "side": side,
+            "strategy_id": strategy_id,
             "tech_score": float(score),
             "nlp_sentiment": float(sentiment),
             "long_score": float(long_score) if long_score is not None else None,
@@ -1955,7 +2207,8 @@ IMPORTANT:
         with self.lock:
             self.active_shadow_trades.append(trade)
         log_trade(trade)
-        print(f"[VETO-TRACK] {side} {ticker} added to performance tracking.")
+        s_disp = f"S{strategy_id}" if strategy_id is not None else "AI"
+        print(f"[VETO-TRACK] {side} {ticker} ({s_disp}) added to performance tracking.")
 
     # ══════════════════════════════════════════════════════════════════════
     # LOSS-EXTENSION SUBSYSTEM
@@ -2135,9 +2388,7 @@ IMPORTANT:
                                         entry_price = price
                                         stop_loss_pct, take_profit_pct = self.compute_15min_atr(trade["ticker"])
 
-                                        SLIPPAGE_BPS = 2
-                                        slippage = entry_price * (SLIPPAGE_BPS / 10000)
-                                        entry_price = entry_price + slippage if trade["side"] == "LONG" else entry_price - slippage
+                                        # Execution price is raw market/broker fill price to prevent double-counting slippage.
 
                                         qty = self.calculate_trade_quantity(entry_price, stop_loss_pct)
                                         sl_mult = 1 - (stop_loss_pct / 100) if trade["side"] == "LONG" else 1 + (stop_loss_pct / 100)
@@ -2239,8 +2490,10 @@ IMPORTANT:
                                 trade["status"] = "VETOED_EXPIRED"
                                 log_trade(trade)
                                 self.update_markdown_ledger(trade)
+                                s_id = trade.get("strategy_id")
+                                s_disp = f"S{s_id}" if s_id is not None else "AI"
                                 print(
-                                    f"[VETOED_EXPIRED] {trade['ticker']} {trade['side']} "
+                                    f"[VETOED_EXPIRED] {trade['ticker']} {trade['side']} ({s_disp}) "
                                     f"| 1h Close: ₹{price:.2f} | P&L if taken: {pnl:.2f}%"
                                 )
                             else:
@@ -2344,7 +2597,9 @@ IMPORTANT:
                             self.update_upstox_stats()
                             log_trade(trade)
                             self.update_markdown_ledger(trade)
-                            print(f"[{trade['status']}] {trade['ticker']} | Net P&L: {trade['final_profit_pct']:.2f}% (₹{net_pnl_amt:.2f})")
+                            s_id = trade.get("strategy_id")
+                            s_disp = f"S{s_id}" if s_id is not None else "AI"
+                            print(f"[{trade['status']}] {trade['ticker']} ({s_disp}) | Net P&L: {trade['final_profit_pct']:.2f}% (₹{net_pnl_amt:.2f})")
                             continue  # skip all other exit checks — TP is final
                         # ── END TAKE-PROFIT CHECK ──────────────────────────────────
 
@@ -2519,11 +2774,13 @@ IMPORTANT:
                                 if trade["status"] == "CLOSED"
                                 else trade.get("comment", "")
                             )
+                            s_id = trade.get("strategy_id")
+                            s_disp = f"S{s_id}" if s_id is not None else "AI"
                             log_trade(trade)
                             if trade["status"] in ["CLOSED", "STOP_LOSS", "TAKE_PROFIT", "VETOED_EXPIRED"]:
                                 self.update_markdown_ledger(trade)
                             print(
-                                f"[{trade['status']}] {trade['ticker']} | Net P&L: {trade['final_profit_pct']:.2f}% (₹{net_pnl_amt:.2f})"
+                                f"[{trade['status']}] {trade['ticker']} ({s_disp}) | Net P&L: {trade['final_profit_pct']:.2f}% (₹{net_pnl_amt:.2f})"
                             )
                         else:
                             # --- LIVE SYNC: push current price & P&L to DB for real-time dashboard ---
@@ -2607,6 +2864,7 @@ IMPORTANT:
                         "one_hour_prob":       t.get("one_hour_prob", "N/A"),
                         "comment":             t.get("comment", ""),
                         "status":              "PENDING_ENTRY",
+                        "strategy_id":          t.get("strategy_id"),
                         "tech_score":          float(t.get("tech_score") or 0.0) if t.get("tech_score") is not None else None,
                         "long_score":          float(t.get("long_score") or 0.0) if t.get("long_score") is not None else None,
                         "short_score":         float(t.get("short_score") or 0.0) if t.get("short_score") is not None else None,
@@ -2660,6 +2918,7 @@ IMPORTANT:
                     "time_left_min":       time_left,
                     "one_hour_prob":       t.get("one_hour_prob", "N/A"),
                     "comment":             t.get("comment", ""),
+                    "strategy_id":          t.get("strategy_id"),
                     # Extension fields — consumed by the dashboard for status badges
                     "extension_count":     ext_count,
                     "extension_pending":   t.get("extension_pending", False),
@@ -2728,6 +2987,8 @@ IMPORTANT:
                         log(
                             f"[INFO] Day Reset: Initial Capital for today: Rs{self.virtual_capital:.2f}"
                         )
+                        # Refresh Daily Macro trend gatekeeper filters for the new day
+                        self.update_daily_macro_filters()
 
                     if self.day_start_capital != self.virtual_capital:
                         self.day_start_capital = self.virtual_capital
@@ -2764,42 +3025,159 @@ IMPORTANT:
                 is_trading_window = "10:15" <= now_str < "15:05"
 
                 # 4. Process Signals
+                with self.lock:
+                    long_eligible = getattr(self, 'long_eligible_tickers', set(TICKERS))
+                    short_eligible = getattr(self, 'short_eligible_tickers', set(TICKERS))
+
+                # 4a. Pipeline 1: Pure AI Signals
+                ai_signals = []
                 for side in ["LONG", "SHORT"]:
-                    # 4a. Filter out tickers in cooldown (Closed or Vetoed) before selecting top signals
-                    eligible_df = scores_df[~scores_df['ticker'].apply(
-                        lambda x: self._is_in_cooldown(x) or self._is_veto_cooldown(x)
-                    )]
+                    # Gatekeeper check: ticker must be in long_eligible (for LONG) or short_eligible (for SHORT)
+                    eligible_tickers = long_eligible if side == "LONG" else short_eligible
                     
+                    # Filter scores_df to only tickers in eligible_tickers and not in cooldowns
+                    eligible_mask = scores_df['ticker'].apply(
+                        lambda x: x in eligible_tickers
+                        and not (self._is_in_cooldown(x) or self._is_veto_cooldown(x))
+                    )
+                    eligible_df = scores_df[eligible_mask]
+                    
+                    if eligible_df.empty:
+                        continue
+                        
                     conv_col = "Long_Conviction" if side == "LONG" else "Short_Conviction"
                     raw_col = "long_score" if side == "LONG" else "short_score"
-                    rank_col = "Long_Rank" if side == "LONG" else "Short_Rank"
-
-                    # Print top 3 candidates for visibility
-                    if not eligible_df.empty:
-                        top3 = eligible_df.sort_values(conv_col, ascending=False).head(3)
-                        log(f"[SCAN] Top 3 {side} Candidates:")
-                        for _, row in top3.iterrows():
-                            log(f"  • {row['ticker']:<15} | Conviction: {row[conv_col]:.4f} (Raw: {row[raw_col]:.4f})")
-
-                    # Get top 2 Hybrid (Net) Candidates that meet min_conviction
-                    top_net = eligible_df[eligible_df[conv_col] >= self.min_conviction].sort_values(rank_col, ascending=True).head(2)
+                    rank_col_name = "Long_Rank" if side == "LONG" else "Short_Rank"
                     
-                    # Get top 2 Pure Directional Candidates that meet min_raw_score
+                    # 1. Top 2 Hybrid (Net) Candidates that meet min_conviction
+                    top_net = eligible_df[eligible_df[conv_col] >= self.min_conviction].sort_values(rank_col_name, ascending=True).head(2)
+                    
+                    # 2. Top 2 Pure Directional Candidates that meet min_raw_score (excluding top_net)
                     eligible_raw_df = eligible_df[~eligible_df['ticker'].isin(top_net['ticker'])]
                     top_raw = eligible_raw_df[eligible_raw_df[raw_col] >= self.min_raw_score].sort_values(raw_col, ascending=False).head(2)
                     
-                    top_signals = pd.concat([top_net, top_raw])
+                    # Add to ai_signals list
+                    for _, row in top_net.iterrows():
+                        ai_signals.append({
+                            'ticker': row['ticker'],
+                            'side': side,
+                            'conviction': float(row[conv_col]),
+                            'raw_score': float(row[raw_col]),
+                            'strategy_id': None,
+                            'source': 'AI_Net'
+                        })
+                    for _, row in top_raw.iterrows():
+                        ai_signals.append({
+                            'ticker': row['ticker'],
+                            'side': side,
+                            'conviction': float(row[conv_col]),
+                            'raw_score': float(row[raw_col]),
+                            'strategy_id': None,
+                            'source': 'AI_Raw'
+                        })
 
-                    for _, sig in top_signals.iterrows():
-                        conviction = sig[conv_col]
-                        raw_score = sig[raw_col]
+                # 4b. Pipeline 2: Structural Strategy Signals
+                eligible_mask = scores_df['ticker'].apply(
+                    lambda x: (x in long_eligible or x in short_eligible)
+                    and not (self._is_in_cooldown(x) or self._is_veto_cooldown(x))
+                )
+                base_eligible_df = scores_df[eligible_mask]
+                
+                date_str = datetime.now().strftime("%Y-%m-%d")
+                strategy_signals_raw = self.strategy_filters.apply_filters(base_eligible_df, now_str, date_str)
+                
+                strategy_signals = []
+                for sig in strategy_signals_raw:
+                    sig_side = sig['side']
+                    sig_ticker = sig['ticker']
+                    # Verify daily gatekeeper explicitly for the side
+                    if sig_side == "LONG" and sig_ticker not in long_eligible:
+                        continue
+                    if sig_side == "SHORT" and sig_ticker not in short_eligible:
+                        continue
+                    strategy_signals.append(sig)
 
-                        if True:
-                            if not is_trading_window:
-                                if int(sig.get(rank_col, 99)) == 1:
-                                    log(
-                                        f"[SCAN ONLY] {side} {sig['ticker']} | Conviction: {conviction:.4f} | Raw: {raw_score:.4f} (Outside Trade Window)"
-                                    )
+                # 4c. The Merge: Concatenate signals from both pipelines
+                merged_signals = []
+                
+                # Add all strategy signals first
+                for sig in strategy_signals:
+                    sig_ticker = sig['ticker']
+                    sig_side = sig['side']
+                    
+                    # Fetch full features for the ticker from scores_df
+                    row_dict = scores_df[scores_df['ticker'] == sig_ticker].iloc[0].to_dict()
+                    row_dict.update({
+                        'side': sig_side,
+                        'conviction': float(sig['conviction']),
+                        'raw_score': float(sig['raw_score']),
+                        'strategy_id': sig['strategy_id'],
+                        'source': f"Strategy_S{sig['strategy_id']}",
+                        'is_ensemble': False
+                    })
+                    merged_signals.append(row_dict)
+                    
+                # Add AI signals and check for overlap (Ensemble)
+                for sig in ai_signals:
+                    sig_ticker = sig['ticker']
+                    sig_side = sig['side']
+                    
+                    # Find if we already have this (ticker, side) in merged_signals
+                    existing = next((m for m in merged_signals if m['ticker'] == sig_ticker and m['side'] == sig_side), None)
+                    
+                    if existing is not None:
+                        # Found overlap! Mark as ensemble
+                        existing['is_ensemble'] = True
+                        existing['source'] = f"Ensemble_S{existing['strategy_id']}+{sig['source']}"
+                        log(f"[ENSEMBLE MATCH] Ticker {sig_ticker} ({sig_side}) triggered by both Strategy S{existing['strategy_id']} and {sig['source']}!")
+                    else:
+                        # No overlap, add as pure AI signal
+                        row_dict = scores_df[scores_df['ticker'] == sig_ticker].iloc[0].to_dict()
+                        row_dict.update({
+                            'side': sig_side,
+                            'conviction': float(sig['conviction']),
+                            'raw_score': float(sig['raw_score']),
+                            'strategy_id': None,
+                            'source': sig['source'],
+                            'is_ensemble': False
+                        })
+                        merged_signals.append(row_dict)
+                        
+                top_signals = pd.DataFrame(merged_signals) if merged_signals else pd.DataFrame()
+
+                if not top_signals.empty:
+                    for side_loop in ["LONG", "SHORT"]:
+                        side_signals = top_signals[top_signals['side'] == side_loop]
+                        if side_signals.empty: continue
+                        for _, sig in side_signals.iterrows():
+                            side = sig['side']
+                            ticker = sig['ticker']
+                            
+                            # Verify daily gatekeeper explicitly for the side
+                            if side == "LONG" and ticker not in long_eligible: continue
+                            if side == "SHORT" and ticker not in short_eligible: continue
+                            
+                            conviction = sig['conviction']
+                            raw_score = sig['raw_score']
+                            strategy_id = sig['strategy_id']
+                            if pd.isna(strategy_id) or strategy_id is None:
+                                strategy_id = None
+                            else:
+                                strategy_id = int(strategy_id)
+                                
+                            strat_display = f"S{strategy_id}" if strategy_id is not None else "AI"
+                            
+                            # Define rank_col for downstream veto reporting
+                            rank_col = "Long_Rank" if side == "LONG" else "Short_Rank"
+
+                            # Allow structural strategies (strategy_id is not None) to trade starting from 09:15 AM
+                            # while keeping pure AI signals restricted to the standard 10:15 AM window.
+                            is_eligible_time = is_trading_window or (strategy_id is not None and "09:15" <= now_str < "15:05")
+
+                            if not is_eligible_time:
+                                log(
+                                    f"[SCAN ONLY] {side} {ticker} ({strat_display}) | Conviction: {conviction:.4f} (Outside Trade Window)"
+                                )
                                 continue
 
                             # CONCURRENCY CHECK
@@ -2820,33 +3198,34 @@ IMPORTANT:
                                     break
 
                                 already_open = any(
-                                    t["ticker"] == sig["ticker"]
+                                    t["ticker"] == ticker
                                     and t["status"] in ["OPEN", "VETOED", "PENDING_ENTRY"]
                                     for t in self.active_shadow_trades
                                 )
 
                             if already_open:
-                                log(f"[SKIP] {side} {sig['ticker']} already OPEN/VETOED in shadow tracker.")
+                                log(f"[SKIP] {side} {ticker} already OPEN/VETOED in shadow tracker.")
                                 continue  # Check next rank if already open
 
-                            # 4b. Veto cooldown check (belt-and-suspenders before calling Gemini)
-                            if self._is_veto_cooldown(sig["ticker"]):
+                            # 4d. Veto cooldown check (belt-and-suspenders before calling Gemini)
+                            if self._is_veto_cooldown(ticker):
                                 mins_ago = int(
-                                    (datetime.now() - self.recent_vetoes[sig["ticker"]]).total_seconds() / 60
-                                ) if sig["ticker"] in self.recent_vetoes else "?"
-                                log(f"[VETO-COOLDOWN] {side} {sig['ticker']} vetoed {mins_ago}m ago. Skipping (30m cooldown).")
+                                    (datetime.now() - self.recent_vetoes[ticker]).total_seconds() / 60
+                                ) if ticker in self.recent_vetoes else "?"
+                                log(f"[VETO-COOLDOWN] {side} {ticker} vetoed {mins_ago}m ago. Skipping (30m cooldown).")
                                 continue
 
                             # 5. Gemini AI Audit
                             log(
-                                f"[AUDIT] {side} {sig['ticker']} | Conviction: {conviction:.4f} | Raw Score: {raw_score:.4f} | Verifying..."
+                                f"[AUDIT] {side} {ticker} ({strat_display}) | Conviction: {conviction:.4f} | Raw Score: {raw_score:.4f} | Verifying..."
                             )
+                            full_feature_row = scores_df[scores_df['ticker'] == ticker].iloc[0]
                             sentiment, reason, one_hour_prob = self.gemini_audit(
-                                sig["ticker"], side, conviction, sig
+                                ticker, side, conviction, full_feature_row
                             )
 
                             if sentiment == "SYSTEM_ERROR":
-                                log(f"[SKIP] {sig['ticker']} skipped due to AI API error. Will retry next scan.")
+                                log(f"[SKIP] {ticker} skipped due to AI API error. Will retry next scan.")
                                 continue
 
                             # ── Reset veto_stats if trading day changed ────────────────────
@@ -2877,9 +3256,9 @@ IMPORTANT:
                             ]:
                                 is_vetoed = True
 
-                            entry_price = self.broker.get_live_price(sig["ticker"])
+                            entry_price = self.broker.get_live_price(ticker)
                             if not entry_price or entry_price <= 0:
-                                entry_price = float(sig["Close"])
+                                entry_price = float(full_feature_row["Close"])
 
                             if not is_vetoed:
                                 sent_map = {
@@ -2892,13 +3271,14 @@ IMPORTANT:
                                 self.veto_stats["s1_passes"] += 1
                                 self.veto_stats["s2_passes"] += 1
                                 log(
-                                    f"[✓ PASS] {side} {sig['ticker']} confirmed by AI | Sentiment: {sentiment} | {reason}"
+                                    f"[✓ PASS] {side} {ticker} confirmed by AI | Sentiment: {sentiment} | {reason}"
                                 )
                                 self.start_shadow_trade(
-                                    sig["ticker"], conviction, sent_score, entry_price,
+                                    ticker, conviction, sent_score, entry_price,
                                     side, f"[{sentiment}] {reason}", one_hour_prob,
-                                    long_score=sig["long_score"],
-                                    short_score=sig["short_score"]
+                                    long_score=full_feature_row.get("long_score"),
+                                    short_score=full_feature_row.get("short_score"),
+                                    strategy_id=strategy_id
                                 )
                                 break  # Trade placed, move to next side
                             else:
@@ -2906,10 +3286,10 @@ IMPORTANT:
                                 if is_s1:
                                     self.veto_stats["s1_vetoes"] += 1
                                     self.veto_stats["s1_tickers"].append(
-                                        (sig["ticker"], side, reason)
+                                        (sig["ticker"], side, reason, strategy_id)
                                     )
                                     print(
-                                        f"[✗ S1-VETO] Rank {int(sig[rank_col])} {side} {sig['ticker']} "
+                                        f"[✗ S1-VETO] Rank {int(sig[rank_col])} {side} {sig['ticker']} ({strat_display}) "
                                         f"| Conviction: {conviction:.4f} | {reason}"
                                     )
                                 else:
@@ -2920,10 +3300,10 @@ IMPORTANT:
                                     rule_match = _re.search(r'RULE \d+[^]]*', reason)
                                     rule_tag = rule_match.group(0) if rule_match else "S2"
                                     self.veto_stats["s2_tickers"].append(
-                                        (sig["ticker"], side, rule_tag, reason)
+                                        (sig["ticker"], side, rule_tag, reason, strategy_id)
                                     )
                                     print(
-                                        f"[✗ S2-VETO] Rank {int(sig[rank_col])} {side} {sig['ticker']} "
+                                        f"[✗ S2-VETO] Rank {int(sig[rank_col])} {side} {sig['ticker']} ({strat_display}) "
                                         f"| Conviction: {conviction:.4f} | {rule_tag} | {reason}"
                                     )
 
@@ -2931,14 +3311,9 @@ IMPORTANT:
                                     sig["ticker"], conviction, 0.0, entry_price,
                                     side, f"[{veto_stage}-VETO] {reason}", one_hour_prob,
                                     long_score=sig["long_score"],
-                                    short_score=sig["short_score"]
+                                    short_score=sig["short_score"],
+                                    strategy_id=strategy_id
                                 )
-                        else:
-                            if int(sig[rank_col]) == 1:
-                                print(
-                                    f"[SKIP] No high-conviction {side} found (Best: {conviction:.4f})"
-                                )
-                            break
 
                 # ── SESSION SUMMARY (End of Scan Cycle) ───────────────────────────
                 print("\n" + "═"*70)
@@ -2949,13 +3324,15 @@ IMPORTANT:
                 
                 if self.veto_stats["s1_tickers"]:
                     print("\n S1 VETOES:")
-                    for t, s, r in self.veto_stats["s1_tickers"]:
-                        print(f"  • {s} {t} : {r[:80]}...")
+                    for t, s, r, s_id in self.veto_stats["s1_tickers"]:
+                        s_disp = f"S{s_id}" if s_id is not None else "AI"
+                        print(f"  • {s} {t} ({s_disp}) : {r[:80]}...")
                 
                 if self.veto_stats["s2_tickers"]:
                     print("\n S2 VETOES:")
-                    for t, s, rule, r in self.veto_stats["s2_tickers"]:
-                        print(f"  • {s} {t} [{rule}] : {r[:80]}...")
+                    for t, s, rule, r, s_id in self.veto_stats["s2_tickers"]:
+                        s_disp = f"S{s_id}" if s_id is not None else "AI"
+                        print(f"  • {s} {t} ({s_disp}) [{rule}] : {r[:80]}...")
                 print("═"*70 + "\n")
 
                 # ── ALIGNED 15-MIN CANDLE SCHEDULER ─────────────────────────

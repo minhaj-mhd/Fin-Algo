@@ -9,7 +9,8 @@ sys.path.append(os.getcwd())
 
 from scripts.database_manager import (
     get_trades_by_status, get_performance_stats, get_trades_for_ticker, 
-    get_ticker_performance, get_detailed_performance, get_portfolio_summary
+    get_ticker_performance, get_detailed_performance, get_portfolio_summary,
+    get_strategy_performance, get_trades_by_strategy
 )
 from scripts.ticker_intelligence import get_ticker_analysis
 from scripts.tickers import TICKERS
@@ -24,6 +25,31 @@ app = Flask(__name__, template_folder=template_dir)
 def index():
     return render_template('vanguard_v2.html')
 
+STRATEGY_DEFINITIONS = {
+    2: {"name": "Short-Side Specialist", "logic": "Short_Rank <= 5", "bias": "SHORT"},
+    8: {"name": "Opening Range Breakout", "logic": "Short_Rank <= 5 & Close <= Day Low + 0.2%", "bias": "SHORT"},
+    10: {"name": "Quad-Timeframe Unanimous", "logic": "Long_Rank <= 3 (Extreme Conviction)", "bias": "LONG"},
+    18: {"name": "Volatility Expansion", "logic": "Short_Rank <= 3 & ATR > 1.5%", "bias": "SHORT"},
+    19: {"name": "Low-Vol Grind", "logic": "Long_Rank <= 5 & IBS < 0.15", "bias": "LONG"},
+    35: {"name": "Volatility Contraction", "logic": "Long_Rank <= 5 & ATR < 0.2%", "bias": "LONG"},
+    36: {"name": "The Opening Drive", "logic": "Long_Rank <= 10 & Gap > 0.3% (Before 10:30)", "bias": "LONG"},
+    39: {"name": "The VWAP Pinch", "logic": "Long_Rank <= 3 & Price near MA20", "bias": "LONG"},
+    42: {"name": "Trend Exhaustion Trap", "logic": "Short_Rank <= 10 & IBS < 0.3", "bias": "SHORT"}
+}
+
+@app.route('/api/strategies')
+def get_strategies_data():
+    try:
+        perf = get_strategy_performance()
+        return jsonify({
+            'definitions': STRATEGY_DEFINITIONS,
+            'performance': perf
+        })
+    except Exception as e:
+        log(f"[ERROR] Strategy API Error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/tickers')
 def get_tickers():
     return jsonify([t.replace('.NS', '') for t in TICKERS])
@@ -34,10 +60,16 @@ def get_upstox_stats():
     stats_path = os.path.join(os.getcwd(), 'upstox_stats.json')
     
     # Load base stats from the engine's persisted JSON
+    stats = None
     if os.path.exists(stats_path):
-        with open(stats_path, 'r') as f:
-            stats = json.load(f)
-    else:
+        try:
+            with open(stats_path, 'r') as f:
+                stats = json.load(f)
+        except json.JSONDecodeError:
+            log("[WARN] upstox_stats.json currently locked/malformed. Using defaults.")
+            pass
+            
+    if stats is None:
         stats = {
             "initial_capital":      99517.68,
             "virtual_capital":      99517.68,
@@ -207,6 +239,25 @@ def api_market_snapshot():
     except Exception as e:
         log(f"[ERROR] Market Snapshot API Error: {e}")
         return jsonify({'error': str(e), 'market_sentiment': 'UNAVAILABLE'}), 500
+
+@app.route('/strategy/<int:strategy_id>')
+def strategy_detail(strategy_id):
+    try:
+        strat_def = STRATEGY_DEFINITIONS.get(strategy_id, {
+            "name": f"Strategy {strategy_id}",
+            "logic": "Logic description not available.",
+            "bias": "UNKNOWN"
+        })
+        
+        trades = get_trades_by_strategy(strategy_id)
+        
+        return render_template('strategy_detail.html', 
+                               strategy_id=strategy_id, 
+                               strategy_def=strat_def,
+                               trades=trades)
+    except Exception as e:
+        log(f"[ERROR] Strategy Detail Error: {e}")
+        return f"Error loading strategy page: {e}", 500
 
 if __name__ == '__main__':
     if not os.path.exists('data'): os.makedirs('data')

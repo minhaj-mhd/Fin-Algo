@@ -1,0 +1,1 @@
+side,bars_held,unrealized_pnl,current_conv,current_rank,conv_delta,rank_delta

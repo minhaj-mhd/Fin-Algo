@@ -1,5 +1,9 @@
 # 🚀 Vanguard V2.0: Elite Trading Engine (NSE)
 
+> [!IMPORTANT]
+> **🤖 AI Developer Continuity & Memory Layer Protocol**:
+> If you are an AI coding agent (Claude, Gemini, etc.) pair-programming with the user on this repository, you **MUST** read and follow the **[[finalgo-memory-layer/finalgo/agent.md|agent.md operating protocol]]** as your very first action. This imports active development contexts, next steps, and records segregated, compacted updates to ensure continuity.
+
 Welcome to the **Vanguard V2.0** high-precision trading system. This engine is designed for institutional-grade intraday scanning on the NSE (India) market, combining XGBoost technical ranking with PrimoGPT sentiment analysis.
 
 ---

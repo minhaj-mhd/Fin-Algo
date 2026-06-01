@@ -1,11 +1,13 @@
 """
-Train a daily macro PyTorch Temporal Transformer ranking model.
-- Loads data/ranking_data_upstox_daily_5y.csv
-- Compiles 20-day sequence tensors: input shape (batch_size, 20_days, num_features)
-- Defines TemporalTransformerRanker with Multi-Head Self-Attention
-- Implements 4-fold Walk-Forward Validation to prevent regime overfitting and leakage
-- Evaluates Spearman Rho and Top-K metrics (Top 1, 3, 5 selections)
-- Saves best checkpoints, walk-forward metadata, and scaler to models/daily_transformer/
+Train a daily macro PyTorch Inverted Transformer (iTransformer) stock ranking model.
+- Uses data/ranking_data_upstox_daily_5y_transformer.csv (~32 stationary, pruned features)
+- Pre-compiles 20-day sequential tensors: input shape (N_stocks, 20_days, num_features)
+- Implements iTransformer: treats features as tokens and attends across the feature dimension
+- Optimizes using ListNet Listwise Ranking Loss to directly maximize cross-sectional ranking accuracy
+- Employs Grouped-Day Batching (yields complete cross-sections of stocks per trading day)
+- Employs Gradient Accumulation over 16 steps for stable deep learning convergence
+- Validates using 4-fold Walk-Forward Validation (preventing leakage and tracking Spearman Rho/Edge)
+- Saves best checkpoints, scaler, and metadata to models/daily_transformer_v2/
 """
 
 import os
@@ -17,10 +19,11 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import StandardScaler
-from scipy.stats import spearmanr, rankdata
+from scipy.stats import spearmanr
 from tqdm import tqdm
 
 sys.path.append(os.getcwd())
@@ -28,7 +31,7 @@ sys.path.append(os.getcwd())
 # ========================================
 # CONFIG
 # ========================================
-MODEL_VERSION = 'daily_transformer'
+MODEL_VERSION = 'daily_transformer_v2'
 MODEL_DIR = f'models/{MODEL_VERSION}'
 os.makedirs(MODEL_DIR, exist_ok=True)
 
@@ -36,16 +39,19 @@ MODEL_PATH  = f'{MODEL_DIR}/daily_transformer.pth'
 META_PATH   = f'{MODEL_DIR}/metadata.json'
 SCALER_PATH = f'{MODEL_DIR}/scaler.pkl'
 
-DATA_FILE = 'data/ranking_data_upstox_daily_5y.csv'
+DATA_FILE = 'data/ranking_data_upstox_daily_5y_transformer.csv'
+LOOKBACK_LEN = 20
+TEMPERATURE = 100.0  # ListNet return-scale factor (T=100.0 scales 1% return to 1.0)
+GRAD_ACCUM_STEPS = 16  # Accumulate over 16 days (~3 business weeks) for massive gradient stability
 
-print("=" * 60)
-print("DAILY MACRO TEMPORAL TRANSFORMER RANKER PIPELINE")
-print("Walk-Forward Validation with sequence-based deep learning")
-print("=" * 60)
+print("=" * 70)
+print("SOTA INVERTED TRANSFORMER + LISTNET RANKING PIPELINE")
+print("Walk-Forward Validation on Grouped Daily Cross-Sections")
+print("=" * 70)
 
 if not os.path.exists(DATA_FILE):
     print(f"[FATAL] Data file not found: {DATA_FILE}")
-    print("Please run scripts/collect_upstox_daily_5y.py first.")
+    print("Please run scripts/rebuild_transformer_dataset.py first.")
     sys.exit(1)
 
 print(f"Loading data from {DATA_FILE}...")
@@ -64,13 +70,12 @@ exclude_cols = ['DateTime', 'Query_ID', 'Ticker',
                 'Open', 'High', 'Low', 'Close', 'Volume', 'Next_Day_Return', 'YearMonth']
 feature_cols = [col for col in df.columns if col not in exclude_cols]
 
-print(f"Features: {len(feature_cols)}")
-print(f"Samples: {df.shape[0]:,}")
+print(f"Features in use ({len(feature_cols)}): {feature_cols}")
 
 # ========================================
-# COMPILE 10-DAY TIME SERIES SEQUENCES
+# GROUPED DAY DATASET & PRE-COMPILATION
 # ========================================
-print("\nCompiling 10-day sequential tensors per stock...")
+print("\nPre-compiling 20-day sequential tensors per stock...")
 # Sort explicitly to guarantee correct time ordering
 df = df.sort_values(['Ticker', 'DateTime']).reset_index(drop=True)
 
@@ -80,17 +85,12 @@ qid_idx = df.columns.get_loc('Query_ID')
 ym_idx = df.columns.get_loc('YearMonth')
 dt_idx = df.columns.get_loc('DateTime')
 
-X_seqs = []
-y_seqs = []
-qid_seqs = []
-ym_seqs = []
-ticker_seqs = []
-dt_seqs = []
+# day_data index -> {qid: {'X': [seq1, seq2, ...], 'y': [ret1, ret2, ...], 'tickers': [...], 'dates': [...], 'ym': 'YYYY-MM'}}
+day_data = {}
 
-# Loop through each stock's history and extract sequences
 for ticker, g in tqdm(df.groupby('Ticker'), desc="Sequence Gen"):
     vals = g.values
-    if len(vals) < 10:
+    if len(vals) < LOOKBACK_LEN:
         continue
     
     # Pre-extract values as arrays to bypass slow pandas indexing
@@ -101,74 +101,71 @@ for ticker, g in tqdm(df.groupby('Ticker'), desc="Sequence Gen"):
     dt_vals = vals[:, dt_idx]
     
     # Fill any NaNs/Infs in raw features with 0
-    nan_mask = np.isnan(X_vals) | np.isinf(X_vals)
-    if nan_mask.any():
-        X_vals[nan_mask] = 0.0
+    X_vals = np.nan_to_num(X_vals, nan=0.0, posinf=0.0, neginf=0.0)
 
-    for i in range(9, len(vals)):
-        X_seqs.append(X_vals[i-9 : i+1])
-        y_seqs.append(y_vals[i])
-        qid_seqs.append(q_vals[i])
-        ym_seqs.append(ym_vals[i])
-        ticker_seqs.append(ticker)
-        dt_seqs.append(dt_vals[i])
+    # Compile lookback sequences
+    for i in range(LOOKBACK_LEN - 1, len(vals)):
+        seq = X_vals[i - (LOOKBACK_LEN - 1) : i + 1]  # shape: (20, num_features)
+        target_ret = y_vals[i]
+        qid = q_vals[i]
+        dt = dt_vals[i]
+        ym = ym_vals[i]
+        
+        if qid not in day_data:
+            day_data[qid] = {'X': [], 'y': [], 'tickers': [], 'dates': [], 'ym': ym}
+        
+        day_data[qid]['X'].append(seq)
+        day_data[qid]['y'].append(target_ret)
+        day_data[qid]['tickers'].append(ticker)
+        day_data[qid]['dates'].append(dt)
 
-X_seqs = np.array(X_seqs, dtype=np.float32)
-y_seqs = np.array(y_seqs, dtype=np.float32)
-qid_seqs = np.array(qid_seqs, dtype=np.int64)
-ym_seqs = np.array(ym_seqs)
-ticker_seqs = np.array(ticker_seqs)
-dt_seqs = np.array(dt_seqs)
+# Convert compiled day dictionary to a chronological list of days
+sorted_qids = sorted(day_data.keys())
+chronological_days = [day_data[q] for q in sorted_qids]
 
-print(f"Sequences compiled: {X_seqs.shape[0]:,} samples")
-print(f"Sequence shape    : {X_seqs.shape}")
-
-# Create evaluation DataFrame for computing Spearman and Top-K metrics
-df_eval_all = pd.DataFrame({
-    'DateTime': dt_seqs,
-    'Query_ID': qid_seqs,
-    'Ticker': ticker_seqs,
-    'Next_Day_Return': y_seqs,
-    'YearMonth': ym_seqs
-})
+print(f"\nGrouped Day Compilation Complete:")
+print(f"  Total chronological days: {len(chronological_days)}")
+print(f"  Total cross-sectional samples: {sum(len(d['y']) for d in chronological_days):,}")
 
 # ========================================
-# PYTORCH DATASET & DATALOADER
+# PYTORCH GROUPED DATASET
 # ========================================
-class DailySequenceDataset(Dataset):
-    def __init__(self, X, y, qids):
-        self.X = torch.tensor(X, dtype=torch.float32)
-        self.y = torch.tensor(y, dtype=torch.float32)
-        self.qids = torch.tensor(qids, dtype=torch.long)
+class DailyGroupedDataset(Dataset):
+    def __init__(self, days_list):
+        self.days = []
+        for day in days_list:
+            X_tensor = torch.tensor(np.array(day['X'], dtype=np.float32), dtype=torch.float32)
+            y_tensor = torch.tensor(np.array(day['y'], dtype=np.float32), dtype=torch.float32)
+            self.days.append({
+                'X': X_tensor,
+                'y': y_tensor,
+                'tickers': day['tickers'],
+                'dates': day['dates']
+            })
         
     def __len__(self):
-        return len(self.y)
+        return len(self.days)
         
     def __getitem__(self, idx):
-        return self.X[idx], self.y[idx], self.qids[idx]
+        day = self.days[idx]
+        return day['X'], day['y'], day['tickers'], day['dates']
+
 
 # ========================================
-# TRANSFORMATION MODEL DEFINITIONS
+# SOTA iTRANSFORMER (INVERTED TRANSFORMER)
 # ========================================
-class PositionalEncoding(nn.Module):
-    def __init__(self, d_model, max_len=100):
+class InvertedTransformerRanker(nn.Module):
+    def __init__(self, num_features, lookback_len=20, d_model=64, nhead=4, num_layers=2, dropout=0.1):
         super().__init__()
-        pe = torch.zeros(max_len, d_model)
-        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-np.log(10000.0) / d_model))
-        pe[:, 0::2] = torch.sin(position * div_term)
-        pe[:, 1::2] = torch.cos(position * div_term)
-        pe = pe.unsqueeze(0)
-        self.register_buffer('pe', pe)
-
-    def forward(self, x):
-        return x + self.pe[:, :x.size(1)]
-
-class TemporalTransformerRanker(nn.Module):
-    def __init__(self, input_dim, d_model=32, nhead=2, num_layers=1, dropout=0.1):
-        super().__init__()
-        self.input_projection = nn.Linear(input_dim, d_model)
-        self.pos_encoder = PositionalEncoding(d_model, max_len=100)
+        self.num_features = num_features
+        self.lookback_len = lookback_len
+        self.d_model = d_model
+        
+        # Shared Projection: Projects the entire 20-day path of each feature to a d_model token
+        self.feature_projection = nn.Linear(lookback_len, d_model)
+        
+        # Learnable indicator identity embeddings
+        self.feature_embed = nn.Parameter(torch.randn(num_features, d_model) * 0.02)
         
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model,
@@ -179,24 +176,67 @@ class TemporalTransformerRanker(nn.Module):
         )
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         
+        # Deep Regressor Head
         self.regressor = nn.Sequential(
-            nn.Linear(d_model, 32),
+            nn.Linear(num_features * d_model, 128),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(128, 32),
             nn.ReLU(),
             nn.Dropout(dropout),
             nn.Linear(32, 1)
         )
-
+        
     def forward(self, x):
-        # x shape: (batch_size, seq_len, input_dim)
-        x = self.input_projection(x)
-        x = self.pos_encoder(x)
+        # x shape: (N_stocks, lookback_len, num_features)
+        
+        # Rearrange to treat features as tokens (sequence dimension):
+        # (N_stocks, num_features, lookback_len)
+        x = x.transpose(1, 2)
+        
+        # Project 20-day history of each feature into a token:
+        # (N_stocks, num_features, d_model)
+        x = self.feature_projection(x)
+        
+        # Add feature identity embeddings
+        x = x + self.feature_embed.unsqueeze(0)
+        
+        # Transformer Self-Attention (Attention computed ACROSS features!)
+        # (N_stocks, num_features, d_model)
         x = self.transformer_encoder(x)
         
-        # Mean pooling across the temporal dimension
-        x_mean = x.mean(dim=1)
+        # Flatten all feature tokens
+        # (N_stocks, num_features * d_model)
+        x_flat = x.reshape(x.size(0), -1)
         
-        out = self.regressor(x_mean)
+        # Regressor score
+        out = self.regressor(x_flat)
         return out.squeeze(-1)
+
+# ========================================
+# LISTNET LISTWISE RANKING LOSS
+# ========================================
+def listnet_loss(y_pred, y_true, temp=100.0):
+    """
+    y_pred: [N_stocks] predicted ranking scores
+    y_true: [N_stocks] ground truth next-day returns
+    temp: temperature factor to sharpen return softmax
+    """
+    if len(y_pred) <= 1:
+        return torch.tensor(0.0, device=y_pred.device, requires_grad=True)
+        
+    # Scale returns (e.g. 0.01 return becomes 1.0) for sharp target probabilities
+    y_true_scaled = y_true * temp
+    
+    # Target distribution (Softmax over ground-truth returns)
+    target_dist = F.softmax(y_true_scaled, dim=0)
+    
+    # Model prediction log-probabilities
+    pred_log_soft = F.log_softmax(y_pred, dim=0)
+    
+    # Cross-Entropy Loss
+    loss = -torch.sum(target_dist * pred_log_soft)
+    return loss
 
 # ========================================
 # GPU DETECTION
@@ -205,20 +245,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Device selected: {device}")
 
 # ========================================
-# METRIC EVALUATORS
+# METRIC EVALUATOR
 # ========================================
-def compute_spearman_rho(df_eval, score_col, invert=False):
-    rhos = []
-    for qid in df_eval['Query_ID'].unique():
-        q_df = df_eval[df_eval['Query_ID'] == qid]
-        if len(q_df) > 1:
-            y_eval = -q_df['Next_Day_Return'].values if invert else q_df['Next_Day_Return'].values
-            pred = q_df[score_col].values
-            rho, _ = spearmanr(pred, y_eval)
-            if not np.isnan(rho):
-                rhos.append(rho)
-    return np.mean(rhos) if rhos else 0.0
-
 def evaluate_ranking_performance(df_eval, long_scores, short_scores):
     df_sub = df_eval.copy()
     df_sub['long_score'] = long_scores
@@ -227,8 +255,22 @@ def evaluate_ranking_performance(df_eval, long_scores, short_scores):
     unique_qids = df_sub['Query_ID'].unique()
     
     # Spearman Rhos
-    long_rho = compute_spearman_rho(df_sub, 'long_score', invert=False)
-    short_rho = compute_spearman_rho(df_sub, 'short_score', invert=True)
+    long_rhos = []
+    short_rhos = []
+    for qid in unique_qids:
+        q_df = df_sub[df_sub['Query_ID'] == qid]
+        if len(q_df) > 1:
+            # Long
+            rho_l, _ = spearmanr(q_df['long_score'].values, q_df['Next_Day_Return'].values)
+            if not np.isnan(rho_l):
+                long_rhos.append(rho_l)
+            # Short (invert targets)
+            rho_s, _ = spearmanr(q_df['short_score'].values, -q_df['Next_Day_Return'].values)
+            if not np.isnan(rho_s):
+                short_rhos.append(rho_s)
+                
+    long_rho = np.mean(long_rhos) if long_rhos else 0.0
+    short_rho = np.mean(short_rhos) if short_rhos else 0.0
     
     # Top-K Win Rates (K = 1, 3, 5)
     topk_list = [1, 3, 5]
@@ -249,15 +291,13 @@ def evaluate_ranking_performance(df_eval, long_scores, short_scores):
             actual_returns = q_df['Next_Day_Return'].values
             median_return = np.median(actual_returns)
             
-            # Long
-            long_sc = q_df['long_score'].values
-            top_long_idx = np.argsort(long_sc)[::-1][:k]
+            # Long (pick high score)
+            top_long_idx = np.argsort(q_df['long_score'].values)[::-1][:k]
             long_hits += (actual_returns[top_long_idx] > median_return).sum()
             long_total += k
             
-            # Short
-            short_sc = q_df['short_score'].values
-            top_short_idx = np.argsort(short_sc)[::-1][:k]
+            # Short (pick high score in inverted)
+            top_short_idx = np.argsort(q_df['short_score'].values)[::-1][:k]
             short_hits += (actual_returns[top_short_idx] < median_return).sum()
             short_total += k
             
@@ -275,11 +315,9 @@ def evaluate_ranking_performance(df_eval, long_scores, short_scores):
             continue
             
         actual = q_df['Next_Day_Return'].values
-        long_sc = q_df['long_score'].values
-        short_sc = q_df['short_score'].values
         
-        top3_long_idx = np.argsort(long_sc)[::-1][:3]
-        top3_short_idx = np.argsort(short_sc)[::-1][:3]
+        top3_long_idx = np.argsort(q_df['long_score'].values)[::-1][:3]
+        top3_short_idx = np.argsort(q_df['short_score'].values)[::-1][:3]
         
         top3_long_returns.append(actual[top3_long_idx].mean())
         top3_short_returns.append(-actual[top3_short_idx].mean())
@@ -345,66 +383,106 @@ walk_forward_results = []
 # ========================================
 # MODEL TRAINING FUNCTION
 # ========================================
-def train_model(train_loader, val_loader, df_val, num_features, epochs=100, patience=10):
-    model = TemporalTransformerRanker(input_dim=num_features).to(device)
-    optimizer = optim.AdamW(model.parameters(), lr=0.0005, weight_decay=0.0001)
-    criterion = nn.MSELoss()
+def train_model(train_loader, val_loader, num_features, epochs=100, patience=10, fold_num="Prod"):
+    model = InvertedTransformerRanker(
+        num_features=num_features,
+        lookback_len=LOOKBACK_LEN,
+        d_model=64,
+        nhead=4,
+        num_layers=2,
+        dropout=0.1
+    ).to(device)
+    
+    optimizer = optim.AdamW(model.parameters(), lr=0.0003, weight_decay=0.001)
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
     
-    best_val_rho = -999.0
+    best_val_loss = 9999.0
     best_state = None
     patience_counter = 0
+    
+    print(f"\n  [TRAINING START] {fold_num} | Features: {num_features} | Accumulation Steps: {GRAD_ACCUM_STEPS}")
+    print(f"  {'Epoch':<10} | {'Train Loss':<12} | {'Val Loss':<12} | {'LR':<10} | {'Status':<15}")
+    print(f"  {'-'*65}")
     
     for epoch in range(epochs):
         model.train()
         train_loss = 0.0
-        for X_batch, y_batch, _ in train_loader:
-            X_batch, y_batch = X_batch.to(device), y_batch.to(device)
-            optimizer.zero_grad()
-            pred = model(X_batch)
-            loss = criterion(pred, y_batch)
-            loss.backward()
-            nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            optimizer.step()
-            train_loss += loss.item() * X_batch.size(0)
+        optimizer.zero_grad()
+        
+        for step, (X_batch, y_batch, _, _) in enumerate(train_loader):
+            # Shape from DataLoader: (1, N_stocks, 20, M) -> Squeeze batch dim
+            X_batch = X_batch.squeeze(0).to(device)
+            y_batch = y_batch.squeeze(0).to(device)
             
-        train_loss /= len(train_loader.dataset)
+            if len(y_batch) <= 1:
+                continue
+                
+            pred = model(X_batch)
+            loss = listnet_loss(pred, y_batch, temp=TEMPERATURE)
+            
+            # Scale loss for gradient accumulation
+            loss = loss / GRAD_ACCUM_STEPS
+            loss.backward()
+            
+            train_loss += loss.item() * GRAD_ACCUM_STEPS
+            
+            # Step optimizer every GRAD_ACCUM_STEPS daily batches
+            if (step + 1) % GRAD_ACCUM_STEPS == 0 or (step + 1) == len(train_loader):
+                nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                optimizer.step()
+                optimizer.zero_grad()
+                
+        train_loss /= len(train_loader)
+        current_lr = scheduler.get_last_lr()[0]
         scheduler.step()
         
-        # Validation evaluation
+        # Validation Evaluation (Loss-based for 10x GPU speed)
         model.eval()
-        val_preds = []
-        with torch.no_grad():
-            for X_batch, _, _ in val_loader:
-                X_batch = X_batch.to(device)
-                pred = model(X_batch)
-                val_preds.extend(pred.cpu().numpy())
-                
-        # Spearman correlation on val
-        df_val_eval = df_val.copy()
-        df_val_eval['pred_score'] = val_preds
-        val_rho = compute_spearman_rho(df_val_eval, 'pred_score', invert=False)
+        val_loss = 0.0
         
-        if val_rho > best_val_rho:
-            best_val_rho = val_rho
+        with torch.no_grad():
+            for X_val_batch, y_val_batch, _, _ in val_loader:
+                X_val_batch = X_val_batch.squeeze(0).to(device)
+                y_val_batch = y_val_batch.squeeze(0).to(device)
+                
+                if len(y_val_batch) <= 1:
+                    continue
+                    
+                pred = model(X_val_batch)
+                loss = listnet_loss(pred, y_val_batch, temp=TEMPERATURE)
+                val_loss += loss.item()
+                
+        val_loss /= len(val_loader)
+        
+        status_str = ""
+        # Early Stopping check (Minimize Validation ListNet Loss)
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
             best_state = {k: v.cpu() for k, v in model.state_dict().items()}
             patience_counter = 0
+            status_str = "★ New Best"
         else:
             patience_counter += 1
+            status_str = f"Patience {patience_counter}/{patience}"
             
+        print(f"  Epoch {epoch+1:<4}/{epochs:<3} | {train_loss:<12.5f} | {val_loss:<12.5f} | {current_lr:<10.6f} | {status_str:<15}")
+        sys.stdout.flush()  # Force unbuffered terminal output
+        
         if patience_counter >= patience:
+            print(f"  [EARLY STOP] Fold {fold_num} stopped at Epoch {epoch+1}. Best Val Loss: {best_val_loss:.5f}")
+            sys.stdout.flush()
             break
             
-    # Load best model
+    # Load best model weights
     model.load_state_dict(best_state)
     return model
 
 # ========================================
 # RUN WALK-FORWARD VALIDATION
 # ========================================
-print("\n" + "=" * 60)
-print("RUNNING WALK-FORWARD VALIDATION ON DEEP SEQUENCES")
-print("=" * 60)
+print("\n" + "=" * 70)
+print("RUNNING WALK-FORWARD VALIDATION ON INVERTED TRANSFORMER")
+print("=" * 70)
 
 for cfg in folds_config:
     fold_idx = cfg['fold']
@@ -415,48 +493,60 @@ for cfg in folds_config:
     print(f"  Val:   {val_m[0]} -> {val_m[-1]}")
     print(f"  Test:  {te_m[0]} -> {te_m[-1]}")
     
-    # Split indexes
-    tr_mask = np.isin(ym_seqs, tr_m)
-    val_mask = np.isin(ym_seqs, val_m)
-    te_mask = np.isin(ym_seqs, te_m)
+    # Split daily cross-sections
+    tr_days = [d for d in chronological_days if d['ym'] in tr_m]
+    val_days = [d for d in chronological_days if d['ym'] in val_m]
+    te_days = [d for d in chronological_days if d['ym'] in te_m]
     
-    X_tr, y_tr, qids_tr = X_seqs[tr_mask], y_seqs[tr_mask], qid_seqs[tr_mask]
-    X_val, y_val, qids_val = X_seqs[val_mask], y_seqs[val_mask], qid_seqs[val_mask]
-    X_te, y_te, qids_te = X_seqs[te_mask], y_seqs[te_mask], qid_seqs[te_mask]
+    print(f"  Days: Train={len(tr_days)}, Val={len(val_days)}, Test={len(te_days)}")
     
-    df_val = df_eval_all[val_mask].copy()
-    df_te = df_eval_all[te_mask].copy()
+    train_dataset = DailyGroupedDataset(tr_days)
+    val_dataset = DailyGroupedDataset(val_days)
+    test_dataset = DailyGroupedDataset(te_days)
     
-    print(f"  Data sizes: Train={X_tr.shape[0]:,}, Val={X_val.shape[0]:,}, Test={X_te.shape[0]:,}")
+    # Grouped DataLoader: batch_size=1 represents 1 trading day cross-section
+    train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
     
-    train_dataset = DailySequenceDataset(X_tr, y_tr, qids_tr)
-    val_dataset = DailySequenceDataset(X_val, y_val, qids_val)
-    test_dataset = DailySequenceDataset(X_te, y_te, qids_te)
-    
-    train_loader = DataLoader(train_dataset, batch_size=512, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=1024, shuffle=False)
-    test_loader = DataLoader(test_dataset, batch_size=1024, shuffle=False)
-    
-    # Train separate models for Long and Short (or use single model predicting return, then sorting both ways)
-    # To mirror XGBoost, we can train one highly generic sequence regressor to predict return, 
-    # then evaluate it in both Long (sorting high to low) and Short (sorting low to high) configurations.
-    print("  Training Temporal sequence model...")
-    model = train_model(train_loader, val_loader, df_val, len(feature_cols), epochs=80, patience=10)
+    print(f"  Training iTransformer sequence model for Fold {fold_idx}...")
+    model = train_model(train_loader, val_loader, len(feature_cols), epochs=80, patience=10, fold_num=f"Fold {fold_idx}")
     
     # Predict on test set
     model.eval()
     test_preds = []
+    test_targets = []
+    test_qids = []
+    test_tickers = []
+    test_dates = []
+    
     with torch.no_grad():
-        for X_batch, _, _ in test_loader:
-            X_batch = X_batch.to(device)
-            pred = model(X_batch)
-            test_preds.extend(pred.cpu().numpy())
+        for test_idx, (X_te_batch, y_te_batch, tickers, dates) in enumerate(test_loader):
+            X_te_batch = X_te_batch.squeeze(0).to(device)
+            y_te_batch = y_te_batch.squeeze(0)
             
-    # For short, we invert predictions
+            if len(y_te_batch) <= 1:
+                continue
+                
+            pred = model(X_te_batch)
+            
+            test_preds.extend(pred.cpu().numpy())
+            test_targets.extend(y_te_batch.numpy())
+            test_qids.extend([test_idx] * len(y_te_batch))
+            test_tickers.extend(tickers)
+            test_dates.extend(dates)
+            
+    df_te_eval = pd.DataFrame({
+        'DateTime': test_dates,
+        'Query_ID': test_qids,
+        'Ticker': test_tickers,
+        'Next_Day_Return': test_targets
+    })
+    
     long_scores = np.array(test_preds)
     short_scores = -long_scores
     
-    metrics = evaluate_ranking_performance(df_te, long_scores, short_scores)
+    metrics = evaluate_ranking_performance(df_te_eval, long_scores, short_scores)
     metrics['fold'] = fold_idx
     walk_forward_results.append(metrics)
     
@@ -489,9 +579,9 @@ avg_long_edge = np.mean([r['long_edge'] for r in walk_forward_results])
 avg_short_edge = np.mean([r['short_edge'] for r in walk_forward_results])
 avg_combined_edge = np.mean([r['combined_edge'] for r in walk_forward_results])
 
-print("\n" + "=" * 60)
+print("\n" + "=" * 70)
 print("AGGREGATE WALK-FORWARD VALIDATION RESULTS")
-print("=" * 60)
+print("=" * 70)
 print(f"Averaged over {len(folds_config)} temporal test folds:")
 print(f"  Average Spearman Rho:")
 print(f"    Long Model  : {avg_long_rho:.4f}")
@@ -506,43 +596,40 @@ print(f"    Market (Random) Pick   Avg Return: {avg_market_ret*100:+.4f}% per da
 print(f"    Long Edge over Market  : {avg_long_edge*100:+.4f}% per day")
 print(f"    Short Edge over Market : {avg_short_edge*100:+.4f}% per day")
 print(f"    Combined Long/Short Edge: {avg_combined_edge*100:+.4f}% per day")
-print("=" * 60)
+print("=" * 70)
 
 # ========================================
-# TRAIN PRODUCTION MODEL ON ALL HISTORICAL DATA
+# TRAIN PRODUCTION MODEL
 # ========================================
-print("\n" + "=" * 60)
-print("TRAINING FINAL PRODUCTION MODEL")
-print("=" * 60)
+print("\n" + "=" * 70)
+print("TRAINING FINAL PRODUCTION MODEL ON ALL DATA")
+print("=" * 70)
 
+# Dump scaler (using empty StandardScaler to match pipeline structure)
 scaler = StandardScaler(with_mean=False, with_std=False)
 with open(SCALER_PATH, 'wb') as f:
     pickle.dump(scaler, f)
 
+# Train on all months except the last 2, validation on the last 2 for early stopping
 prod_train_months = unique_months[:-2]
 prod_val_months = unique_months[-2:]
 
 print(f"  Production Train: {prod_train_months[0]} -> {prod_train_months[-1]}")
 print(f"  Production Val:   {prod_val_months[0]} -> {prod_val_months[-1]}")
 
-prod_tr_mask = np.isin(ym_seqs, prod_train_months)
-prod_val_mask = np.isin(ym_seqs, prod_val_months)
+prod_tr_days = [d for d in chronological_days if d['ym'] in prod_train_months]
+prod_val_days = [d for d in chronological_days if d['ym'] in prod_val_months]
 
-X_prod_tr, y_prod_tr, qids_prod_tr = X_seqs[prod_tr_mask], y_seqs[prod_tr_mask], qid_seqs[prod_tr_mask]
-X_prod_val, y_prod_val, qids_prod_val = X_seqs[prod_val_mask], y_seqs[prod_val_mask], qid_seqs[prod_val_mask]
+prod_train_dataset = DailyGroupedDataset(prod_tr_days)
+prod_val_dataset = DailyGroupedDataset(prod_val_days)
 
-df_prod_val = df_eval_all[prod_val_mask].copy()
-
-prod_train_dataset = DailySequenceDataset(X_prod_tr, y_prod_tr, qids_prod_tr)
-prod_val_dataset = DailySequenceDataset(X_prod_val, y_prod_val, qids_prod_val)
-
-prod_train_loader = DataLoader(prod_train_dataset, batch_size=512, shuffle=True)
-prod_val_loader = DataLoader(prod_val_dataset, batch_size=1024, shuffle=False)
+prod_train_loader = DataLoader(prod_train_dataset, batch_size=1, shuffle=True)
+prod_val_loader = DataLoader(prod_val_dataset, batch_size=1, shuffle=False)
 
 print("  Training Production sequence model...")
-prod_model = train_model(prod_train_loader, prod_val_loader, df_prod_val, len(feature_cols), epochs=80, patience=10)
+prod_model = train_model(prod_train_loader, prod_val_loader, len(feature_cols), epochs=80, patience=10, fold_num="Production Model")
 
-# Save the PyTorch model checkpoint
+# Save checkpoint
 torch.save(prod_model.state_dict(), MODEL_PATH)
 print(f"    Saved Production Model Checkpoint: {MODEL_PATH}")
 
@@ -552,9 +639,10 @@ print(f"    Saved Production Model Checkpoint: {MODEL_PATH}")
 metadata = {
     'features': feature_cols,
     'num_features': len(feature_cols),
-    'data_source': 'upstox_5y_daily',
+    'data_source': 'upstox_5y_daily_transformer_v2',
     'data_file': DATA_FILE,
-    'total_sequences': int(X_seqs.shape[0]),
+    'total_days': len(chronological_days),
+    'total_sequences': sum(len(d['y']) for d in chronological_days),
     'walk_forward_summary': {
         'avg_long_spearman': float(avg_long_rho),
         'avg_short_spearman': float(avg_short_rho),
@@ -580,9 +668,10 @@ metadata = {
     'production_training': {
         'train_months': prod_train_months,
         'val_months': prod_val_months,
-        'd_model': 32,
-        'nhead': 2,
-        'num_layers': 1,
+        'lookback_len': LOOKBACK_LEN,
+        'd_model': 64,
+        'nhead': 4,
+        'num_layers': 2,
     },
     'trained_at': datetime.now().isoformat(),
 }
@@ -590,10 +679,10 @@ metadata = {
 with open(META_PATH, 'w') as f:
     json.dump(metadata, f, indent=2)
 
-print("\n" + "=" * 60)
-print("DAILY MACRO DEEP TRANSFORMER TRAINING COMPLETE")
+print("\n" + "=" * 70)
+print("DAILY MACRO INVERTED TRANSFORMER TRAINING COMPLETE")
 print(f"  Model Checkpoint : {MODEL_PATH}")
 print(f"  Metadata         : {META_PATH}")
 print(f"  Scaler           : {SCALER_PATH}")
-print("=" * 60)
+print("=" * 70)
 print()

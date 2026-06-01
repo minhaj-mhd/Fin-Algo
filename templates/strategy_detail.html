@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ strategy_def.name }} | Vanguard Strategy Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg-dark: #05070a;
+            --card-bg: rgba(13, 17, 23, 0.75);
+            --accent-long: #00ff88;
+            --accent-short: #ff4d4d;
+            --accent-blue: #00d4ff;
+            --text-main: #e6edf3;
+            --text-dim: #8b949e;
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 2rem 0;
+        }
+
+        .card-glass {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+        }
+
+        .stat-label {
+            font-family: 'Outfit';
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .ticker-header {
+            font-family: 'Outfit';
+            font-weight: 800;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Tabs */
+        .sub-tab-bar {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
+
+        .sub-tab {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-family: 'Outfit';
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            border: 1px solid transparent;
+            transition: all 0.25s ease;
+        }
+
+        .sub-tab:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .sub-tab.active {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent-blue);
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.1);
+        }
+
+        .table {
+            --bs-table-bg: transparent;
+            --bs-table-hover-bg: rgba(255, 255, 255, 0.02);
+            --bs-table-color: var(--text-main);
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            color: var(--text-dim);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Outfit';
+            font-weight: 600;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
+
+        .table td {
+            font-size: 12px;
+            padding: 0.8rem 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            vertical-align: middle;
+        }
+
+        .side-badge {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Outfit';
+        }
+        .side-LONG { background: rgba(0, 255, 136, 0.1); color: var(--accent-long); border: 1px solid rgba(0, 255, 136, 0.2); }
+        .side-SHORT { background: rgba(255, 77, 77, 0.1); color: var(--accent-short); border: 1px solid rgba(255, 77, 77, 0.2); }
+
+        .back-btn {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+
+<body>
+    {% set taken = [] %}
+    {% set vetoed = [] %}
+    {% set daily_avoided = {} %}
+    {% for t in trades %}
+        {% if t.status in ['VETOED', 'VETOED_EXPIRED'] %}
+            {% set _ = vetoed.append(t) %}
+            {% set d = t.timestamp[:10] %}
+            {% set avoided = (t.final_profit_pct or 0) - 0.06 %}
+            {% if d in daily_avoided %}
+                {% set _ = daily_avoided.update({d: daily_avoided[d] + avoided}) %}
+            {% else %}
+                {% set _ = daily_avoided.update({d: avoided}) %}
+            {% endif %}
+        {% else %}
+            {% set _ = taken.append(t) %}
+        {% endif %}
+    {% endfor %}
+
+    <div class="container-fluid px-3 px-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="/" class="back-btn mb-0"><i class="bi bi-arrow-left"></i> BACK TO DASHBOARD</a>
+        </div>
+
+        <div class="row g-4">
+            <!-- HEADER -->
+            <div class="col-12">
+                <div class="card card-glass">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
+                            <div>
+                                <div class="ticker-header m-0">{{ strategy_def.name }}</div>
+                                <div class="text-dim outfit text-uppercase small mt-1" style="letter-spacing: 1px;">
+                                    STRATEGY ID: S{{ strategy_id }} | BIAS: <span class="{% if strategy_def.bias == 'LONG' %}text-success{% else %}text-danger{% endif %} fw-bold">{{ strategy_def.bias }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card" style="text-align: left;">
+                            <div class="stat-label mb-2"><i class="bi bi-code-square me-1"></i> Strategy Logic & Conditions</div>
+                            <div class="mono text-info" style="font-size: 14px; line-height: 1.6;">{{ strategy_def.logic }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABS & TABLES -->
+            <div class="col-12">
+                <div class="card card-glass p-4">
+                    <div class="sub-tab-bar mb-4">
+                        <div class="sub-tab active" id="tab-taken" onclick="setMode('TAKEN')">
+                            <i class="bi bi-check-circle me-1"></i> Trades Taken ({{ taken|length }})
+                        </div>
+                        <div class="sub-tab" id="tab-vetoed" onclick="setMode('VETOED')">
+                            <i class="bi bi-shield-slash me-1"></i> Trades Vetoed ({{ vetoed|length }})
+                        </div>
+                    </div>
+
+                    <!-- TAKEN TRADES -->
+                    <div id="container-taken" class="table-responsive">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Ticker</th>
+                                    <th>Side</th>
+                                    <th>Entry</th>
+                                    <th>Exit</th>
+                                    <th>P&amp;L</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set ns = namespace(last_date='') %}
+                                {% for t in taken %}
+                                    {% set date_str = t.timestamp[:10] %}
+                                    {% if date_str != ns.last_date %}
+                                    <tr class="bg-dark bg-opacity-50">
+                                        <td colspan="7" class="py-2">
+                                            <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
+                                                <i class="bi bi-calendar3 me-1"></i> {{ date_str }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% set ns.last_date = date_str %}
+                                    {% endif %}
+                                    <tr>
+                                        <td class="text-dim mono" style="font-size: 11px;">{{ t.timestamp[11:19] }}</td>
+                                        <td>
+                                            <a href="/ticker/{{ t.ticker|urlencode }}" class="text-white fw-bold text-decoration-none">
+                                                {{ t.ticker.replace('.NS', '') }}
+                                            </a>
+                                        </td>
+                                        <td><span class="side-badge side-{{ t.side }}">{{ t.side }}</span></td>
+                                        <td class="mono">₹{{ "%.2f"|format(t.entry_price) }}</td>
+                                        <td class="mono">₹{{ "%.2f"|format(t.exit_price or 0) }}</td>
+                                        <td class="mono fw-bold {% if t.final_profit_pct > 0 %}text-success{% elif t.final_profit_pct < 0 %}text-danger{% endif %}">
+                                            {{ '+' if t.final_profit_pct > 0 else '' }}{{ "%.2f"|format(t.final_profit_pct or 0) }}%
+                                        </td>
+                                        <td><span class="badge {% if t.status == 'CLOSED' %}bg-secondary{% else %}bg-info text-dark{% endif %}" style="font-size: 9px; font-family: 'Outfit';">{{ t.status }}</span></td>
+                                    </tr>
+                                {% else %}
+                                    <tr><td colspan="7" class="text-center text-dim py-4">No trades taken by this strategy.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- VETOED TRADES -->
+                    <div id="container-vetoed" class="table-responsive" style="display: none;">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Ticker</th>
+                                    <th>Side</th>
+                                    <th>Tech Score</th>
+                                    <th>Entry</th>
+                                    <th>Veto Stage</th>
+                                    <th>LLM Reason</th>
+                                    <th>Shadow P&amp;L</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set ns = namespace(last_date='') %}
+                                {% for t in vetoed %}
+                                    {% set date_str = t.timestamp[:10] %}
+                                    {% if date_str != ns.last_date %}
+                                    <tr class="bg-dark bg-opacity-50">
+                                        <td colspan="9" class="py-2">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
+                                                    <i class="bi bi-calendar3 me-1"></i> {{ date_str }}
+                                                </span>
+                                                <span class="smallest fw-bold {% if daily_avoided[date_str] > 0 %}text-success{% elif daily_avoided[date_str] < 0 %}text-danger{% else %}text-dim{% endif %}" style="letter-spacing: 1px;">
+                                                    AVOIDED: {{ '+' if daily_avoided[date_str] > 0 else '' }}{{ "%.2f"|format(daily_avoided[date_str]) }}%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% set ns.last_date = date_str %}
+                                    {% endif %}
+                                    <tr>
+                                        <td class="text-dim mono" style="font-size: 11px;">{{ t.timestamp[11:19] }}</td>
+                                        <td>
+                                            <a href="/ticker/{{ t.ticker|urlencode }}" class="text-white fw-bold text-decoration-none">
+                                                {{ t.ticker.replace('.NS', '') }}
+                                            </a>
+                                        </td>
+                                        <td><span class="side-badge side-{{ t.side }}">{{ t.side }}</span></td>
+                                        <td class="mono fw-bold text-info" style="font-size: 11px;">{{ "%.4f"|format(t.tech_score or 0) }}</td>
+                                        <td class="mono">₹{{ "%.2f"|format(t.entry_price) }}</td>
+                                        
+                                        {% set raw_comment = t.comment or '' %}
+                                        {% set is_s1 = '[S1-' in raw_comment %}
+                                        {% set veto_stage = 'S1' if is_s1 else 'S2' %}
+                                        
+                                        {% set stage_color = '#ffc107' if is_s1 else '#ff6b6b' %}
+                                        {% set stage_bg = 'rgba(255,193,7,0.12)' if is_s1 else 'rgba(255,107,107,0.12)' %}
+                                        {% set stage_border = 'rgba(255,193,7,0.35)' if is_s1 else 'rgba(255,107,107,0.35)' %}
+                                        
+                                        <td>
+                                            <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-family: 'JetBrains Mono'; font-weight: 700; background: {{ stage_bg }}; border: 1px solid {{ stage_border }}; color: {{ stage_color }};">
+                                                <i class="bi bi-shield-slash"></i> {{ veto_stage }}
+                                            </span>
+                                        </td>
+                                        <td style="max-width: 250px; font-size: 10px; color: var(--text-dim); line-height: 1.4;">
+                                            {% set clean_reason = raw_comment|replace('[S1-VETO] ', '')|replace('[S2-VETO] ', '') %}
+                                            {% if clean_reason|length > 60 %}
+                                                <span id="vr-{{ loop.index }}-short">{{ clean_reason[:60] }}... <a href="javascript:void(0)" onclick="document.getElementById('vr-{{ loop.index }}-short').style.display='none';document.getElementById('vr-{{ loop.index }}-full').style.display='block';" class="text-info text-decoration-none">more</a></span>
+                                                <span id="vr-{{ loop.index }}-full" style="display:none;">{{ clean_reason }} <a href="javascript:void(0)" onclick="document.getElementById('vr-{{ loop.index }}-full').style.display='none';document.getElementById('vr-{{ loop.index }}-short').style.display='block';" class="text-info text-decoration-none">less</a></span>
+                                            {% else %}
+                                                {{ clean_reason }}
+                                            {% endif %}
+                                        </td>
+                                        {% set live_pnl = (t.final_profit_pct or 0) - 0.06 %}
+                                        <td class="mono fw-bold {% if live_pnl > 0.05 %}text-success{% elif live_pnl < -0.05 %}text-danger{% else %}text-white{% endif %}">
+                                            {{ '+' if live_pnl >= 0 else '' }}{{ "%.2f"|format(live_pnl) }}%
+                                        </td>
+                                        <td><span class="text-dim small">{{ t.status }}</span></td>
+                                    </tr>
+                                {% else %}
+                                    <tr><td colspan="9" class="text-center text-dim py-4">No trades vetoed for this strategy.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setMode(mode) {
+            document.getElementById('tab-taken').classList.remove('active');
+            document.getElementById('tab-vetoed').classList.remove('active');
+            
+            if (mode === 'TAKEN') {
+                document.getElementById('tab-taken').classList.add('active');
+                document.getElementById('container-taken').style.display = 'block';
+                document.getElementById('container-vetoed').style.display = 'none';
+            } else {
+                document.getElementById('tab-vetoed').classList.add('active');
+                document.getElementById('container-vetoed').style.display = 'block';
+                document.getElementById('container-taken').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -22,6 +22,7 @@ import datetime
 # ---------------------------------------------------------------------------
 _BASE_DIR = os.path.join(os.path.dirname(__file__), "..")
 _SCORES_PATH = os.path.join(_BASE_DIR, "data", "latest_scores.json")
+_GATEKEEPERS_PATH = os.path.join(_BASE_DIR, "data", "daily_gatekeepers.json")
 
 # ---------------------------------------------------------------------------
 # In-memory cache for market data (5-minute TTL)
@@ -81,6 +82,13 @@ def get_model_snapshot() -> dict:
         "top5_short": [],
         "timestamp": datetime.datetime.now().isoformat(),
         "scores_age_seconds": -1.0,
+        "daily_gatekeepers": {
+            "timestamp": datetime.datetime.now().isoformat(),
+            "long_eligible": [],
+            "short_eligible": [],
+            "long_eligible_count": 0,
+            "short_eligible_count": 0
+        }
     }
 
     try:
@@ -165,6 +173,21 @@ def get_model_snapshot() -> dict:
             for s in short_sorted[:5]
         ]
 
+        # Load daily gatekeepers if available
+        daily_gatekeepers = {
+            "timestamp": datetime.datetime.now().isoformat(),
+            "long_eligible": [],
+            "short_eligible": [],
+            "long_eligible_count": 0,
+            "short_eligible_count": 0
+        }
+        if os.path.exists(_GATEKEEPERS_PATH):
+            try:
+                with open(_GATEKEEPERS_PATH, "r") as gf:
+                    daily_gatekeepers = json.load(gf)
+            except Exception:
+                pass
+
         return {
             "overall_sentiment": overall,
             "sentiment_strength": strength,
@@ -184,6 +207,7 @@ def get_model_snapshot() -> dict:
             "top5_short": top5_short,
             "timestamp": datetime.datetime.fromtimestamp(scores_mtime).isoformat(),
             "scores_age_seconds": round(scores_age, 1),
+            "daily_gatekeepers": daily_gatekeepers
         }
 
     except Exception as e:

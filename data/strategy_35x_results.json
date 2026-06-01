@@ -1,0 +1,25 @@
+{
+  "holdout_month": "2026-05",
+  "tickers_universe_size": 172,
+  "strategies": {
+    "strategy_19": {
+      "strategy": "Low-Volatility Grind (IBS Reversion)",
+      "total_trades": 83,
+      "wins": 49,
+      "losses": 34,
+      "win_rate": 0.5903614457831325,
+      "long_win_rate": 0.6,
+      "short_win_rate": 0.5384615384615384,
+      "long_trades": 70,
+      "short_trades": 13,
+      "total_return": 0.026549031389824243,
+      "avg_return": 0.0003198678480701716,
+      "avg_trades_per_day": 5.928571428571429,
+      "green_day_rate": 0.7857142857142857,
+      "profit_factor": 2.2239812818786073,
+      "max_drawdown": -0.005974473612556978,
+      "avg_bars_held": 3.8674698795180724
+    }
+  },
+  "backtested_at": "2026-05-31T11:48:40.796467"
+}

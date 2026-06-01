@@ -1,0 +1,23 @@
+{
+  "holdout_month": "2026-05",
+  "tickers_universe_size": 172,
+  "strategy_summary": {
+    "strategy": "Daily Macro Gatekeeper (Optimized)",
+    "total_trades": 108,
+    "wins": 52,
+    "losses": 56,
+    "win_rate": 0.48148148148148145,
+    "long_win_rate": 0.5,
+    "short_win_rate": 0.4666666666666667,
+    "long_trades": 48,
+    "short_trades": 60,
+    "total_return": -0.05696906714611563,
+    "avg_return": -0.0005274913624640337,
+    "avg_trades_per_day": 6.0,
+    "green_day_rate": 0.3888888888888889,
+    "profit_factor": 0.7151046203251618,
+    "max_drawdown": -0.053875174858481624,
+    "avg_bars_held": 1.712962962962963
+  },
+  "backtested_at": "2026-05-30T14:44:42.704023"
+}

@@ -42,8 +42,10 @@ def init_db():
             take_profit_pct REAL,
             trailing_active INTEGER,
             breakeven_locked INTEGER,
+            buy_brokerage REAL,
             long_score REAL,
-            short_score REAL
+            short_score REAL,
+            strategy_id INTEGER
         )
     ''')
     
@@ -84,6 +86,7 @@ def init_db():
         ('breakeven_locked', 'INTEGER'),
         ('long_score', 'REAL'),
         ('short_score', 'REAL'),
+        ('strategy_id', 'INTEGER'),
     ]:
         try:
             cursor.execute(f'ALTER TABLE trades ADD COLUMN {col} {col_type}')
@@ -108,8 +111,8 @@ def log_trade(trade_data):
             quantity, net_pnl_amt, margin_used, tv_sentiment,
             pending_since, extension_count, extended_exit_time, extension_pending,
             stop_loss_pct, take_profit_pct, trailing_active, breakeven_locked, buy_brokerage,
-            long_score, short_score
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            long_score, short_score, strategy_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         trade_data.get('trade_id'),
         trade_data.get('timestamp'),
@@ -140,7 +143,8 @@ def log_trade(trade_data):
         1 if trade_data.get('breakeven_locked') else 0,
         trade_data.get('buy_brokerage'),
         trade_data.get('long_score'),
-        trade_data.get('short_score')
+        trade_data.get('short_score'),
+        trade_data.get('strategy_id')
     ))
     
     conn.commit()
@@ -273,6 +277,17 @@ def get_trades_by_status(status="OPEN", limit=50):
     rows = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return rows
+
+def get_trades_by_strategy(strategy_id, limit=200):
+    """Fetches trades (taken and vetoed) filtered by strategy_id."""
+    conn = sqlite3.connect(DB_PATH, timeout=10)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM trades WHERE strategy_id = ? ORDER BY timestamp DESC LIMIT ?', (strategy_id, limit))
+    rows = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return rows
+
 
 def get_trades_for_ticker(ticker, limit=50):
     """Fetches all trades taken for a specific ticker."""
@@ -463,7 +478,7 @@ def get_portfolio_summary():
     cursor.execute('''
         SELECT ticker, side, quantity, entry_price, exit_price,
                final_profit_pct, net_pnl_amt, status, timestamp, comment, one_hour_prob,
-               tech_score, long_score, short_score
+               tech_score, long_score, short_score, strategy_id
         FROM trades
         WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT")
           AND trade_id LIKE "T-%"
@@ -489,6 +504,47 @@ def get_portfolio_summary():
         'today_trades':   today_trades,
     }
 
+
+def get_strategy_performance():
+    """Aggregates performance metrics grouped by strategy_id."""
+    conn = sqlite3.connect(DB_PATH, timeout=10)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT 
+            COALESCE(strategy_id, -1) as strategy_id,
+            COUNT(*) as trade_count,
+            SUM(CASE WHEN final_profit_pct > 0 THEN 1 ELSE 0 END) as wins,
+            SUM(final_profit_pct) as total_alpha,
+            MAX(final_profit_pct) as best_trade,
+            MIN(final_profit_pct) as worst_trade,
+            AVG(final_profit_pct) as avg_pnl
+        FROM trades
+        WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT") AND timestamp >= ?
+        GROUP BY strategy_id
+        ORDER BY strategy_id ASC
+    ''', (START_DATE_FILTER,))
+    
+    strategies = [dict(row) for row in cursor.fetchall()]
+    
+    # Also fetch recent strategy trades
+    cursor.execute('''
+        SELECT ticker, side, entry_price, exit_price, final_profit_pct, status, timestamp, strategy_id, comment
+        FROM trades
+        WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT") AND timestamp >= ? AND strategy_id IS NOT NULL
+        ORDER BY timestamp DESC
+        LIMIT 100
+    ''', (START_DATE_FILTER,))
+    
+    recent_strategy_trades = [dict(row) for row in cursor.fetchall()]
+    
+    conn.close()
+    
+    return {
+        'stats': strategies,
+        'recent_trades': recent_strategy_trades
+    }
 
 if __name__ == '__main__':
     init_db()

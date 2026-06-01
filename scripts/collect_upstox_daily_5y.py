@@ -25,13 +25,14 @@ from tqdm import tqdm
 sys.path.append(os.getcwd())
 
 from scripts.tickers import TICKERS
-from scripts.feature_utils import compute_features
+from scripts.feature_utils import compute_features_daily_xgb, compute_features_daily_transformer_v2
 from scripts.upstox_broker import UpstoxSandboxBroker
 
 # ============================================================
 # CONFIG
 # ============================================================
-OUTPUT_CSV      = "data/ranking_data_upstox_daily_5y.csv"
+OUTPUT_CSV_XGB         = "data/ranking_data_upstox_daily_5y.csv"             # XGBoost dataset
+OUTPUT_CSV_TRANSFORMER = "data/ranking_data_upstox_daily_5y_transformer.csv" # Transformer dataset
 RAW_CACHE_DIR   = "data/raw_upstox_daily_cache"   # Cache folder
 START_DATE      = date(2021, 5, 29)                # 5 years ago from May 2026
 CHUNK_DAYS      = 350                             # Safe annual chunk size (under Upstox limits)
@@ -61,6 +62,7 @@ DATE_CHUNKS = build_date_chunks(START_DATE, TODAY, CHUNK_DAYS)
 
 print("=" * 70)
 print("UPSTOX 5-YEAR DAILY DATA COLLECTOR")
+print("Dual-Dataset Mode: XGBoost + Transformer")
 print("=" * 70)
 print(f"  Universe Tickers : {len(TICKERS)}")
 print(f"  Start Date       : {START_DATE}")
@@ -194,10 +196,80 @@ def fetch_ticker_daily_history(ticker: str, date_chunks: list) -> pd.DataFrame:
     return None
 
 # ============================================================
-# MAIN COLLECTION & FEATURE ENGINEERING
+# HELPER: Build ranking dataset from list of per-ticker DataFrames
+# ============================================================
+def build_ranking_dataset(all_dfs, dataset_name, output_csv):
+    """Compile, add market context, Z-score, and save a ranking dataset."""
+    print(f"\n{'='*70}")
+    print(f"Building {dataset_name} ranking dataset...")
+    print(f"{'='*70}")
+    
+    df_all = pd.concat(all_dfs, ignore_index=True)
+    df_all['DateTime'] = pd.to_datetime(df_all['DateTime'])
+    
+    # Drop rows where target label Next_Day_Return is NaN
+    df_all = df_all.dropna(subset=['Next_Day_Return'])
+    
+    # Query_ID based on daily date
+    df_all = df_all.sort_values('DateTime')
+    df_all['Query_ID'] = df_all.groupby(df_all['DateTime'].dt.date).ngroup()
+    
+    # Filter: Only keep dates with >= 5 tickers
+    query_sizes = df_all.groupby('Query_ID').size()
+    valid_queries = query_sizes[query_sizes >= 5].index
+    df_all = df_all[df_all['Query_ID'].isin(valid_queries)].copy()
+    
+    # Re-index Query_IDs sequentially
+    df_all = df_all.sort_values('DateTime')
+    df_all['Query_ID'] = df_all.groupby(df_all['DateTime'].dt.date).ngroup()
+    
+    print(f"  Total samples  : {len(df_all):,}")
+    print(f"  Trading days   : {df_all['Query_ID'].nunique():,}")
+    print(f"  Avg stocks/day : {df_all.groupby('Query_ID').size().mean():.1f}")
+    date_min, date_max = df_all['DateTime'].min(), df_all['DateTime'].max()
+    print(f"  Date span      : {date_min.date()} -> {date_max.date()}")
+    
+    # Market context features
+    print("  Calculating market context features...")
+    df_all['Market_Mean_Return']     = df_all.groupby('Query_ID')['Return'].transform('mean')
+    df_all['Relative_Return']        = df_all['Return'] - df_all['Market_Mean_Return']
+    df_all['Market_Mean_Volatility'] = df_all.groupby('Query_ID')['HL_Range'].transform('mean')
+    df_all['Relative_Volatility']    = df_all['HL_Range'] / (df_all['Market_Mean_Volatility'] + 1e-8)
+    
+    # Cross-sectional Z-scoring
+    print("  Applying daily cross-sectional Z-scoring...")
+    exclude_cols = {
+        'DateTime', 'Query_ID', 'Ticker', 'Next_Day_Return',
+        'Open', 'High', 'Low', 'Close', 'Volume',
+        'Market_Mean_Return', 'Relative_Return',
+        'Market_Mean_Volatility', 'Relative_Volatility',
+        'Hour', 'DayOfWeek', 'DayOfMonth', 'MonthOfYear',
+        'Is_Open_Hour', 'Is_Close_Hour', 'Time_To_Close',
+        'Is_Month_Start', 'Is_Month_End', 'WeekOfMonth'
+    }
+    feature_cols = [c for c in df_all.columns if c not in exclude_cols]
+    
+    for col in tqdm(feature_cols, desc=f"  Z-Scoring ({dataset_name})"):
+        grp_mean = df_all.groupby('Query_ID')[col].transform('mean')
+        grp_std  = df_all.groupby('Query_ID')[col].transform('std')
+        df_all[col] = (df_all[col] - grp_mean) / (grp_std + 1e-8)
+    
+    # Fill remaining NaNs
+    df_all[feature_cols] = df_all[feature_cols].fillna(0)
+    
+    # Save
+    print(f"  Saving to {output_csv}...")
+    df_all.to_csv(output_csv, index=False)
+    
+    print(f"  [{dataset_name}] Features: {len(feature_cols)}, Rows: {len(df_all):,}")
+    return len(feature_cols), len(df_all)
+
+
+# ============================================================
+# PHASE 1: COLLECT RAW OHLCV DATA (SINGLE PASS)
 # ============================================================
 print("Phase 1: Collecting raw historical daily OHLCV...")
-all_ticker_dfs = []
+raw_ticker_data = {}  # ticker -> standardized DataFrame (Open/High/Low/Close/Volume indexed by DateTime)
 failed_tickers = []
 yfinance_counts = 0
 
@@ -211,122 +283,88 @@ for ticker in tqdm(TICKERS, desc="Stocks"):
         if hasattr(df_raw, '_is_yfinance'):
             yfinance_counts += 1
 
-        # Format columns for features
-        df_feat = df_raw.rename(columns={
+        # Standardize columns
+        df_std = df_raw.rename(columns={
             'timestamp': 'DateTime',
             'open': 'Open', 'high': 'High',
             'low': 'Low', 'close': 'Close', 'volume': 'Volume'
         })
-        if 'oi' in df_feat.columns:
-            df_feat = df_feat.drop(columns=['oi'])
-            
-        df_feat['Ticker'] = ticker
+        if 'oi' in df_std.columns:
+            df_std = df_std.drop(columns=['oi'])
         
-        # Ensure DateTime is index and parsed correctly
-        df_feat['DateTime'] = pd.to_datetime(df_feat['DateTime'])
-        df_feat = df_feat.set_index('DateTime')
-
-        # Compute technical indicators
-        df_feat = compute_features(df_feat, legacy=False)
-        df_feat['DateTime'] = df_feat.index
-        df_feat['Ticker'] = ticker
-
-        # Correct 52-week High/Low features for daily candles (250 trading days)
-        high_52w = df_feat['High'].rolling(250, min_periods=50).max()
-        low_52w  = df_feat['Low'].rolling(250, min_periods=50).min()
-        df_feat['Dist_52W_High'] = (df_feat['Close'] - high_52w) / (high_52w + 1e-8)
-        df_feat['Dist_52W_Low']  = (df_feat['Close'] - low_52w)  / (low_52w  + 1e-8)
-
-        # Label: Next Day Return (Close-to-Close)
-        df_feat['Next_Day_Return'] = df_feat['Close'].shift(-1) / df_feat['Close'] - 1
-
-        all_ticker_dfs.append(df_feat)
+        df_std['DateTime'] = pd.to_datetime(df_std['DateTime'])
+        df_std = df_std.set_index('DateTime')
+        
+        raw_ticker_data[ticker] = df_std
 
     except Exception as e:
         failed_tickers.append(ticker)
         print(f"  [ERROR] {ticker}: {e}")
 
-print(f"\nFetch completed: {len(all_ticker_dfs)} OK, {len(failed_tickers)} failed.")
+print(f"\nFetch completed: {len(raw_ticker_data)} OK, {len(failed_tickers)} failed.")
 print(f"yfinance fallbacks: {yfinance_counts}")
 if failed_tickers:
     print(f"Failed tickers: {failed_tickers}")
 
-if not all_ticker_dfs:
+if not raw_ticker_data:
     print("[FATAL] No stock data collected. Verify network/API access tokens.")
     sys.exit(1)
 
-# ============================================================
-# COMPILE CROSS-SECTIONAL RANKING DATASET
-# ============================================================
-print("\nPhase 2: Building cross-sectional ranking dataset...")
-df_all = pd.concat(all_ticker_dfs, ignore_index=True)
-df_all['DateTime'] = pd.to_datetime(df_all['DateTime'])
-
-# Drop rows where target label Next_Day_Return is NaN (typically the last day per stock)
-df_all = df_all.dropna(subset=['Next_Day_Return'])
-
-# Query_ID based on daily date (stocks traded on the same day belong to same query)
-df_all = df_all.sort_values('DateTime')
-df_all['Query_ID'] = df_all.groupby(df_all['DateTime'].dt.date).ngroup()
-
-# Filter: Only keep dates with >= 5 tickers to maintain cross-sectional ranking integrity
-query_sizes = df_all.groupby('Query_ID').size()
-valid_queries = query_sizes[query_sizes >= 5].index
-df_all = df_all[df_all['Query_ID'].isin(valid_queries)].copy()
-
-# Re-index Query_IDs sequentially after filtering
-df_all = df_all.sort_values('DateTime')
-df_all['Query_ID'] = df_all.groupby(df_all['DateTime'].dt.date).ngroup()
-
-print(f"  Total samples  : {len(df_all):,}")
-print(f"  Trading days   : {df_all['Query_ID'].nunique():,}")
-print(f"  Avg stocks/day : {df_all.groupby('Query_ID').size().mean():.1f}")
-date_min, date_max = df_all['DateTime'].min(), df_all['DateTime'].max()
-print(f"  Date span      : {date_min.date()} -> {date_max.date()}")
 
 # ============================================================
-# MARKET CONTEXT FEATURES
+# PHASE 2A: COMPUTE XGBOOST FEATURES
 # ============================================================
-print("\nCalculating market context features...")
-df_all['Market_Mean_Return']     = df_all.groupby('Query_ID')['Return'].transform('mean')
-df_all['Relative_Return']        = df_all['Return'] - df_all['Market_Mean_Return']
-df_all['Market_Mean_Volatility'] = df_all.groupby('Query_ID')['HL_Range'].transform('mean')
-df_all['Relative_Volatility']    = df_all['HL_Range'] / (df_all['Market_Mean_Volatility'] + 1e-8)
-
-# ============================================================
-# CROSS-SECTIONAL Z-SCORING
-# ============================================================
-print("Applying daily cross-sectional Z-scoring...")
-
-exclude_cols = {
-    'DateTime', 'Query_ID', 'Ticker', 'Next_Day_Return',
-    'Open', 'High', 'Low', 'Close', 'Volume',
-    'Market_Mean_Return', 'Relative_Return',
-    'Market_Mean_Volatility', 'Relative_Volatility',
-    'Hour', 'DayOfWeek', 'Is_Open_Hour', 'Is_Close_Hour', 'Time_To_Close'
-}
-feature_cols = [c for c in df_all.columns if c not in exclude_cols]
-
-for col in tqdm(feature_cols, desc="Z-Scoring"):
-    grp_mean = df_all.groupby('Query_ID')[col].transform('mean')
-    grp_std  = df_all.groupby('Query_ID')[col].transform('std')
-    df_all[col] = (df_all[col] - grp_mean) / (grp_std + 1e-8)
-
-# Fill any remaining NaNs in features with 0 (neutral score)
-df_all[feature_cols] = df_all[feature_cols].fillna(0)
-
-# ============================================================
-# SAVE FINAL DATASET
-# ============================================================
-print(f"\nPhase 3: Saving dataset...")
-df_all.to_csv(OUTPUT_CSV, index=False)
-
 print("\n" + "=" * 70)
-print(f"DAILY 5-YEAR DATASET CREATION SUCCESSFUL")
-print(f"  Output path    : {OUTPUT_CSV}")
-print(f"  Total rows     : {len(df_all):,}")
-print(f"  Total queries  : {df_all['Query_ID'].nunique():,}")
-print(f"  Features count : {len(feature_cols)}")
-print(f"  Date span      : {df_all['DateTime'].min().date()} -> {df_all['DateTime'].max().date()}")
+print("Phase 2A: Computing XGBoost features (same as 1hr model + 52W fix)...")
+print("=" * 70)
+xgb_dfs = []
+for ticker, df_std in tqdm(raw_ticker_data.items(), desc="XGB Features"):
+    try:
+        df_feat = compute_features_daily_xgb(df_std)
+        df_feat['DateTime'] = df_feat.index
+        df_feat['Ticker'] = ticker
+        df_feat['Next_Day_Return'] = df_feat['Close'].shift(-1) / df_feat['Close'] - 1
+        xgb_dfs.append(df_feat)
+    except Exception as e:
+        print(f"  [ERROR] XGB features for {ticker}: {e}")
+
+xgb_n_features, xgb_n_rows = build_ranking_dataset(xgb_dfs, "XGBoost", OUTPUT_CSV_XGB)
+
+
+# ============================================================
+# PHASE 2B: COMPUTE TRANSFORMER FEATURES
+# ============================================================
+print("\n" + "=" * 70)
+print("Phase 2B: Computing Transformer-optimized features...")
+print("=" * 70)
+tf_dfs = []
+for ticker, df_std in tqdm(raw_ticker_data.items(), desc="Transformer Features"):
+    try:
+        df_feat = compute_features_daily_transformer_v2(df_std)
+        df_feat['DateTime'] = df_feat.index
+        df_feat['Ticker'] = ticker
+        df_feat['Next_Day_Return'] = df_feat['Close'].shift(-1) / df_feat['Close'] - 1
+        tf_dfs.append(df_feat)
+    except Exception as e:
+        print(f"  [ERROR] Transformer features for {ticker}: {e}")
+
+tf_n_features, tf_n_rows = build_ranking_dataset(tf_dfs, "Transformer", OUTPUT_CSV_TRANSFORMER)
+
+
+# ============================================================
+# SUMMARY
+# ============================================================
+print("\n" + "=" * 70)
+print("DUAL-DATASET DAILY 5-YEAR COLLECTION COMPLETE")
+print("=" * 70)
+print(f"  XGBoost Dataset:")
+print(f"    Path     : {OUTPUT_CSV_XGB}")
+print(f"    Features : {xgb_n_features}")
+print(f"    Rows     : {xgb_n_rows:,}")
+print(f"  Transformer Dataset:")
+print(f"    Path     : {OUTPUT_CSV_TRANSFORMER}")
+print(f"    Features : {tf_n_features}")
+print(f"    Rows     : {tf_n_rows:,}")
 print("=" * 70)
 print()
+

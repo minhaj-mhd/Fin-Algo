@@ -649,6 +649,9 @@
             <li class="nav-item">
                 <button class="nav-link" id="upstox-tab" data-bs-toggle="tab" data-bs-target="#upstox" type="button" onclick="recalculateAll()"><i class="bi bi-wallet2 me-1"></i> Upstox Portfolio</button>
             </li>
+            <li class="nav-item">
+                <button class="nav-link" id="strategies-tab" data-bs-toggle="tab" data-bs-target="#strategies" type="button" onclick="loadStrategyData()"><i class="bi bi-diagram-3 me-1"></i> Strategy Edge</button>
+            </li>
         </ul>
 
         <div class="tab-content" id="vanguardTabContent">
@@ -713,7 +716,7 @@
             <!-- VETOED TAB -->
             <div class="tab-pane fade" id="vetoed">
                 <div class="card card-glass mb-4 p-4" style="border-color: rgba(255, 193, 7, 0.25);">
-                    <div class="section-title text-warning d-flex justify-content-between align-items-center">
+                    <div class="section-title text-warning d-flex justify-content-between align-items-center mb-3">
                         <span><i class="bi bi-shield-slash"></i> AI Vetoed (Live Tracking)</span>
                         <div class="d-flex gap-4" style="font-family: 'JetBrains Mono'; font-size: 11px;">
                             <div class="text-end">
@@ -730,7 +733,17 @@
                             </div>
                         </div>
                     </div>
-                    <div class="table-responsive mt-2">
+
+                    <div class="sub-tab-bar mb-3">
+                        <div class="sub-tab active" id="veto-tab-ml" onclick="setVetoMode('ML')">
+                            <i class="bi bi-cpu me-1"></i> ML/AI Pipeline
+                        </div>
+                        <div class="sub-tab" id="veto-tab-strategy" onclick="setVetoMode('STRATEGY')">
+                            <i class="bi bi-diagram-3 me-1"></i> Strategy Based Pipeline
+                        </div>
+                    </div>
+
+                    <div id="veto-ml-container" class="table-responsive mt-2">
                         <table class="table table-dark table-hover align-middle">
                             <thead>
                                 <tr>
@@ -748,7 +761,33 @@
                                     <th>Status / Time</th>
                                 </tr>
                             </thead>
-                            <tbody id="vetoed-signals">
+                            <tbody id="vetoed-ml-signals">
+                                <tr>
+                                    <td colspan="12" class="text-center text-dim py-4">No recently vetoed signals.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="veto-strategy-container" class="table-responsive mt-2" style="display: none;">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Strategy</th>
+                                    <th>Ticker</th>
+                                    <th>Side</th>
+                                    <th>ML Score</th>
+                                    <th>Vetoed</th>
+                                    <th>Potential Entry</th>
+                                    <th>Tracking Price</th>
+                                    <th>Shadow P&amp;L</th>
+                                    <th>Veto Stage</th>
+                                    <th>LLM Reason</th>
+                                    <th>TV 1H</th>
+                                    <th>Status / Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vetoed-strategy-signals">
                                 <tr>
                                     <td colspan="12" class="text-center text-dim py-4">No recently vetoed signals.</td>
                                 </tr>
@@ -792,6 +831,39 @@
                             <tbody id="analysis-body">
                                 <tr>
                                     <td colspan="8" class="text-center text-dim py-4">Waiting for next engine scan...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STRATEGIES TAB -->
+            <div class="tab-pane fade" id="strategies">
+                <div class="card card-glass mb-4 p-4">
+                    <div class="section-title text-success mb-3"><i class="bi bi-diagram-3"></i> Structural Edge Definitions</div>
+                    <div class="row g-3" id="strategy-cards-container">
+                        <div class="col-12 text-center text-dim py-4">Loading Strategy Logic...</div>
+                    </div>
+                </div>
+
+                <div class="card card-glass mb-4 p-4">
+                    <div class="section-title text-info"><i class="bi bi-list-columns-reverse"></i> Strategy Execution Feed</div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Strategy Edge</th>
+                                    <th>Asset</th>
+                                    <th>Execution</th>
+                                    <th>Final P&amp;L</th>
+                                    <th>Timestamp</th>
+                                    <th>Reasoning</th>
+                                </tr>
+                            </thead>
+                            <tbody id="strategy-trades-body">
+                                <tr>
+                                    <td colspan="6" class="text-center text-dim py-4">No strategy executions logged yet.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1047,7 +1119,21 @@
             searchTicker();
         }
 
-
+        // --- VETO TAB TOGGLE LOGIC ---
+        function setVetoMode(mode) {
+            document.getElementById('veto-tab-ml').classList.remove('active');
+            document.getElementById('veto-tab-strategy').classList.remove('active');
+            
+            if (mode === 'ML') {
+                document.getElementById('veto-tab-ml').classList.add('active');
+                document.getElementById('veto-ml-container').style.display = 'block';
+                document.getElementById('veto-strategy-container').style.display = 'none';
+            } else {
+                document.getElementById('veto-tab-strategy').classList.add('active');
+                document.getElementById('veto-strategy-container').style.display = 'block';
+                document.getElementById('veto-ml-container').style.display = 'none';
+            }
+        }
 
         // ---------- HELPERS ----------
         function inrFmt(v) {
@@ -1132,10 +1218,18 @@
                             sigTime = new Date(p.entry_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
                         } catch(e) {}
 
+                        const sId = p.strategy_id;
+                        const stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
+                            `<span class="badge bg-dark text-info border border-info border-opacity-25" style="font-size: 8px; vertical-align: middle;">S${sId}</span>` : 
+                            `<span class="badge bg-dark text-dim border border-secondary border-opacity-10" style="font-size: 8px; vertical-align: middle;">AI</span>`;
+
                         pendingBody.innerHTML += `
                             <tr>
                                 <td class="ticker-name">
-                                    <a href="/ticker/${encodeURIComponent(p.ticker)}" class="ticker-link">${p.ticker.replace('.NS','')}</a>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <a href="/ticker/${encodeURIComponent(p.ticker)}" class="ticker-link">${p.ticker.replace('.NS','')}</a>
+                                        ${stratBadge}
+                                    </div>
                                 </td>
                                 <td><span class="side-badge ${sideCls}">${p.side}</span></td>
                                 <td>
@@ -1194,11 +1288,19 @@
                         }
                         // ────────────────────────────────────────────────────────
 
+                        const sId = p.strategy_id;
+                        const stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
+                            `<span class="badge bg-dark text-info border border-info border-opacity-25" style="font-size: 8px; vertical-align: middle;">S${sId}</span>` : 
+                            `<span class="badge bg-dark text-dim border border-secondary border-opacity-10" style="font-size: 8px; vertical-align: middle;">AI</span>`;
+
                         posBody.innerHTML += `
                             <tr>
                                 <td class="ticker-name">
-                                    <a href="/ticker/${encodeURIComponent(p.ticker)}" class="ticker-link">${p.ticker.replace('.NS','')}</a>
-                                    <a href="https://www.tradingview.com/chart/?symbol=NSE:${p.ticker.replace('.NS','')}" target="_blank" class="text-dim ms-1" style="font-size:10px;" title="TradingView"><i class="bi bi-graph-up"></i></a>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <a href="/ticker/${encodeURIComponent(p.ticker)}" class="ticker-link">${p.ticker.replace('.NS','')}</a>
+                                        ${stratBadge}
+                                        <a href="https://www.tradingview.com/chart/?symbol=NSE:${p.ticker.replace('.NS','')}" target="_blank" class="text-dim" style="font-size:10px;" title="TradingView"><i class="bi bi-graph-up"></i></a>
+                                    </div>
                                 </td>
                                 <td><span class="side-badge ${sideCls}">${p.side}</span></td>
                                 <td>
@@ -1270,10 +1372,18 @@
                             : t.status === 'TAKE_PROFIT'
                             ? '<span class="badge bg-success" style="font-size:9px;">TP HIT</span>'
                             : '<span class="badge bg-secondary" style="font-size:9px;">CLOSED</span>';
+                        const sId = t.strategy_id;
+                        const stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
+                            `<span class="badge bg-dark text-info border border-info border-opacity-25" style="font-size: 8px; vertical-align: middle;">S${sId}</span>` : 
+                            `<span class="badge bg-dark text-dim border border-secondary border-opacity-10" style="font-size: 8px; vertical-align: middle;">AI</span>`;
+
                         closedBody.innerHTML += `
                             <tr>
                                 <td class="ticker-name">
-                                    <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">${(t.ticker || '').replace('.NS','')}</a>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">${(t.ticker || '').replace('.NS','')}</a>
+                                        ${stratBadge}
+                                    </div>
                                 </td>
                                 <td><span class="side-badge ${sideCls}">${t.side}</span></td>
                                 <td>
@@ -1413,6 +1523,11 @@
                         const pendingBadge = isPending ? 
                             `<span class="badge bg-warning text-dark ms-2" style="font-size: 8px; vertical-align: middle;">PENDING</span>` : '';
 
+                        const sId = t.strategy_id;
+                        const stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
+                            `<span class="badge bg-dark text-info border border-info border-opacity-25" style="font-size: 8px; vertical-align: middle;">S${sId}</span>` : 
+                            `<span class="badge bg-dark text-dim border border-secondary border-opacity-10" style="font-size: 8px; vertical-align: middle;">AI</span>`;
+
                         openBody.innerHTML += `
                             <tr>
                                 <td class="ticker-name">
@@ -1420,6 +1535,7 @@
                                         <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">
                                             ${t.ticker.replace('.NS', '')}
                                         </a>
+                                        ${stratBadge}
                                         ${pendingBadge}
                                         <a href="https://www.tradingview.com/chart/?symbol=NSE:${t.ticker.replace('.NS', '')}" target="_blank" class="text-dim" style="font-size: 10px;" title="View TradingView Chart">
                                             <i class="bi bi-graph-up"></i>
@@ -1464,134 +1580,153 @@
                 }
 
                 // 2.5 UPDATE VETOED TRADES
-                const vetoBody = document.getElementById('vetoed-signals');
+                const vetoMlBody = document.getElementById('vetoed-ml-signals');
+                const vetoStrategyBody = document.getElementById('vetoed-strategy-signals');
                 if (data.vetoed_trades && data.vetoed_trades.length > 0) {
-                    vetoBody.innerHTML = '';
-                    let lastDate = "";
-                    data.vetoed_trades.forEach((t, index) => {
-                        const dateObj = new Date(t.timestamp);
-                        const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                        
-                        if (dateStr !== lastDate) {
-                            // Calculate daily sum for this specific day group
-                            const dailyVetoSum = data.vetoed_trades
-                                .filter(item => new Date(item.timestamp).toLocaleDateString('en-US') === dateObj.toLocaleDateString('en-US'))
-                                .reduce((acc, item) => acc + ((item.final_profit_pct || 0) - 0.06), 0);
-                            
-                            const sumCls = dailyVetoSum > 0 ? 'text-success' : (dailyVetoSum < 0 ? 'text-danger' : 'text-white');
+                    const mlTrades = data.vetoed_trades.filter(t => t.strategy_id == null || t.strategy_id === -1 || Number.isNaN(t.strategy_id) || t.strategy_id === "");
+                    const stratTrades = data.vetoed_trades.filter(t => t.strategy_id != null && t.strategy_id !== -1 && !Number.isNaN(t.strategy_id) && t.strategy_id !== "");
 
-                            vetoBody.innerHTML += `
-                                <tr class="bg-dark bg-opacity-50">
-                                    <td colspan="12" class="py-2">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
-                                                    <i class="bi bi-calendar3 me-1"></i> ${dateStr}
-                                                </span>
-                                                <div style="width: 50px;" class="border-bottom border-secondary border-opacity-10"></div>
+                    function renderVetoList(tradesList, tbodyElem, isStrategyTable) {
+                        if (tradesList.length === 0) {
+                            tbodyElem.innerHTML = '<tr><td colspan="12" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
+                            return;
+                        }
+                        tbodyElem.innerHTML = '';
+                        let lastDate = "";
+                        tradesList.forEach((t, index) => {
+                            const dateObj = new Date(t.timestamp);
+                            const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                            
+                            if (dateStr !== lastDate) {
+                                const dailyVetoSum = tradesList
+                                    .filter(item => new Date(item.timestamp).toLocaleDateString('en-US') === dateObj.toLocaleDateString('en-US'))
+                                    .reduce((acc, item) => acc + ((item.final_profit_pct || 0) - 0.06), 0);
+                                
+                                const sumCls = dailyVetoSum > 0 ? 'text-success' : (dailyVetoSum < 0 ? 'text-danger' : 'text-white');
+
+                                tbodyElem.innerHTML += `
+                                    <tr class="bg-dark bg-opacity-50">
+                                        <td colspan="12" class="py-2">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
+                                                        <i class="bi bi-calendar3 me-1"></i> ${dateStr}
+                                                    </span>
+                                                    <div style="width: 50px;" class="border-bottom border-secondary border-opacity-10"></div>
+                                                </div>
+                                                <div class="pe-3">
+                                                    <span class="smallest text-dim text-uppercase me-2" style="letter-spacing: 1px;">Daily Avoided:</span>
+                                                    <span class="mono smallest fw-bold ${sumCls}">${dailyVetoSum >= 0 ? '+' : ''}${dailyVetoSum.toFixed(2)}%</span>
+                                                </div>
                                             </div>
-                                            <div class="pe-3">
-                                                <span class="smallest text-dim text-uppercase me-2" style="letter-spacing: 1px;">Daily Avoided:</span>
-                                                <span class="mono smallest fw-bold ${sumCls}">${dailyVetoSum >= 0 ? '+' : ''}${dailyVetoSum.toFixed(2)}%</span>
-                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                                lastDate = dateStr;
+                            }
+
+                            const sideCls = t.side === 'LONG' ? 'side-long' : 'side-short';
+                            const livePnl = (t.final_profit_pct || 0) - 0.06;
+                            const livePnlCls = livePnl > 0.05 ? 'positive' : livePnl < -0.05 ? 'negative' : 'neutral';
+                            const livePnlStr = (livePnl >= 0 ? '+' : '') + livePnl.toFixed(2) + '%';
+                            const priceCls = livePnl > 0 ? 'text-accent-long' : (livePnl < 0 ? 'text-accent-short' : 'text-white');
+                            const expiry = new Date(t.exit_time);
+                            const diff = Math.max(0, Math.floor((expiry - new Date()) / 60000));
+                            const isExpired = diff <= 0;
+                            const statusLabel = isExpired ? '<span class="text-dim smallest">FINISHED</span>' : `<span class="text-info">${diff}m left</span>`;
+                            const priceLabel = isExpired ? '<span class="smallest text-dim me-1">CLOSE</span>' : '<span class="smallest text-info me-1">LIVE</span>';
+                            const vetoTime = new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                            const rawComment = t.comment || '';
+                            const isS1 = rawComment.includes('[S1-VETO]') || rawComment.includes('[S1-');
+                            const vetoStage = isS1 ? 'S1' : 'S2';
+                            const stageColor  = isS1 ? '#ffc107' : '#ff6b6b';
+                            const stageBg     = isS1 ? 'rgba(255,193,7,0.12)'  : 'rgba(255,107,107,0.12)';
+                            const stageBorder = isS1 ? 'rgba(255,193,7,0.35)'  : 'rgba(255,107,107,0.35)';
+                            const stageTitle  = isS1 ? 'Stage 1: Technical Audit (Gemini S1)' : 'Stage 2: Governance / News Audit (Gemini S2)';
+
+                            const cleanReason = rawComment
+                                .replace(/^\[S[12]-VETO\]\s*/i, '')
+                                .replace(/^\[VETOED by [^\]]+\]\s*/i, '')
+                                .trim() || 'No reason recorded.';
+
+                            const rowId = `vr-${isStrategyTable ? 'strat' : 'ml'}-${index}-${t.ticker.replace(/[^a-zA-Z0-9]/g,'')}`;
+                            const previewLen = 55;
+                            const isLong = cleanReason.length > previewLen;
+                            const preview = isLong ? cleanReason.substring(0, previewLen) + '…' : cleanReason;
+                            const llmReasonHtml = isLong
+                                ? `<span id="${rowId}-short" style="font-size:10px; color:var(--text-dim); line-height:1.3;">${preview}
+                                    <a href="javascript:void(0)" onclick="document.getElementById('${rowId}-short').style.display='none';document.getElementById('${rowId}-full').style.display='block';" class="text-info text-decoration-none" style="font-size:9px;"> more</a>
+                                  </span>
+                                  <span id="${rowId}-full" style="display:none; font-size:10px; color:var(--text-dim); line-height:1.4;">${cleanReason}
+                                    <a href="javascript:void(0)" onclick="document.getElementById('${rowId}-full').style.display='none';document.getElementById('${rowId}-short').style.display='block';" class="text-info text-decoration-none" style="font-size:9px;"> less</a>
+                                  </span>`
+                                : `<span style="font-size:10px; color:var(--text-dim);">${cleanReason}</span>`;
+
+                            const sId = t.strategy_id;
+                            const stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
+                                `<a href="/strategy/${sId}" class="badge bg-dark text-info border border-info border-opacity-25 text-decoration-none" style="font-size: 11px; padding: 4px 8px; vertical-align: middle;">Strategy ${sId}</a>` : 
+                                `<span class="badge bg-dark text-dim border border-secondary border-opacity-10" style="font-size: 8px; vertical-align: middle;">AI</span>`;
+
+                            const stratCol = isStrategyTable ? `<td>${stratBadge}</td>` : '';
+
+                            tbodyElem.innerHTML += `
+                                <tr style="opacity: ${isExpired ? '0.6' : '0.9'}; border-left: 3px solid ${isExpired ? 'transparent' : 'var(--accent-blue)'}">
+                                    ${stratCol}
+                                    <td class="ticker-name">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">
+                                                ${t.ticker.replace('.NS', '')}
+                                            </a>
+                                            ${!isStrategyTable ? stratBadge : ''}
+                                            <a href="https://www.tradingview.com/chart/?symbol=NSE:${t.ticker.replace('.NS', '')}" target="_blank" class="text-dim" style="font-size: 10px;" title="View TradingView Chart">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
                                         </div>
                                     </td>
+                                    <td><span class="side-badge ${sideCls}">${t.side}</span></td>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span class="mono fw-bold ${t.side === 'LONG' ? 'text-accent-long' : 'text-accent-short'}" style="font-size: 11px;">
+                                                ${(t.tech_score || 0).toFixed(4)}
+                                            </span>
+                                            <span class="mono text-dim smallest" style="font-size: 9px;">
+                                                L:${(t.long_score || 0).toFixed(3)} / S:${(t.short_score || 0).toFixed(3)}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td><span class="text-dim small">${vetoTime}</span></td>
+                                    <td class="mono">₹${t.entry_price.toFixed(2)}</td>
+                                    <td class="mono ${priceCls}">${priceLabel}₹${(t.exit_price || t.entry_price).toFixed(2)}</td>
+                                    <td><span class="live-pnl ${livePnlCls}">${livePnlStr}</span></td>
+                                    <td>
+                                        <span title="${stageTitle}" style="
+                                            display: inline-flex; align-items: center; gap: 4px;
+                                            padding: 3px 8px; border-radius: 6px; font-size: 10px;
+                                            font-family: 'JetBrains Mono'; font-weight: 700; letter-spacing: 0.5px;
+                                            background: ${stageBg}; border: 1px solid ${stageBorder}; color: ${stageColor};
+                                        ">
+                                            <i class="bi bi-shield-slash" style="font-size:9px;"></i> ${vetoStage}
+                                        </span>
+                                    </td>
+                                    <td style="max-width: 220px; word-break: break-word;">${llmReasonHtml}</td>
+                                    <td>
+                                        <span class="badge bg-dark text-white border border-white border-opacity-10 smallest" style="font-size: 9px;">
+                                            <i class="bi bi-speedometer2 me-1"></i> ${t.tv_sentiment || 'N/A'}
+                                        </span>
+                                    </td>
+                                    ${!isStrategyTable ? `<td class="mono smallest text-info">${t.one_hour_prob || 'N/A'}</td>` : ''}
+                                    <td>${statusLabel}</td>
                                 </tr>
                             `;
-                            lastDate = dateStr;
-                        }
+                        });
+                    }
 
-                        const sideCls = t.side === 'LONG' ? 'side-long' : 'side-short';
-                        const livePnl = (t.final_profit_pct || 0) - 0.06;
-                        const livePnlCls = livePnl > 0.05 ? 'positive' : livePnl < -0.05 ? 'negative' : 'neutral';
-                        const livePnlStr = (livePnl >= 0 ? '+' : '') + livePnl.toFixed(2) + '%';
-                        const priceCls = livePnl > 0 ? 'text-accent-long' : (livePnl < 0 ? 'text-accent-short' : 'text-white');
-                        const expiry = new Date(t.exit_time);
-                        const diff = Math.max(0, Math.floor((expiry - new Date()) / 60000));
-                        const isExpired = diff <= 0;
-                        const statusLabel = isExpired ? '<span class="text-dim smallest">FINISHED</span>' : `<span class="text-info">${diff}m left</span>`;
-                        const priceLabel = isExpired ? '<span class="smallest text-dim me-1">CLOSE</span>' : '<span class="smallest text-info me-1">LIVE</span>';
-                        const vetoTime = new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-                        // ── Veto Stage + LLM Reason parsing ──────────────────────────────
-                        const rawComment = t.comment || '';
-                        const isS1 = rawComment.includes('[S1-VETO]') || rawComment.includes('[S1-');
-                        const vetoStage = isS1 ? 'S1' : 'S2';
-                        const stageColor  = isS1 ? '#ffc107' : '#ff6b6b';
-                        const stageBg     = isS1 ? 'rgba(255,193,7,0.12)'  : 'rgba(255,107,107,0.12)';
-                        const stageBorder = isS1 ? 'rgba(255,193,7,0.35)'  : 'rgba(255,107,107,0.35)';
-                        const stageTitle  = isS1 ? 'Stage 1: Technical Audit (Gemini S1)' : 'Stage 2: Governance / News Audit (Gemini S2)';
-
-                        // Strip the leading stage prefix tags for the clean reason text
-                        const cleanReason = rawComment
-                            .replace(/^\[S[12]-VETO\]\s*/i, '')
-                            .replace(/^\[VETOED by [^\]]+\]\s*/i, '')
-                            .trim() || 'No reason recorded.';
-
-                        // Expandable LLM reason — unique ID per row
-                        const rowId = `vr-${index}-${t.ticker.replace(/[^a-zA-Z0-9]/g,'')}`;
-                        const previewLen = 55;
-                        const isLong = cleanReason.length > previewLen;
-                        const preview = isLong ? cleanReason.substring(0, previewLen) + '…' : cleanReason;
-                        const llmReasonHtml = isLong
-                            ? `<span id="${rowId}-short" style="font-size:10px; color:var(--text-dim); line-height:1.3;">${preview}
-                                <a href="javascript:void(0)" onclick="document.getElementById('${rowId}-short').style.display='none';document.getElementById('${rowId}-full').style.display='block';" class="text-info text-decoration-none" style="font-size:9px;"> more</a>
-                              </span>
-                              <span id="${rowId}-full" style="display:none; font-size:10px; color:var(--text-dim); line-height:1.4;">${cleanReason}
-                                <a href="javascript:void(0)" onclick="document.getElementById('${rowId}-full').style.display='none';document.getElementById('${rowId}-short').style.display='block';" class="text-info text-decoration-none" style="font-size:9px;"> less</a>
-                              </span>`
-                            : `<span style="font-size:10px; color:var(--text-dim);">${cleanReason}</span>`;
-
-                        vetoBody.innerHTML += `
-                            <tr style="opacity: ${isExpired ? '0.6' : '0.9'}; border-left: 3px solid ${isExpired ? 'transparent' : 'var(--accent-blue)'}">
-                                <td class="ticker-name">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">
-                                            ${t.ticker.replace('.NS', '')}
-                                        </a>
-                                        <a href="https://www.tradingview.com/chart/?symbol=NSE:${t.ticker.replace('.NS', '')}" target="_blank" class="text-dim" style="font-size: 10px;" title="View TradingView Chart">
-                                            <i class="bi bi-graph-up"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                                <td><span class="side-badge ${sideCls}">${t.side}</span></td>
-                                <td>
-                                    <div class="d-flex flex-column">
-                                        <span class="mono fw-bold ${t.side === 'LONG' ? 'text-accent-long' : 'text-accent-short'}" style="font-size: 11px;">
-                                            ${(t.tech_score || 0).toFixed(4)}
-                                        </span>
-                                        <span class="mono text-dim smallest" style="font-size: 9px;">
-                                            L:${(t.long_score || 0).toFixed(3)} / S:${(t.short_score || 0).toFixed(3)}
-                                        </span>
-                                    </div>
-                                </td>
-                                <td><span class="text-dim small">${vetoTime}</span></td>
-                                <td class="mono">₹${t.entry_price.toFixed(2)}</td>
-                                <td class="mono ${priceCls}">${priceLabel}₹${(t.exit_price || t.entry_price).toFixed(2)}</td>
-                                <td><span class="live-pnl ${livePnlCls}">${livePnlStr}</span></td>
-                                <td>
-                                    <span title="${stageTitle}" style="
-                                        display: inline-flex; align-items: center; gap: 4px;
-                                        padding: 3px 8px; border-radius: 6px; font-size: 10px;
-                                        font-family: 'JetBrains Mono'; font-weight: 700; letter-spacing: 0.5px;
-                                        background: ${stageBg}; border: 1px solid ${stageBorder}; color: ${stageColor};
-                                    ">
-                                        <i class="bi bi-shield-slash" style="font-size:9px;"></i> ${vetoStage}
-                                    </span>
-                                </td>
-                                <td style="max-width: 220px; word-break: break-word;">${llmReasonHtml}</td>
-                                <td>
-                                    <span class="badge bg-dark text-white border border-white border-opacity-10 smallest" style="font-size: 9px;">
-                                        <i class="bi bi-speedometer2 me-1"></i> ${t.tv_sentiment || 'N/A'}
-                                    </span>
-                                </td>
-                                <td class="mono smallest text-info">${t.one_hour_prob || 'N/A'}</td>
-                                <td>${statusLabel}</td>
-                            </tr>
-                        `;
-                    });
+                    renderVetoList(mlTrades, vetoMlBody, false);
+                    renderVetoList(stratTrades, vetoStrategyBody, true);
                 } else {
-                    vetoBody.innerHTML = '<tr><td colspan="12" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
+                    vetoMlBody.innerHTML = '<tr><td colspan="12" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
+                    vetoStrategyBody.innerHTML = '<tr><td colspan="12" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
                 }
 
                 // 3. UPDATE CLOSED TRADES
@@ -1623,6 +1758,11 @@
                         const profitCls = t.final_profit_pct > 0 ? 'text-success' : 'text-danger';
                         const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+                        const sId = t.strategy_id;
+                        const stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
+                            `<span class="badge bg-dark text-info border border-info border-opacity-25" style="font-size: 8px; vertical-align: middle;">S${sId}</span>` : 
+                            `<span class="badge bg-dark text-dim border border-secondary border-opacity-10" style="font-size: 8px; vertical-align: middle;">AI</span>`;
+
                         closedBody.innerHTML += `
                             <tr>
                                 <td class="ticker-name">
@@ -1630,6 +1770,7 @@
                                         <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">
                                             ${t.ticker.replace('.NS', '')}
                                         </a>
+                                        ${stratBadge}
                                         <a href="https://www.tradingview.com/chart/?symbol=NSE:${t.ticker.replace('.NS', '')}" target="_blank" class="text-dim" style="font-size: 10px;" title="View TradingView Chart">
                                             <i class="bi bi-graph-up"></i>
                                         </a>
@@ -1705,6 +1846,13 @@
                 const biasCls = bias === 'BULLISH' ? 'text-success' : 'text-danger';
                 const rank = currentAnalysisMode === 'LONG' ? s.Long_Rank : s.Short_Rank;
                 
+                let gatekeeperBadge = '';
+                if (currentAnalysisMode === 'LONG' && s.daily_long_eligible) {
+                    gatekeeperBadge = `<span class="badge bg-success-subtle text-accent-long ms-1" style="font-size: 8px; border: 1px solid rgba(0, 255, 136, 0.2); padding: 2px 4px;" title="Approved by Daily Macro Gatekeeper"><i class="bi bi-shield-fill-check"></i> GATED</span>`;
+                } else if (currentAnalysisMode === 'SHORT' && s.daily_short_eligible) {
+                    gatekeeperBadge = `<span class="badge bg-danger-subtle text-accent-short ms-1" style="font-size: 8px; border: 1px solid rgba(255, 77, 77, 0.2); padding: 2px 4px;" title="Approved by Daily Macro Gatekeeper"><i class="bi bi-shield-fill-check"></i> GATED</span>`;
+                }
+                
                 body.innerHTML += `
                     <tr>
                         <td class="text-dim">#${rank}</td>
@@ -1713,6 +1861,7 @@
                                 <a href="/ticker/${encodeURIComponent(s.ticker)}" class="ticker-link">
                                     ${s.ticker.replace('.NS', '')}
                                 </a>
+                                ${gatekeeperBadge}
                                 <a href="https://www.tradingview.com/chart/?symbol=NSE:${s.ticker.replace('.NS', '')}" target="_blank" class="text-dim" style="font-size: 10px;" title="View TradingView Chart">
                                     <i class="bi bi-graph-up"></i>
                                 </a>
@@ -1877,6 +2026,26 @@
             const bar = document.getElementById('mm-bull-bar');
             if (bar) bar.style.width = `${d.bullish_pct ?? 50}%`;
 
+            // Render Daily Gatekeepers
+            const dg = d.daily_gatekeepers || {};
+            setTxt('dg-long-count', dg.long_eligible_count ?? '0');
+            setTxt('dg-short-count', dg.short_eligible_count ?? '0');
+            setTxt('dg-modal-ts', dg.timestamp ? `Daily trend scan run at: ${new Date(dg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : '—');
+
+            const longBadges = document.getElementById('dg-long-badges');
+            if (longBadges) {
+                longBadges.innerHTML = (dg.long_eligible || []).map(t => 
+                    `<span class="badge rounded-pill me-1 mb-1" style="background: rgba(0, 255, 136, 0.08); color: var(--accent-long); border: 1px solid rgba(0, 255, 136, 0.2); font-family: 'JetBrains Mono'; font-size: 10px; padding: 4px 8px;">${t}</span>`
+                ).join('') || '<div class="text-dim text-center py-2" style="font-size:11px;">No LONG eligible tickers</div>';
+            }
+
+            const shortBadges = document.getElementById('dg-short-badges');
+            if (shortBadges) {
+                shortBadges.innerHTML = (dg.short_eligible || []).map(t => 
+                    `<span class="badge rounded-pill me-1 mb-1" style="background: rgba(255, 77, 77, 0.08); color: var(--accent-short); border: 1px solid rgba(255, 77, 77, 0.2); font-family: 'JetBrains Mono'; font-size: 10px; padding: 4px 8px;">${t}</span>`
+                ).join('') || '<div class="text-dim text-center py-2" style="font-size:11px;">No SHORT eligible tickers</div>';
+            }
+
             // Top-5 long table
             const longBody = document.getElementById('mm-top5-long-body');
             if (longBody && d.top5_long) {
@@ -2031,8 +2200,115 @@
         // ── AUTO-POLL ON LOAD ────────────────────────────────────────────
         fetchModelSnapshot();
         fetchMarketSnapshot();
+        loadStrategyData();
         setInterval(fetchModelSnapshot,  60000);   // every 60s
         setInterval(fetchMarketSnapshot, 300000);  // every 5 min
+        // Load Strategy Tab Data
+        async function loadStrategyData() {
+            try {
+                const res = await fetch('/api/strategies');
+                if (!res.ok) return;
+                const data = await res.json();
+                
+                const definitions = data.definitions;
+                const stats = data.performance.stats;
+                const recentTrades = data.performance.recent_trades;
+
+                // Render Cards
+                const cardsContainer = document.getElementById('strategy-cards-container');
+                cardsContainer.innerHTML = '';
+                
+                if (stats.length === 0) {
+                    cardsContainer.innerHTML = '<div class="col-12 text-center text-dim py-4">No strategy statistics found.</div>';
+                } else {
+                    stats.forEach(stat => {
+                        const stratId = stat.strategy_id;
+                        if (stratId === -1) return; // Skip non-strategy trades if any slipped through
+                        
+                        const def = definitions[stratId] || {name: "Unknown Strategy", logic: "N/A", bias: "NEUTRAL"};
+                        const winRate = stat.trade_count > 0 ? (stat.wins / stat.trade_count * 100).toFixed(1) : 0;
+                        const alpha = stat.total_alpha.toFixed(2);
+                        const alphaColor = stat.total_alpha >= 0 ? "var(--accent-long)" : "var(--accent-short)";
+                        const badgeColor = def.bias === "LONG" ? "side-long" : (def.bias === "SHORT" ? "side-short" : "bg-secondary");
+                        
+                        cardsContainer.innerHTML += `
+                            <div class="col-md-4">
+                                <div class="stat-card">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="stat-label mb-0 text-white fw-bold">S${stratId}: ${def.name}</span>
+                                        <span class="side-badge ${badgeColor}">${def.bias}</span>
+                                    </div>
+                                    <div class="mb-3" style="font-size: 10px; color: var(--text-dim); font-family: 'JetBrains Mono'; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                                        Logic: ${def.logic}
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-end">
+                                        <div>
+                                            <div style="font-size: 9px; color: var(--text-dim); text-transform: uppercase;">Net Alpha</div>
+                                            <div style="font-family: 'JetBrains Mono'; font-weight: 700; font-size: 1.1rem; color: ${alphaColor};">${alpha > 0 ? '+' : ''}${alpha}%</div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div style="font-size: 9px; color: var(--text-dim); text-transform: uppercase;">Win Rate</div>
+                                            <div style="font-family: 'JetBrains Mono'; font-size: 11px;">${winRate}% (${stat.wins}/${stat.trade_count})</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                // Render Trades
+                const tradesBody = document.getElementById('strategy-trades-body');
+                tradesBody.innerHTML = '';
+                
+                if (recentTrades.length === 0) {
+                    tradesBody.innerHTML = '<tr><td colspan="6" class="text-center text-dim py-4">No strategy executions logged yet.</td></tr>';
+                } else {
+                    recentTrades.forEach(t => {
+                        const def = definitions[t.strategy_id] || {name: "Unknown Strategy"};
+                        const pnl = t.final_profit_pct;
+                        const pnlClass = pnl > 0 ? "live-pnl positive" : (pnl < 0 ? "live-pnl negative" : "live-pnl neutral");
+                        const pnlStr = pnl > 0 ? `+${pnl.toFixed(2)}%` : `${pnl.toFixed(2)}%`;
+                        const sideBadge = t.side === 'LONG' ? 'side-long' : 'side-short';
+                        
+                        tradesBody.innerHTML += `
+                            <tr>
+                                <td>
+                                    <span class="fw-bold">S${t.strategy_id}</span>
+                                    <div style="font-size: 9px; color: var(--text-dim);">${def.name}</div>
+                                </td>
+                                <td>
+                                    <a href="/ticker/${t.ticker.replace('.NS', '')}" class="ticker-link" target="_blank">
+                                        ${t.ticker}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="side-badge ${sideBadge} mb-1 d-inline-block">${t.side}</span>
+                                    <div style="font-family: 'JetBrains Mono'; font-size: 10px;">
+                                        IN: ${t.entry_price.toFixed(2)} <br>
+                                        OUT: ${t.exit_price ? t.exit_price.toFixed(2) : '-'}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="${pnlClass}">${pnlStr}</span>
+                                    <div style="font-size: 9px; color: var(--text-dim);">${t.status}</div>
+                                </td>
+                                <td>
+                                    <span style="font-family: 'JetBrains Mono'; font-size: 10px;">${t.timestamp.replace('T', ' ').substring(0, 16)}</span>
+                                </td>
+                                <td style="max-width: 200px;">
+                                    <div style="font-size: 10px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${t.comment || ''}">
+                                        ${t.comment || '-'}
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to load strategy data:", err);
+            }
+        }
 
     </script>
 
@@ -2221,6 +2497,34 @@
                                 <div class="mc-label">Top Short</div>
                                 <div class="mc-value text-danger" id="mm-top-short-ticker">—</div>
                                 <div class="mc-sub" id="mm-top-short-conv">conv: —</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Daily Gatekeeper Universe -->
+                    <div class="card p-3 mb-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#fff;">
+                                <i class="bi bi-shield-check text-info me-1"></i>Daily Macro Gatekeeper Universe (XGBoost Trend Filters)
+                            </div>
+                            <div style="font-size:9px; color:var(--text-dim); font-family:'JetBrains Mono';" id="dg-modal-ts">Last daily scan: —</div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="widget-label text-start mb-2" style="font-size: 10px; color: var(--accent-long);">
+                                    LONG Eligible Trend Pool (<span id="dg-long-count">0</span> tickers approved)
+                                </div>
+                                <div id="dg-long-badges" style="max-height: 95px; overflow-y: auto; padding: 10px; background: rgba(0, 0, 0, 0.25); border-radius: 8px; border: 1px solid rgba(255,255,255,0.04); text-align: left;">
+                                    <div class="text-dim text-center py-2" style="font-size:11px;">Loading...</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="widget-label text-start mb-2" style="font-size: 10px; color: var(--accent-short);">
+                                    SHORT Eligible Trend Pool (<span id="dg-short-count">0</span> tickers approved)
+                                </div>
+                                <div id="dg-short-badges" style="max-height: 95px; overflow-y: auto; padding: 10px; background: rgba(0, 0, 0, 0.25); border-radius: 8px; border: 1px solid rgba(255,255,255,0.04); text-align: left;">
+                                    <div class="text-dim text-center py-2" style="font-size:11px;">Loading...</div>
+                                </div>
                             </div>
                         </div>
                     </div>
