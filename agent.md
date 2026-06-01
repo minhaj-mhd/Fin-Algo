@@ -79,6 +79,7 @@ Before concluding your conversation or concluding your turn, you **MUST** save t
    - **Links**: Reference your conversation file (e.g., `[[06. Context & Logs/Conversations/Conv-YYYY-MM-DD-Topic|Conversation Log]]`).
 3. Update **`Welcome.md`** if any new, permanent core documentation files were added during the session.
 4. **Git Commit Request**: Whenever an important task, structural upgrade, or major refactor is completed, you **MUST** proactively ask the user if they would like to commit the changes to Git.
+5. **Archive Conversation**: After a successful commit, append the compacted conversation summary into the current day's Daily Log file (e.g., `Daily Logs/YYYY-MM-DD.md`) and delete the original conversation file from the `Conversations/` directory. This completely wipes the active context clean and prevents clutter.
 
 ---
 *Follow this protocol exactly. Doing so preserves complete intelligence, eliminates errors, and maintains our shared core memory.*

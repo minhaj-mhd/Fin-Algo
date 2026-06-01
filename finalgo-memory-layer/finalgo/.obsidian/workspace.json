@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "06. Context & Logs/Conversations/Conv-2026-06-01-Docs-Reorganization.md",
+                "file": "06. Context & Logs/Conversations/Conv-2026-06-01-Vanguard-Size-Check.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Conv-2026-06-01-Docs-Reorganization"
+              "title": "Conv-2026-06-01-Vanguard-Size-Check"
             }
           }
         ],
@@ -109,7 +109,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "06. Context & Logs/Conversations/Conv-2026-06-01-Docs-Reorganization.md",
+                "file": "06. Context & Logs/Conversations/Conv-2026-06-01-Vanguard-Size-Check.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -119,7 +119,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Conv-2026-06-01-Docs-Reorganization"
+              "title": "Backlinks for Conv-2026-06-01-Vanguard-Size-Check"
             }
           },
           {
@@ -128,12 +128,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "06. Context & Logs/Conversations/Conv-2026-06-01-Docs-Reorganization.md",
+                "file": "06. Context & Logs/Conversations/Conv-2026-06-01-Vanguard-Size-Check.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from Conv-2026-06-01-Docs-Reorganization"
+              "title": "Outgoing links from Conv-2026-06-01-Vanguard-Size-Check"
             }
           },
           {
@@ -171,13 +171,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "06. Context & Logs/Conversations/Conv-2026-06-01-Docs-Reorganization.md",
+                "file": "06. Context & Logs/Conversations/Conv-2026-06-01-Vanguard-Size-Check.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of Conv-2026-06-01-Docs-Reorganization"
+              "title": "Outline of Conv-2026-06-01-Vanguard-Size-Check"
             }
           }
         ]
@@ -200,6 +200,12 @@
   },
   "active": "f83f8819832ee85b",
   "lastOpenFiles": [
+    "06. Context & Logs/Vanguard Engine Refactor Roadmap.md",
+    "06. Context & Logs/Current Context.md",
+    "Welcome.md",
+    "06. Context & Logs/Conversations/Conv-2026-06-01-Vanguard-Size-Check.md",
+    "06. Context & Logs/Daily Logs/2026-06-01.md",
+    "06. Context & Logs/Conversations/Conv-2026-06-01-Docs-Reorganization.md",
     "05. Archives/legacy_archive/docs/daily_reports/2026-05-12_report.md",
     "05. Archives/legacy_archive/scripts/test_quick.py",
     "05. Archives/legacy_archive/scripts/train_daily_transformer.py",
@@ -229,12 +235,6 @@
     "05. Archives/legacy_archive/docs/OVERFITTING_ANALYSIS.md",
     "05. Archives/legacy_archive/docs/MODEL_INFERENCE_DATA.md",
     "05. Archives/legacy_archive/docs/JOURNEY_TO_V2.md",
-    "05. Archives/legacy_archive/docs/INVERTED_vs_NONINVERTED.md",
-    "05. Archives/legacy_archive/docs/INDEX.md",
-    "05. Archives/legacy_archive/docs/improvement_strategy.md",
-    "05. Archives/legacy_archive/docs/FIXES_APPLIED.md",
-    "05. Archives/legacy_archive/docs/FEATURE_ENGINEERING.md",
-    "05. Archives/legacy_archive/docs/EVALUATION_REPORT.md",
-    "05. Archives/legacy_archive/docs/DECEMBER_3_ANALYSIS.md"
+    "05. Archives/legacy_archive/docs/INVERTED_vs_NONINVERTED.md"
   ]
 }
