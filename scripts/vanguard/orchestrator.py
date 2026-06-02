@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 from datetime import datetime, timedelta
+import xgboost as xgb
 
 from scripts.vanguard import config
 from scripts.vanguard.model_inference import ModelManager
@@ -36,6 +37,7 @@ class VanguardOrchestrator:
         self.model_manager = ModelManager()
         self.model_manager.load_active_models(model_path, scaler_path, meta_path)
         self.model_manager.load_daily_gatekeepers()
+        self.model_manager.load_multi_tf_models()
 
         self.signal_generator = SignalGenerator(self.strategy_filters)
         self.risk_manager = RiskManager()
@@ -221,6 +223,20 @@ class VanguardOrchestrator:
         log("RUNNING DAILY MACRO TREND SCAN (GATEKEEPER SELECTION)")
         log("=" * 60)
         try:
+            os.makedirs("data", exist_ok=True)
+            with open("data/daily_gatekeepers.json", "w") as f:
+                json.dump({
+                    "status": "RUNNING DAILY MACRO TREND SCAN (GATEKEEPER SELECTION)",
+                    "timestamp": datetime.now().isoformat(),
+                    "long_eligible": [],
+                    "short_eligible": [],
+                    "long_eligible_count": 0,
+                    "short_eligible_count": 0
+                }, f)
+        except Exception as e:
+            log(f"[WARN] Failed to write running status to daily_gatekeepers: {e}")
+
+        try:
             tickers = list(TICKERS)
             log(f"[DAILY-SCAN] Fetching 1y daily bars for {len(tickers)} symbols via yfinance...")
             
@@ -352,6 +368,7 @@ class VanguardOrchestrator:
                 self.short_eligible_tickers = set(short_eligible)
                 
             gatekeeper_data = {
+                "status": "COMPLETED",
                 "timestamp": datetime.now().isoformat(),
                 "long_eligible": [t.replace('.NS', '') for t in long_eligible],
                 "short_eligible": [t.replace('.NS', '') for t in short_eligible],
@@ -368,6 +385,18 @@ class VanguardOrchestrator:
             log("=" * 60)
         except Exception as scan_err:
             log(f"[ERROR] Daily Macro Scan failed: {scan_err}")
+            try:
+                with open("data/daily_gatekeepers.json", "w") as f:
+                    json.dump({
+                        "status": f"FAILED: {scan_err}",
+                        "timestamp": datetime.now().isoformat(),
+                        "long_eligible": [],
+                        "short_eligible": [],
+                        "long_eligible_count": 0,
+                        "short_eligible_count": 0
+                    }, f)
+            except Exception:
+                pass
             with self.lock:
                 self.long_eligible_tickers = set(TICKERS)
                 self.short_eligible_tickers = set(TICKERS)
@@ -461,8 +490,11 @@ class VanguardOrchestrator:
             cur_price = float(close.iloc[-1])
             atr_pct = (atr / cur_price) * 100
 
-            sl_pct = max(0.30, min(1.50, atr_pct * 1.5))
-            tp_pct = max(0.75, min(2.50, atr_pct * 3.0))
+            # For a 1-hour hold (4 x 15min bars), the expected price move is ~sqrt(4) * ATR = 2.0 * ATR.
+            # Using 3.0 * ATR for TP is highly improbable to hit within 1 hour.
+            # Adjusted to realistic levels: SL = 1.0x ATR, TP = 1.8x ATR
+            sl_pct = max(0.25, min(1.20, atr_pct * 1.0))
+            tp_pct = max(0.50, min(2.00, atr_pct * 1.8))
 
             self.atr_cache[ticker] = (sl_pct, tp_pct, datetime.now())
             return sl_pct, tp_pct
@@ -1236,7 +1268,10 @@ class VanguardOrchestrator:
 
                             # 4. Gemini AI Veto Audit
                             log(f"[AUDIT] {side} {ticker} ({strat_display}) | Conviction: {conviction:.4f} | Verifying...")
-                            full_feature_row = scores_df[scores_df['ticker'] == ticker].iloc[0]
+                            full_feature_row = scores_df[scores_df['ticker'] == ticker].iloc[0].copy()
+                            full_feature_row['strategy_id'] = sig.get('strategy_id')
+                            full_feature_row['signal_source'] = sig.get('source')
+                            full_feature_row['is_ensemble'] = sig.get('is_ensemble', False)
                             
                             sentiment, reason, one_hour_prob = self.ai_veto_manager.gemini_audit(
                                 ticker, side, conviction, full_feature_row, self.broker.get_recent_candles
@@ -1305,7 +1340,7 @@ class VanguardOrchestrator:
                                     print(f"[✗ S2-VETO] Rank {int(sig[rank_col])} {side} {sig['ticker']} | Conv: {conviction:.4f} | {rule_tag} | {reason}")
 
                                 self.start_vetoed_tracking(
-                                    sig["ticker"], conviction, 0.0, entry_price,
+                                    sig["ticker"], conviction, conviction, entry_price,
                                     side, f"[{veto_stage}-VETO] {reason}", one_hour_prob,
                                     long_score=sig["long_score"],
                                     short_score=sig["short_score"],
