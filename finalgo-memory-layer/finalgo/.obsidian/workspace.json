@@ -214,6 +214,8 @@
   },
   "active": "08024666b22b56ac",
   "lastOpenFiles": [
+    "06. Context & Logs/Conversations/Conv-2026-06-03-Test-Suite.md",
+    "06. Context & Logs/Conversations/Conv-2026-06-03-Root-Folder-Cleanup.md",
     "06. Context & Logs/Conversations/Conv-2026-06-03-Docs-and-Dependencies.md",
     "01. Core Architecture/Global System Architecture.md",
     "06. Context & Logs/Conversations/Conv-2026-06-03-Memory-Layer-Sync.md",
@@ -242,8 +244,6 @@
     "05. Archives/Failed-Unanimous-Multi-TF-Strategy.md",
     "03. Trading Strategies/MTF_Limit_Order_Architecture.md",
     "01. Core Architecture/Vanguard System Features.md",
-    "03. Trading Strategies/Time_Based_ATR_Targets.md",
-    "research_1030_strategy/architecture_research_report.md",
     "05. Archives/legacy_archive/scripts/test_quick.py",
     "05. Archives/legacy_archive/scripts/train_daily_transformer.py",
     "05. Archives/legacy_archive/scripts/train_daily_xgboost.py",

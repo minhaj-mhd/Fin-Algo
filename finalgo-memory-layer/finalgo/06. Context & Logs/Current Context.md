@@ -16,7 +16,7 @@ This document tracks the active development topics, current focus, and immediate
 
 ## Next Steps
 
-* [ ] Build the first real `tests/` suite for trade lifecycle, risk math, feature-schema validation, and broker adapter mocks.
+* [x] Build the first real `tests/` suite for trade lifecycle, risk math, feature-schema validation, and broker adapter mocks.
 * [x] Audit tracked generated artifacts under `data/`, `models/`, and raw cache folders, then move non-canonical outputs out of git tracking.
 * [ ] Deprecate or archive random-split training scripts and document walk-forward/temporal validation as the production standard.
 * [x] Rewrite `README.md` into a clean operator guide with fixed encoding, current run modes, caveats, token requirements, and safety limits.
