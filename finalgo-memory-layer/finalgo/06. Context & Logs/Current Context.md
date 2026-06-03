@@ -19,13 +19,12 @@ This document tracks the active development topics, current focus, and immediate
 * [ ] Build the first real `tests/` suite for trade lifecycle, risk math, feature-schema validation, and broker adapter mocks.
 * [x] Audit tracked generated artifacts under `data/`, `models/`, and raw cache folders, then move non-canonical outputs out of git tracking.
 * [ ] Deprecate or archive random-split training scripts and document walk-forward/temporal validation as the production standard.
-* [ ] Rewrite `README.md` into a clean operator guide with fixed encoding, current run modes, caveats, token requirements, and safety limits.
-* [ ] Pin dependencies or add a lock file so future installs reproduce the current working environment.
+* [x] Rewrite `README.md` into a clean operator guide with fixed encoding, current run modes, caveats, token requirements, and safety limits.
+* [x] Pin dependencies or add a lock file so future installs reproduce the current working environment.
 * [ ] Complete Phase 3 of the **[[06. Context & Logs/Codebase Cleanup Strategy|Codebase Cleanup Strategy]]** (permanent pruning after 5 consecutive days of sandbox observation).
 * [ ] Review and deploy the top-performing gated structural strategies (S3, S4, S13, S19, S23, S24) in the production live engine environment.
 * [ ] Build predictive models for Market Psychology using volume profiles and order flow data.
 
 Linked to: [[Welcome|Main Navigation Index]]
 
-Concluded Session: [[06. Context & Logs/Conversations/Conv-2026-06-03-Memory-Layer-Sync|Conversation Log: Memory Layer Sync]]
-
+Concluded Session: [[06. Context & Logs/Conversations/Conv-2026-06-03-Docs-and-Dependencies|Conversation Log: Docs and Dependencies]]

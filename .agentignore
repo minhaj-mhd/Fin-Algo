@@ -1,0 +1,32 @@
+# Ignore Git and Virtual Environments
+.git/
+venv/
+env/
+.venv/
+
+# Ignore Python Caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore Massive Data Caches & Logs
+# (Prevents AI from reading millions of rows and wasting context limits)
+data/raw_upstox_cache*/
+data/raw_upstox_daily_cache/
+data/historical/
+data/*.csv
+data/*.db
+data/*.db-journal
+data/*.sqlite
+data/*.json
+*.log
+logs/
+
+# Ignore Scratch and Experimental Junk
+scratch/
+legacy_archive/
+
+# Ignore IDE config
+.vscode/
+.idea/
