@@ -82,6 +82,7 @@ def validate_env_file():
     env_path = ".env"
     required_keys = [
         "GEMINI_API_KEYS",
+        "BACKUP_GEMINI_API_KEY",
         "UPSTOX_SANDBOX_ACCESS_TOKEN",
         "UPSTOX_ANALYTICS_ACCESS_TOKEN"
     ]
@@ -91,6 +92,7 @@ def validate_env_file():
         template_content = (
             "# --- VANGUARD AI & BROKER KEYS ---\n"
             "GEMINI_API_KEYS=your_gemini_key1_here,your_gemini_key2_here\n"
+            "BACKUP_GEMINI_API_KEY=your_backup_gemini_key_here\n"
             "UPSTOX_SANDBOX_ACCESS_TOKEN=your_upstox_sandbox_token_here\n"
             "UPSTOX_ANALYTICS_ACCESS_TOKEN=your_upstox_analytics_token_here\n"
         )

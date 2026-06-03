@@ -9,89 +9,6 @@ from google.genai import types
 from scripts.vanguard import config
 from scripts.terminal_utils import log
 
-class GeminiRateTracker:
-    def __init__(self, state_file=config.GEMINI_STATE_FILE, max_keys=3):
-        self.state_file = state_file
-        self.models = config.GEMINI_MODEL_TIERS
-        self.max_requests_per_day = config.GEMINI_MAX_REQUESTS_PER_DAY
-        self.max_keys = max_keys
-        self.state = self._load_state()
-
-    def _load_state(self):
-        today = datetime.now().strftime("%Y-%m-%d")
-        default_state = {
-            "date": today,
-            "usage": {m: {str(i): 0 for i in range(self.max_keys)} for m in self.models}
-        }
-        
-        if os.path.exists(self.state_file):
-            try:
-                with open(self.state_file, "r") as f:
-                    state = json.load(f)
-                if state.get("date") == today:
-                    modified = False
-                    for m in self.models:
-                        if m not in state["usage"]:
-                            state["usage"][m] = {str(i): 0 for i in range(self.max_keys)}
-                            modified = True
-                        else:
-                            for i in range(self.max_keys):
-                                k_str = str(i)
-                                if k_str not in state["usage"][m]:
-                                    state["usage"][m][k_str] = 0
-                                    modified = True
-                            keys_to_remove = [k for k in state["usage"][m] if int(k) >= self.max_keys]
-                            if keys_to_remove:
-                                for k in keys_to_remove:
-                                    del state["usage"][m][k]
-                                modified = True
-                    if modified:
-                        self._save_state(state)
-                    return state
-            except Exception:
-                pass
-        
-        self._save_state(default_state)
-        return default_state
-
-    def _save_state(self, state=None):
-        if state is None:
-            state = self.state
-        os.makedirs(os.path.dirname(self.state_file), exist_ok=True)
-        with open(self.state_file, "w") as f:
-            json.dump(state, f, indent=4)
-
-    def get_next_available(self, max_keys=3):
-        for model in self.models:
-            for i in range(max_keys):
-                key_idx = str(i)
-                if self.state["usage"][model].get(key_idx, 0) < self.max_requests_per_day:
-                    return model, i
-        
-        log("[ROTATE-RESET] All API keys are exhausted. Resetting all usage statistics to 0 to rotate again.")
-        for model in self.models:
-            for i in range(max_keys):
-                key_idx = str(i)
-                self.state["usage"][model][key_idx] = 0
-        self._save_state()
-        
-        if self.models and max_keys > 0:
-            return self.models[0], 0
-        return None, None
-
-    def increment_usage(self, model, key_idx):
-        idx_str = str(key_idx)
-        if model in self.state["usage"] and idx_str in self.state["usage"][model]:
-            self.state["usage"][model][idx_str] += 1
-            self._save_state()
-
-    def mark_exhausted(self, model, key_idx):
-        idx_str = str(key_idx)
-        if model in self.state["usage"] and idx_str in self.state["usage"][model]:
-            self.state["usage"][model][idx_str] = self.max_requests_per_day
-            self._save_state()
-
-
 class AIVetoManager:
     def __init__(self, min_conviction=config.MIN_CONVICTION):
         self.gemini_enabled = config.GEMINI_ENABLED_DEFAULT
@@ -113,8 +30,6 @@ class AIVetoManager:
         else:
             self.gemini_enabled = False
             log("[WARN] Gemini API Keys not found. AI Audit Layer: DISABLED.")
-
-        self.gemini_tracker = GeminiRateTracker(max_keys=len(self.api_keys) if self.api_keys else 1)
 
     @staticmethod
     def _compute_sr_levels(features: dict, price: float) -> dict:

@@ -182,14 +182,39 @@
                             <div>
                                 <div class="ticker-header m-0">{{ strategy_def.name }}</div>
                                 <div class="text-dim outfit text-uppercase small mt-1" style="letter-spacing: 1px;">
-                                    STRATEGY ID: S{{ strategy_id }} | BIAS: <span class="{% if strategy_def.bias == 'LONG' %}text-success{% else %}text-danger{% endif %} fw-bold">{{ strategy_def.bias }}</span>
+                                    STRATEGY ID: {% if strategy_id == 0 %}AI PIPELINE{% else %}S{{ strategy_id }}{% endif %} | BIAS: <span class="{% if strategy_def.bias == 'LONG' %}text-success{% elif strategy_def.bias == 'SHORT' %}text-danger{% else %}text-info{% endif %} fw-bold">{{ strategy_def.bias }}</span>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="stat-card" style="text-align: left;">
-                            <div class="stat-label mb-2"><i class="bi bi-code-square me-1"></i> Strategy Logic & Conditions</div>
-                            <div class="mono text-info" style="font-size: 14px; line-height: 1.6;">{{ strategy_def.logic }}</div>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <div class="stat-card" style="text-align: left;">
+                                    <div class="stat-label mb-2"><i class="bi bi-info-circle me-1"></i> Strategy Description</div>
+                                    <div class="text-main" style="font-size: 13px; line-height: 1.6; color: var(--text-main);">{{ strategy_def.description or 'Description not available.' }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="stat-card" style="text-align: left; height: 100%;">
+                                    <div class="stat-label mb-2 text-info"><i class="bi bi-box-arrow-in-right me-1"></i> Entry Criteria</div>
+                                    <div class="text-dim" style="font-size: 12px; line-height: 1.5; color: var(--text-dim);">{{ strategy_def.entry or 'Entry criteria not available.' }}</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="stat-card" style="text-align: left; height: 100%;">
+                                    <div class="stat-label mb-2 text-warning"><i class="bi bi-box-arrow-left me-1"></i> Exit Criteria</div>
+                                    <div class="text-dim" style="font-size: 12px; line-height: 1.5; color: var(--text-dim);">{{ strategy_def.exit or 'Exit criteria not available.' }}</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <div class="stat-card" style="text-align: left;">
+                                    <div class="stat-label mb-2"><i class="bi bi-code-square me-1"></i> Strategy Logic & Conditions</div>
+                                    <div class="mono text-info" style="font-size: 13px; line-height: 1.6; background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--glass-border);">{{ strategy_def.logic }}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -218,6 +243,7 @@
                                     <th>Entry</th>
                                     <th>Exit</th>
                                     <th>P&amp;L</th>
+                                    <th>Peak P&amp;L</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -227,7 +253,7 @@
                                     {% set date_str = t.timestamp[:10] %}
                                     {% if date_str != ns.last_date %}
                                     <tr class="bg-dark bg-opacity-50">
-                                        <td colspan="7" class="py-2">
+                                        <td colspan="8" class="py-2">
                                             <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
                                                 <i class="bi bi-calendar3 me-1"></i> {{ date_str }}
                                             </span>
@@ -241,17 +267,21 @@
                                             <a href="/ticker/{{ t.ticker|urlencode }}" class="text-white fw-bold text-decoration-none">
                                                 {{ t.ticker.replace('.NS', '') }}
                                             </a>
+                                            {% if t.is_ensemble == 1 %}
+                                                <span class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none ms-1" style="font-size: 8px; vertical-align: middle;">AI ENSEMBLE</span>
+                                            {% endif %}
                                         </td>
                                         <td><span class="side-badge side-{{ t.side }}">{{ t.side }}</span></td>
-                                        <td class="mono">₹{{ "%.2f"|format(t.entry_price) }}</td>
+                                        <td class="mono">₹{{ "%.2f"|format(t.entry_price or 0) }}</td>
                                         <td class="mono">₹{{ "%.2f"|format(t.exit_price or 0) }}</td>
                                         <td class="mono fw-bold {% if t.final_profit_pct > 0 %}text-success{% elif t.final_profit_pct < 0 %}text-danger{% endif %}">
                                             {{ '+' if t.final_profit_pct > 0 else '' }}{{ "%.2f"|format(t.final_profit_pct or 0) }}%
                                         </td>
+                                        <td class="mono small text-dim">+{{ "%.2f"|format(t.peak_profit_pct or 0) }}%</td>
                                         <td><span class="badge {% if t.status == 'CLOSED' %}bg-secondary{% else %}bg-info text-dark{% endif %}" style="font-size: 9px; font-family: 'Outfit';">{{ t.status }}</span></td>
                                     </tr>
                                 {% else %}
-                                    <tr><td colspan="7" class="text-center text-dim py-4">No trades taken by this strategy.</td></tr>
+                                    <tr><td colspan="8" class="text-center text-dim py-4">No trades taken by this strategy.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -270,6 +300,7 @@
                                     <th>Veto Stage</th>
                                     <th>LLM Reason</th>
                                     <th>Shadow P&amp;L</th>
+                                    <th>Peak P&amp;L</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -279,7 +310,7 @@
                                     {% set date_str = t.timestamp[:10] %}
                                     {% if date_str != ns.last_date %}
                                     <tr class="bg-dark bg-opacity-50">
-                                        <td colspan="9" class="py-2">
+                                        <td colspan="10" class="py-2">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
                                                     <i class="bi bi-calendar3 me-1"></i> {{ date_str }}
@@ -298,10 +329,13 @@
                                             <a href="/ticker/{{ t.ticker|urlencode }}" class="text-white fw-bold text-decoration-none">
                                                 {{ t.ticker.replace('.NS', '') }}
                                             </a>
+                                            {% if t.is_ensemble == 1 %}
+                                                <span class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none ms-1" style="font-size: 8px; vertical-align: middle;">AI ENSEMBLE</span>
+                                            {% endif %}
                                         </td>
                                         <td><span class="side-badge side-{{ t.side }}">{{ t.side }}</span></td>
                                         <td class="mono fw-bold text-info" style="font-size: 11px;">{{ "%.4f"|format(t.tech_score or 0) }}</td>
-                                        <td class="mono">₹{{ "%.2f"|format(t.entry_price) }}</td>
+                                        <td class="mono">₹{{ "%.2f"|format(t.entry_price or 0) }}</td>
                                         
                                         {% set raw_comment = t.comment or '' %}
                                         {% set is_s1 = '[S1-' in raw_comment %}
@@ -329,10 +363,11 @@
                                         <td class="mono fw-bold {% if live_pnl > 0.05 %}text-success{% elif live_pnl < -0.05 %}text-danger{% else %}text-white{% endif %}">
                                             {{ '+' if live_pnl >= 0 else '' }}{{ "%.2f"|format(live_pnl) }}%
                                         </td>
+                                        <td class="mono small text-dim">+{{ "%.2f"|format(t.peak_profit_pct or 0) }}%</td>
                                         <td><span class="text-dim small">{{ t.status }}</span></td>
                                     </tr>
                                 {% else %}
-                                    <tr><td colspan="9" class="text-center text-dim py-4">No trades vetoed for this strategy.</td></tr>
+                                    <tr><td colspan="10" class="text-center text-dim py-4">No trades vetoed for this strategy.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>

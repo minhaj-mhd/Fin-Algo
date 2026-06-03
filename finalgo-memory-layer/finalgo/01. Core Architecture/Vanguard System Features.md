@@ -22,7 +22,7 @@ The machine learning core has been upgraded from the small 90-day window model (
 
 ## 3. The Execution Layer: Vanguard Engine
 
-The execution scanner in [vanguard_signal_engine.py](file:///c:/Users/loq/Desktop/Trading/finalgo-1/scripts/vanguard_signal_engine.py) has been patched to handle live API limits and offline state transitions:
+The modular execution scanner anchored at [scripts/vanguard/orchestrator.py](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/vanguard/orchestrator.py) has been patched to handle live API limits and offline state transitions:
 
 * **15-Second Bulk Scans:** Replaced slow sequential fallback loops with a single-request batch `yfinance` download for failed Upstox quotes. The scanner now processes the full 172-symbol universe in under 15 seconds.
 * **Stale Resumed Trade Expiry:** On server startup, any database-loaded `PENDING_ENTRY` trades that were created before the offline period are automatically expired and marked `CANCELLED` if the current time is past their next 15-minute close boundary plus a 5-minute grace period.

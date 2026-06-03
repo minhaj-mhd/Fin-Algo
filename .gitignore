@@ -12,7 +12,8 @@ data/latest_scores.json
 # Large datasets, logs, and caches
 data/*.csv
 data/historical/
-data/raw_upstox_cache/
+data/raw_upstox_cache*/
+data/raw_upstox_daily_cache/
 data/vanguard_system.log
 
 # Temporary files

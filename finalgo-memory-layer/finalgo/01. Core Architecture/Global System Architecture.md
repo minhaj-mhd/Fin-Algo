@@ -47,7 +47,7 @@ graph TD
 ## 🧠 Core Architectural Layers
 
 ### 1. Daily Macro Scanning Layer (Gatekeeper)
-Before any intraday signals are generated, the engine executes a comprehensive **Daily Macro Scan** at startup/day-start (`update_daily_macro_filters()`):
+Before any intraday signals are generated, the engine executes a comprehensive **Daily Macro Scan** at startup/day-start (orchestrated via `scripts/vanguard/orchestrator.py`):
 *   **Historical Context**: Automatically downloads 1 year of daily historical bars for all symbols via `yfinance`.
 *   **Daily Scan Inference**: Calculates technical indicators and runs cross-sectional normalization before passing them to the gatekeeper models:
     *   **Daily Macro XGBoost** (`models/daily_xgb/`): Evaluates long-term price action and trend strength using Long and Short boosters.
@@ -55,17 +55,17 @@ Before any intraday signals are generated, the engine executes a comprehensive *
 
 ### 2. Core Intraday Scanning & ML Ranking Layer
 *   **Drift-Free Scheduling**: The main engine sweep runs exactly on 15-minute candle boundaries (`:00`, `:15`, `:30`, `:45`) using a precise remainder wait-scheduler to prevent clock drift.
-*   **Technical Feature Pipeline**: Downloads 60 days of hourly candlestick data from Upstox (or `yfinance` fallback) and computes **81 core technical indicators + 6 hourly additions + 4 daily context features** via `scripts/feature_utils.py`.
-*   **Active Core Ranker**: Feeds the normalized features into the registered active model—currently **v8_upstox_3y** (trained on 3 years of Upstox hourly candles, packed with microstructure features like IBS and Buy Pressure).
+*   **Technical Feature Pipeline**: Downloads 90 days of hourly candlestick data from Upstox (or `yfinance` fallback) and computes **86 core features** via `scripts/feature_utils.py`.
+*   **Active Core Ranker**: Feeds the normalized features into the registered active model—currently **v8_upstox_3y** via `scripts/vanguard/model_inference.py`.
 *   **Conviction Score Engine**: Instead of predicting raw returns directly, the system runs separate Long and Short models. It calculates a net conviction score (e.g., `Long_Conviction = long_score - short_score`) and ranks the tickers cross-sectionally in descending order (highest conviction first), preventing retail FOMO and distribution traps.
 
 ### 3. Hierarchical Dual-Stage AI Veto Layer
-Numeric indicators cannot capture fundamental shocks. To prevent technical traps, the engine passes all pre-filtered signals to a **Hierarchical Dual-Stage AI Audit**:
-*   **Stage 1: Technical Triage**: Queries `gemini-3.5-flash` (with `gemini-3.1-flash-lite` fallback) for rapid structural validation (RSI, Stochastic, Bollinger Bands, Nifty/VIX regime). Sentiment conflicts trigger an immediate technical veto.
-*   **Stage 2: CRO News Grounding Audit**: Queries `gemini-2.5-flash` (or lite fallback) with Google Search grounding enabled. Acting as a Chief Risk Officer (CRO), it scans recent earnings, rating changes, and block deals, filtering them through a **6-rule Veto Decision Matrix**.
+Numeric indicators cannot capture fundamental shocks. To prevent technical traps, the engine passes all pre-filtered signals to a **Hierarchical Dual-Stage AI Audit** (orchestrated in `scripts/vanguard/ai_veto.py`):
+*   **Stage 1: Technical Triage**: Queries Gemini models via `scripts/gemini_client_manager.py` for rapid structural validation (RSI, Stochastic, Bollinger Bands, Nifty/VIX regime). Sentiment conflicts trigger an immediate technical veto.
+*   **Stage 2: CRO News Grounding Audit**: Queries Gemini with Google Search grounding enabled. Acting as a Chief Risk Officer (CRO), it scans recent earnings, rating changes, and block deals, filtering them through a **6-rule Veto Decision Matrix**.
 
 ### 4. Shadow Execution & Portfolio Management Layer
-Approved trades are passed to the **Shadow Tracker Execution Loop** (`shadow_tracker_loop`) running in a daemon thread:
+Approved trades are passed to the **Shadow Tracker Execution Loop** managed by `scripts/vanguard/trade_state.py` and `scripts/vanguard/broker_adapter.py`:
 *   **Entry Confirmation**: Waits for the current 15M candle to close in the trade's direction and runs an XGBoost re-verification sweep before routing orders.
 *   **Volatility-Adjusted Risk Brackets**: Programmatically calculates brackets at entry via 15M resampled ATR:
     *   **Take Profit (TP)**: 3x ATR, clamped between `+0.75%` and `+2.50%` (default `1.00%`).

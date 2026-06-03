@@ -78,11 +78,16 @@
         }
 
         .ticker-header {
-            font-family: 'Outfit';
-            font-weight: 800;
-            font-size: 2.5rem;
-            letter-spacing: 2px;
-            margin-bottom: 0.5rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+            font-size: 3.5rem;
+            letter-spacing: -1.5px;
+            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 20px rgba(165, 180, 252, 0.2);
+            margin-bottom: 0.2rem;
+            text-transform: uppercase;
         }
 
         .intelligence-card {
@@ -172,16 +177,26 @@
         }
 
         .live-price-big {
-            font-family: 'JetBrains Mono';
-            font-size: 3.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 4rem;
             font-weight: 800;
-            letter-spacing: -2px;
+            letter-spacing: -3px;
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
             line-height: 1;
-            margin: 1rem 0;
+            margin: 0.5rem 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .trend-up { color: var(--accent-long) !important; }
-        .trend-down { color: var(--accent-short) !important; }
+        .live-price-big.trend-up, .trend-up {
+            color: var(--accent-long) !important;
+            text-shadow: 0 0 35px rgba(0, 255, 136, 0.7);
+        }
+
+        .live-price-big.trend-down, .trend-down {
+            color: var(--accent-short) !important;
+            text-shadow: 0 0 35px rgba(255, 77, 77, 0.7);
+        }
 
         @keyframes pulse-border {
             0% { border-color: var(--glass-border); }
@@ -308,6 +323,67 @@
                             </div>
                         </div>
 
+                        <!-- MULTI-TIMEFRAME QUANTITATIVE CONFLUENCE HUB -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-12">
+                                <div class="section-title text-accent-blue mb-1" style="font-size: 11px; font-weight: 800; letter-spacing: 2px;">
+                                    <i class="bi bi-cpu"></i> MULTI-TIMEFRAME QUANTITATIVE CONFLUENCE
+                                </div>
+                            </div>
+                            
+                            <!-- 15 MIN -->
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="stat-card" style="border-top: 3px solid #ff007f; background: rgba(255, 0, 127, 0.02);">
+                                    <div class="stat-label">15-Minute Bias</div>
+                                    <div id="tf-15m-val" class="stat-value mt-2 {% if score_15m > 0 %}text-success{% elif score_15m < 0 %}text-danger{% else %}text-white{% endif %}" style="font-family: 'Outfit'; font-size: 1.05rem; font-weight: 800; letter-spacing: -0.5px;">
+                                        {% if score_15m > 0 %}BULLISH ({{ "+%.3f"|format(score_15m) }}){% elif score_15m < 0 %}BEARISH ({{ "%.3f"|format(score_15m) }}){% else %}NEUTRAL (0.00){% endif %}
+                                    </div>
+                                    <div class="progress mt-2" style="height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px;">
+                                        <div id="tf-15m-bar" class="progress-bar {% if score_15m > 0 %}bg-success{% else %}bg-danger{% endif %}" style="width: {{ score_15m|abs * 200 if score_15m|abs * 200 <= 100 else 100 }}%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 30 MIN -->
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="stat-card" style="border-top: 3px solid #00f0ff; background: rgba(0, 240, 255, 0.02);">
+                                    <div class="stat-label">30-Minute Bias</div>
+                                    <div id="tf-30m-val" class="stat-value mt-2 {% if score_30m > 0 %}text-success{% elif score_30m < 0 %}text-danger{% else %}text-white{% endif %}" style="font-family: 'Outfit'; font-size: 1.05rem; font-weight: 800; letter-spacing: -0.5px;">
+                                        {% if score_30m > 0 %}BULLISH ({{ "+%.3f"|format(score_30m) }}){% elif score_30m < 0 %}BEARISH ({{ "%.3f"|format(score_30m) }}){% else %}NEUTRAL (0.00){% endif %}
+                                    </div>
+                                    <div class="progress mt-2" style="height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px;">
+                                        <div id="tf-30m-bar" class="progress-bar {% if score_30m > 0 %}bg-success{% else %}bg-danger{% endif %}" style="width: {{ score_30m|abs * 200 if score_30m|abs * 200 <= 100 else 100 }}%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 1 HOUR -->
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="stat-card" style="border-top: 3px solid #7f00ff; background: rgba(127, 0, 255, 0.02);">
+                                    <div class="stat-label">1-Hour Bias (Core)</div>
+                                    <div id="tf-1h-val" class="stat-value mt-2 {% if score_1h > 0 %}text-success{% elif score_1h < 0 %}text-danger{% else %}text-white{% endif %}" style="font-family: 'Outfit'; font-size: 1.05rem; font-weight: 800; letter-spacing: -0.5px;">
+                                        {% if score_1h > 0 %}BULLISH ({{ "+%.3f"|format(score_1h) }}){% elif score_1h < 0 %}BEARISH ({{ "%.3f"|format(score_1h) }}){% else %}NEUTRAL (0.00){% endif %}
+                                    </div>
+                                    <div class="progress mt-2" style="height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px;">
+                                        <div id="tf-1h-bar" class="progress-bar {% if score_1h > 0 %}bg-success{% else %}bg-danger{% endif %}" style="width: {{ score_1h|abs * 200 if score_1h|abs * 200 <= 100 else 100 }}%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 1 DAY -->
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="stat-card" style="border-top: 3px solid #ffae00; background: rgba(255, 174, 0, 0.02);">
+                                    <div class="stat-label">1-Day Macro Bias</div>
+                                    <div id="tf-1d-val" class="stat-value mt-2 {% if score_1d > 0 %}text-success{% elif score_1d < 0 %}text-danger{% else %}text-white{% endif %}" style="font-family: 'Outfit'; font-size: 1.05rem; font-weight: 800; letter-spacing: -0.5px;">
+                                        {% if score_1d > 0 %}BULLISH ({{ "+%.3f"|format(score_1d) }}){% elif score_1d < 0 %}BEARISH ({{ "%.3f"|format(score_1d) }}){% else %}NEUTRAL (0.00){% endif %}
+                                    </div>
+                                    <div class="progress mt-2" style="height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px;">
+                                        <div id="tf-1d-bar" class="progress-bar {% if score_1d > 0 %}bg-success{% else %}bg-danger{% endif %}" style="width: {{ score_1d|abs * 200 if score_1d|abs * 200 <= 100 else 100 }}%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Real-Time Execution Pulse -->
                         <div class="card card-glass live-active" style="background: rgba(0, 212, 255, 0.02); border-color: rgba(0, 212, 255, 0.15);">
                             <div class="card-body p-4">
@@ -392,6 +468,7 @@
                                         <th>Entry</th>
                                         <th>Exit</th>
                                         <th>P&amp;L</th>
+                                        <th>Peak P&amp;L</th>
                                         <th>1H Forecast</th>
                                         <th>Audit</th>
                                         <th>Status</th>
@@ -402,18 +479,19 @@
                                     <tr>
                                         <td class="text-dim mono" style="font-size: 12px;">{{ trade.timestamp[:16].replace('T', ' ') }}</td>
                                         <td><span class="side-badge side-{{ trade.side }}">{{ trade.side }}</span></td>
-                                        <td class="mono fw-semibold">₹{{ "%.2f"|format(trade.entry_price) }}</td>
+                                        <td class="mono fw-semibold">₹{{ "%.2f"|format(trade.entry_price or 0) }}</td>
                                         <td class="mono">₹{{ "%.2f"|format(trade.exit_price or 0) }}</td>
                                         <td class="mono fw-bold {% if trade.final_profit_pct > 0 %}text-success{% elif trade.final_profit_pct < 0 %}text-danger{% endif %}">
                                             {{ '+' if trade.final_profit_pct > 0 else '' }}{{ "%.2f"|format(trade.final_profit_pct or 0) }}%
                                         </td>
+                                        <td class="mono small text-dim">+{{ "%.2f"|format(trade.peak_profit_pct or 0) }}%</td>
                                         <td class="mono text-info fw-semibold" style="font-size: 12px;">{{ trade.one_hour_prob or 'N/A' }}</td>
-                                        <td><span class="badge bg-dark border border-white border-opacity-10 py-1 px-2 text-dim font-monospace" style="font-size: 10px;">{{ "%.2f"|format(trade.nlp_sentiment) }}</span></td>
+                                        <td><span class="badge bg-dark border border-white border-opacity-10 py-1 px-2 text-dim font-monospace" style="font-size: 10px;">{{ "%.2f"|format(trade.nlp_sentiment or 0) }}</span></td>
                                         <td><span class="badge {% if trade.status == 'CLOSED' %}bg-secondary{% else %}bg-info text-dark{% endif %} px-2 py-1" style="font-size: 10px; font-weight: 700; font-family: 'Outfit';">{{ trade.status }}</span></td>
                                     </tr>
                                     {% else %}
                                     <tr>
-                                        <td colspan="8" class="text-center text-dim py-4">No trade history recorded for this ticker.</td>
+                                        <td colspan="9" class="text-center text-dim py-4">No trade history recorded for this ticker.</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -558,21 +636,21 @@
                         }
 
                         // Update Factors
-                        document.getElementById('factor-rvol').innerText = tickerData.rvol_raw.toFixed(2) + 'x';
+                        document.getElementById('factor-rvol').innerText = (tickerData.rvol_raw || 0).toFixed(2) + 'x';
                         
                         // Format Dollar Volume
-                        let dv = tickerData.dv_raw;
+                        let dv = tickerData.dv_raw || 0;
                         let dvStr = dv > 1e9 ? (dv/1e9).toFixed(2) + 'B' : (dv/1e6).toFixed(2) + 'M';
                         document.getElementById('factor-dv').innerText = '₹' + dvStr;
 
                         // 52W High Dist
-                        let dist = tickerData.dist_52h_actual * 100;
+                        let dist = (tickerData.dist_52h_actual || 0) * 100;
                         const distEl = document.getElementById('factor-dist');
                         distEl.innerText = dist.toFixed(2) + '%';
                         distEl.className = 'stat-value ' + (dist > -5 ? 'text-success' : 'text-danger');
 
                         // Conviction
-                        const conviction = tickerData.Long_Conviction;
+                        const conviction = tickerData.Long_Conviction || 0;
                         const barLong = document.getElementById('conviction-bar-long');
                         const barShort = document.getElementById('conviction-bar-short');
                         const convText = document.getElementById('conviction-text');
@@ -590,12 +668,41 @@
                         }
 
                         // Detailed Scores
-                        document.getElementById('score-long').innerText = tickerData.long_score.toFixed(4);
-                        document.getElementById('score-short').innerText = tickerData.short_score.toFixed(4);
-                        document.getElementById('progress-long').style.width = Math.max(0, tickerData.long_score * 500) + '%';
-                        document.getElementById('progress-short').style.width = Math.max(0, tickerData.short_score * 500) + '%';
+                        document.getElementById('score-long').innerText = (tickerData.long_score || 0).toFixed(4);
+                        document.getElementById('score-short').innerText = (tickerData.short_score || 0).toFixed(4);
+                        document.getElementById('progress-long').style.width = Math.max(0, (tickerData.long_score || 0) * 500) + '%';
+                        document.getElementById('progress-short').style.width = Math.max(0, (tickerData.short_score || 0) * 500) + '%';
                         
-                        document.getElementById('alpha-proj').innerText = (tickerData.Long_Conviction * 10).toFixed(2) + '%';
+                        document.getElementById('alpha-proj').innerText = ((tickerData.Long_Conviction || 0) * 10).toFixed(2) + '%';
+
+                        // Dynamic Timeframe updates
+                        function updateTimeframeCard(prefix, val) {
+                            const valEl = document.getElementById(`tf-${prefix}-val`);
+                            const barEl = document.getElementById(`tf-${prefix}-bar`);
+                            if (valEl && barEl) {
+                                if (val > 0) {
+                                    valEl.innerText = `BULLISH (+${val.toFixed(3)})`;
+                                    valEl.className = 'stat-value mt-2 text-success';
+                                    barEl.className = 'progress-bar bg-success';
+                                    barEl.style.width = Math.min(Math.abs(val) * 200, 100) + '%';
+                                } else if (val < 0) {
+                                    valEl.innerText = `BEARISH (${val.toFixed(3)})`;
+                                    valEl.className = 'stat-value mt-2 text-danger';
+                                    barEl.className = 'progress-bar bg-danger';
+                                    barEl.style.width = Math.min(Math.abs(val) * 200, 100) + '%';
+                                } else {
+                                    valEl.innerText = 'NEUTRAL (0.00)';
+                                    valEl.className = 'stat-value mt-2 text-white';
+                                    barEl.className = 'progress-bar bg-secondary';
+                                    barEl.style.width = '0%';
+                                }
+                            }
+                        }
+
+                        updateTimeframeCard('15m', tickerData.score_15m || 0.0);
+                        updateTimeframeCard('30m', tickerData.score_30m || 0.0);
+                        updateTimeframeCard('1h', tickerData.Long_Conviction || 0.0);
+                        updateTimeframeCard('1d', tickerData.score_1d || 0.0);
                         
                         document.getElementById('last-update').innerText = 'LIVE SYNC: ' + new Date().toLocaleTimeString();
                     }

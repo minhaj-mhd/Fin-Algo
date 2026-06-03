@@ -260,6 +260,10 @@
             }
         }
 
+        .animate-pulse {
+            animation: pulse-glow 1.5s infinite;
+        }
+
         #clock {
             font-family: 'JetBrains Mono';
             color: var(--accent-blue);
@@ -699,6 +703,7 @@
                                     <th>ML Score</th>
                                     <th>Timestamp</th>
                                     <th>Final P&L</th>
+                                    <th>Peak P&L</th>
                                     <th>Next 1H</th>
                                     <th>Gemini Sentiment</th>
                                     <th>TV 1H</th>
@@ -754,6 +759,7 @@
                                     <th>Potential Entry</th>
                                     <th>Tracking Price</th>
                                     <th>Shadow P&amp;L</th>
+                                    <th>Peak P&amp;L</th>
                                     <th>Veto Stage</th>
                                     <th>LLM Reason</th>
                                     <th>TV 1H</th>
@@ -763,7 +769,7 @@
                             </thead>
                             <tbody id="vetoed-ml-signals">
                                 <tr>
-                                    <td colspan="12" class="text-center text-dim py-4">No recently vetoed signals.</td>
+                                    <td colspan="13" class="text-center text-dim py-4">No recently vetoed signals.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -781,6 +787,7 @@
                                     <th>Potential Entry</th>
                                     <th>Tracking Price</th>
                                     <th>Shadow P&amp;L</th>
+                                    <th>Peak P&amp;L</th>
                                     <th>Veto Stage</th>
                                     <th>LLM Reason</th>
                                     <th>TV 1H</th>
@@ -789,7 +796,7 @@
                             </thead>
                             <tbody id="vetoed-strategy-signals">
                                 <tr>
-                                    <td colspan="12" class="text-center text-dim py-4">No recently vetoed signals.</td>
+                                    <td colspan="13" class="text-center text-dim py-4">No recently vetoed signals.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -991,6 +998,7 @@
                                     <th>Exit ₹</th>
                                     <th>Net P&amp;L ₹</th>
                                     <th>P&amp;L %</th>
+                                    <th>Peak P&amp;L %</th>
                                     <th>Status</th>
                                     <th>TV 1H</th>
                                     <th>Time</th>
@@ -998,7 +1006,7 @@
                                 </tr>
                             </thead>
                             <tbody id="p-closed-body">
-                                <tr><td colspan="11" class="text-center text-dim py-4">No closed trades today.</td></tr>
+                                <tr><td colspan="13" class="text-center text-dim py-4">No closed trades today.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1219,9 +1227,14 @@
                         } catch(e) {}
 
                         const sId = p.strategy_id;
-                        const stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
-                            `<span class="badge bg-dark text-info border border-info border-opacity-25" style="font-size: 8px; vertical-align: middle;">S${sId}</span>` : 
-                            `<span class="badge bg-dark text-dim border border-secondary border-opacity-10" style="font-size: 8px; vertical-align: middle;">AI</span>`;
+                        const isEns_p = p.is_ensemble === 1 || p.is_ensemble === true;
+                        let stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
+                            `<a href="/strategy/${sId}" class="badge bg-dark text-info border border-info border-opacity-25 text-decoration-none" style="font-size: 8px; vertical-align: middle;">S${sId}</a>` : 
+                            `<a href="/strategy/0" class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none" style="font-size: 8px; vertical-align: middle;">AI</a>`;
+                        
+                        if (isEns_p && sId !== null && sId !== undefined && sId !== -1) {
+                            stratBadge = `<a href="/strategy/0" class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none" style="font-size: 8px; vertical-align: middle;">AI</a> ` + stratBadge;
+                        }
 
                         pendingBody.innerHTML += `
                             <tr>
@@ -1289,9 +1302,14 @@
                         // ────────────────────────────────────────────────────────
 
                         const sId = p.strategy_id;
-                        const stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
-                            `<span class="badge bg-dark text-info border border-info border-opacity-25" style="font-size: 8px; vertical-align: middle;">S${sId}</span>` : 
-                            `<span class="badge bg-dark text-dim border border-secondary border-opacity-10" style="font-size: 8px; vertical-align: middle;">AI</span>`;
+                        const isEns_p = p.is_ensemble === 1 || p.is_ensemble === true;
+                        let stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
+                            `<a href="/strategy/${sId}" class="badge bg-dark text-info border border-info border-opacity-25 text-decoration-none" style="font-size: 8px; vertical-align: middle;">S${sId}</a>` : 
+                            `<a href="/strategy/0" class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none" style="font-size: 8px; vertical-align: middle;">AI</a>`;
+                        
+                        if (isEns_p && sId !== null && sId !== undefined && sId !== -1) {
+                            stratBadge = `<a href="/strategy/0" class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none" style="font-size: 8px; vertical-align: middle;">AI</a> ` + stratBadge;
+                        }
 
                         posBody.innerHTML += `
                             <tr>
@@ -1373,9 +1391,14 @@
                             ? '<span class="badge bg-success" style="font-size:9px;">TP HIT</span>'
                             : '<span class="badge bg-secondary" style="font-size:9px;">CLOSED</span>';
                         const sId = t.strategy_id;
-                        const stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
-                            `<span class="badge bg-dark text-info border border-info border-opacity-25" style="font-size: 8px; vertical-align: middle;">S${sId}</span>` : 
-                            `<span class="badge bg-dark text-dim border border-secondary border-opacity-10" style="font-size: 8px; vertical-align: middle;">AI</span>`;
+                        const isEns_t = t.is_ensemble === 1 || t.is_ensemble === true;
+                        let stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
+                            `<a href="/strategy/${sId}" class="badge bg-dark text-info border border-info border-opacity-25 text-decoration-none" style="font-size: 8px; vertical-align: middle;">S${sId}</a>` : 
+                            `<a href="/strategy/0" class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none" style="font-size: 8px; vertical-align: middle;">AI</a>`;
+                        
+                        if (isEns_t && sId !== null && sId !== undefined && sId !== -1) {
+                            stratBadge = `<a href="/strategy/0" class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none" style="font-size: 8px; vertical-align: middle;">AI</a> ` + stratBadge;
+                        }
 
                         closedBody.innerHTML += `
                             <tr>
@@ -1401,6 +1424,7 @@
                                 <td class="mono">₹${(t.exit_price || 0).toFixed(2)}</td>
                                 <td class="mono fw-bold ${netCls}">${pnlSign(netPnl)}${inrFmt(netPnl)}</td>
                                 <td class="mono fw-bold ${pctCls}">${pnlSign(pnlPctV)}${pnlPctV.toFixed(2)}%</td>
+                                <td class="mono small text-dim">+${(t.peak_profit_pct || 0).toFixed(2)}%</td>
                                 <td>${stBadge}</td>
                                 <td>
                                     <span class="badge bg-dark text-white border border-white border-opacity-10 smallest" style="font-size: 9px;">
@@ -1413,7 +1437,7 @@
                         `;
                     });
                 } else {
-                    closedBody.innerHTML = '<tr><td colspan="12" class="text-center text-dim py-4">No closed trades today.</td></tr>';
+                    closedBody.innerHTML = '<tr><td colspan="13" class="text-center text-dim py-4">No closed trades today.</td></tr>';
                 }
 
                 // ── DAILY PERFORMANCE BAR ───────────────────────────────────────
@@ -1442,6 +1466,18 @@
                 console.warn('Upstox Data Sync Error:', e);
             }
         }
+
+        let currentVetoMlPage = 1;
+        let currentVetoStratPage = 1;
+
+        window.changeVetoPage = function(type, delta) {
+            if (type === 'ml') {
+                currentVetoMlPage += delta;
+            } else {
+                currentVetoStratPage += delta;
+            }
+            fetchStatus();
+        };
 
         async function fetchStatus() {
             try {
@@ -1524,9 +1560,14 @@
                             `<span class="badge bg-warning text-dark ms-2" style="font-size: 8px; vertical-align: middle;">PENDING</span>` : '';
 
                         const sId = t.strategy_id;
-                        const stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
-                            `<span class="badge bg-dark text-info border border-info border-opacity-25" style="font-size: 8px; vertical-align: middle;">S${sId}</span>` : 
-                            `<span class="badge bg-dark text-dim border border-secondary border-opacity-10" style="font-size: 8px; vertical-align: middle;">AI</span>`;
+                        const isEns_t = t.is_ensemble === 1 || t.is_ensemble === true;
+                        let stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
+                            `<a href="/strategy/${sId}" class="badge bg-dark text-info border border-info border-opacity-25 text-decoration-none" style="font-size: 8px; vertical-align: middle;">S${sId}</a>` : 
+                            `<a href="/strategy/0" class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none" style="font-size: 8px; vertical-align: middle;">AI</a>`;
+                        
+                        if (isEns_t && sId !== null && sId !== undefined && sId !== -1) {
+                            stratBadge = `<a href="/strategy/0" class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none" style="font-size: 8px; vertical-align: middle;">AI</a> ` + stratBadge;
+                        }
 
                         openBody.innerHTML += `
                             <tr>
@@ -1582,18 +1623,27 @@
                 // 2.5 UPDATE VETOED TRADES
                 const vetoMlBody = document.getElementById('vetoed-ml-signals');
                 const vetoStrategyBody = document.getElementById('vetoed-strategy-signals');
-                if (data.vetoed_trades && data.vetoed_trades.length > 0) {
-                    const mlTrades = data.vetoed_trades.filter(t => t.strategy_id == null || t.strategy_id === -1 || Number.isNaN(t.strategy_id) || t.strategy_id === "");
-                    const stratTrades = data.vetoed_trades.filter(t => t.strategy_id != null && t.strategy_id !== -1 && !Number.isNaN(t.strategy_id) && t.strategy_id !== "");
+                if (data.vetoed_trades) {
+                    const mlTrades = data.vetoed_trades.filter(t => t.strategy_id === null || t.strategy_id === undefined || t.strategy_id === -1);
+                    const stratTrades = data.vetoed_trades.filter(t => t.strategy_id !== null && t.strategy_id !== undefined && t.strategy_id !== -1);
 
-                    function renderVetoList(tradesList, tbodyElem, isStrategyTable) {
+                    function renderVetoList(tradesList, tbodyElem, isStrategyTable, tableType) {
                         if (tradesList.length === 0) {
-                            tbodyElem.innerHTML = '<tr><td colspan="12" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
+                            tbodyElem.innerHTML = '<tr><td colspan="13" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
                             return;
                         }
+                        
+                        const pageSize = 50;
+                        let currentPage = tableType === 'ml' ? currentVetoMlPage : currentVetoStratPage;
+                        const totalPages = Math.ceil(tradesList.length / pageSize) || 1;
+                        if (currentPage > totalPages) currentPage = totalPages;
+                        
+                        const paginatedList = tradesList.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+ 
                         tbodyElem.innerHTML = '';
                         let lastDate = "";
-                        tradesList.forEach((t, index) => {
+                        let htmlBuffer = '';
+                        paginatedList.forEach((t, index) => {
                             const dateObj = new Date(t.timestamp);
                             const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
                             
@@ -1603,10 +1653,10 @@
                                     .reduce((acc, item) => acc + ((item.final_profit_pct || 0) - 0.06), 0);
                                 
                                 const sumCls = dailyVetoSum > 0 ? 'text-success' : (dailyVetoSum < 0 ? 'text-danger' : 'text-white');
-
-                                tbodyElem.innerHTML += `
+ 
+                                htmlBuffer += `
                                     <tr class="bg-dark bg-opacity-50">
-                                        <td colspan="12" class="py-2">
+                                        <td colspan="13" class="py-2">
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <div class="d-flex align-items-center gap-2">
                                                     <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
@@ -1666,11 +1716,11 @@
                             const sId = t.strategy_id;
                             const stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
                                 `<a href="/strategy/${sId}" class="badge bg-dark text-info border border-info border-opacity-25 text-decoration-none" style="font-size: 11px; padding: 4px 8px; vertical-align: middle;">Strategy ${sId}</a>` : 
-                                `<span class="badge bg-dark text-dim border border-secondary border-opacity-10" style="font-size: 8px; vertical-align: middle;">AI</span>`;
+                                `<a href="/strategy/0" class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none" style="font-size: 8px; vertical-align: middle;">AI</a>`;
 
                             const stratCol = isStrategyTable ? `<td>${stratBadge}</td>` : '';
 
-                            tbodyElem.innerHTML += `
+                            htmlBuffer += `
                                 <tr style="opacity: ${isExpired ? '0.6' : '0.9'}; border-left: 3px solid ${isExpired ? 'transparent' : 'var(--accent-blue)'}">
                                     ${stratCol}
                                     <td class="ticker-name">
@@ -1699,6 +1749,7 @@
                                     <td class="mono">₹${t.entry_price.toFixed(2)}</td>
                                     <td class="mono ${priceCls}">${priceLabel}₹${(t.exit_price || t.entry_price).toFixed(2)}</td>
                                     <td><span class="live-pnl ${livePnlCls}">${livePnlStr}</span></td>
+                                    <td class="mono small text-dim">+${(t.peak_profit_pct || 0).toFixed(2)}%</td>
                                     <td>
                                         <span title="${stageTitle}" style="
                                             display: inline-flex; align-items: center; gap: 4px;
@@ -1709,24 +1760,41 @@
                                             <i class="bi bi-shield-slash" style="font-size:9px;"></i> ${vetoStage}
                                         </span>
                                     </td>
-                                    <td style="max-width: 220px; word-break: break-word;">${llmReasonHtml}</td>
-                                    <td>
-                                        <span class="badge bg-dark text-white border border-white border-opacity-10 smallest" style="font-size: 9px;">
-                                            <i class="bi bi-speedometer2 me-1"></i> ${t.tv_sentiment || 'N/A'}
-                                        </span>
+                                    <td style="max-width: 250px; white-space: normal; line-height:1.4;">
+                                        ${llmReasonHtml}
                                     </td>
-                                    ${!isStrategyTable ? `<td class="mono smallest text-info">${t.one_hour_prob || 'N/A'}</td>` : ''}
-                                    <td>${statusLabel}</td>
+                                    <td class="mono smallest text-info">${t.one_hour_prob || 'N/A'}</td>
+                                    ${!isStrategyTable ? `<td class="mono smallest text-info">${t.next_hour_prob || 'N/A'}</td>` : ''}
+                                    <td>
+                                        <div class="d-flex flex-column gap-1">
+                                            ${statusLabel}
+                                            <span class="smallest text-dim mono" style="font-size: 9px;">${new Date(t.timestamp).toLocaleDateString([], {month:'short', day:'numeric'})}</span>
+                                        </div>
+                                    </td>
                                 </tr>
                             `;
                         });
+
+                        if (totalPages > 1) {
+                            htmlBuffer += `
+                                <tr class="bg-dark bg-opacity-50">
+                                    <td colspan="13" class="py-2 text-center border-top border-secondary border-opacity-10">
+                                        <button class="btn btn-sm btn-outline-secondary me-2 px-3 py-1" onclick="changeVetoPage('${tableType}', -1)" ${currentPage === 1 ? 'disabled' : ''} style="font-size: 11px;">Previous</button>
+                                        <span class="text-dim mx-2" style="font-size: 11px;">Page ${currentPage} of ${totalPages} (${tradesList.length} total)</span>
+                                        <button class="btn btn-sm btn-outline-secondary ms-2 px-3 py-1" onclick="changeVetoPage('${tableType}', 1)" ${currentPage === totalPages ? 'disabled' : ''} style="font-size: 11px;">Next</button>
+                                    </td>
+                                </tr>
+                            `;
+                        }
+                        
+                        tbodyElem.innerHTML = htmlBuffer;
                     }
 
-                    renderVetoList(mlTrades, vetoMlBody, false);
-                    renderVetoList(stratTrades, vetoStrategyBody, true);
+                    renderVetoList(mlTrades, vetoMlBody, false, 'ml');
+                    renderVetoList(stratTrades, vetoStrategyBody, true, 'strat');
                 } else {
-                    vetoMlBody.innerHTML = '<tr><td colspan="12" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
-                    vetoStrategyBody.innerHTML = '<tr><td colspan="12" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
+                    vetoMlBody.innerHTML = '<tr><td colspan="13" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
+                    vetoStrategyBody.innerHTML = '<tr><td colspan="13" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
                 }
 
                 // 3. UPDATE CLOSED TRADES
@@ -1741,7 +1809,7 @@
                         if (dateStr !== lastDate) {
                             closedBody.innerHTML += `
                                 <tr class="bg-dark bg-opacity-50">
-                                    <td colspan="9" class="py-2">
+                                    <td colspan="10" class="py-2">
                                         <div class="d-flex align-items-center gap-2">
                                             <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
                                                 <i class="bi bi-calendar3 me-1"></i> ${dateStr}
@@ -1759,9 +1827,14 @@
                         const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
                         const sId = t.strategy_id;
-                        const stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
-                            `<span class="badge bg-dark text-info border border-info border-opacity-25" style="font-size: 8px; vertical-align: middle;">S${sId}</span>` : 
-                            `<span class="badge bg-dark text-dim border border-secondary border-opacity-10" style="font-size: 8px; vertical-align: middle;">AI</span>`;
+                        const isEns_t = t.is_ensemble === 1 || t.is_ensemble === true;
+                        let stratBadge = sId !== null && sId !== undefined && sId !== -1 ? 
+                            `<a href="/strategy/${sId}" class="badge bg-dark text-info border border-info border-opacity-25 text-decoration-none" style="font-size: 8px; vertical-align: middle;">S${sId}</a>` : 
+                            `<a href="/strategy/0" class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none" style="font-size: 8px; vertical-align: middle;">AI</a>`;
+                        
+                        if (isEns_t && sId !== null && sId !== undefined && sId !== -1) {
+                            stratBadge = `<a href="/strategy/0" class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none" style="font-size: 8px; vertical-align: middle;">AI</a> ` + stratBadge;
+                        }
 
                         closedBody.innerHTML += `
                             <tr>
@@ -1789,6 +1862,7 @@
                                 </td>
                                 <td class="text-dim small">${time}</td>
                                 <td class="mono fw-bold ${profitCls}">${t.final_profit_pct > 0 ? '+' : ''}${t.final_profit_pct.toFixed(2)}%</td>
+                                <td class="mono small text-dim">+${(t.peak_profit_pct || 0).toFixed(2)}%</td>
                                 <td class="mono smallest text-info">${t.one_hour_prob || 'N/A'}</td>
                                 <td>
                                     <span class="badge bg-dark text-info border border-info border-opacity-10" style="font-size: 9px;">
@@ -1810,9 +1884,16 @@
 
         let currentAnalysisScores = [];
         let currentAnalysisMode = 'LONG';
+        let currentAnalysisPage = 1;
+
+        window.changeAnalysisPage = function(delta) {
+            currentAnalysisPage += delta;
+            renderAnalysis();
+        };
 
         function setAnalysisMode(mode) {
             currentAnalysisMode = mode;
+            currentAnalysisPage = 1;
             
             // Update UI
             document.getElementById('tab-long').classList.toggle('active', mode === 'LONG');
@@ -1838,9 +1919,16 @@
                     return a.Short_Rank - b.Short_Rank;
                 }
             });
+            
+            const pageSize = 50;
+            const totalPages = Math.ceil(sortedData.length / pageSize) || 1;
+            if (currentAnalysisPage > totalPages) currentAnalysisPage = totalPages;
+            if (currentAnalysisPage < 1) currentAnalysisPage = 1;
+            
+            const paginatedData = sortedData.slice((currentAnalysisPage - 1) * pageSize, currentAnalysisPage * pageSize);
 
-            body.innerHTML = '';
-            sortedData.forEach((s, i) => {
+            let htmlBuffer = '';
+            paginatedData.forEach((s, i) => {
                 const conviction = currentAnalysisMode === 'LONG' ? s.Long_Conviction : s.Short_Conviction;
                 const bias = s.Long_Conviction > s.Short_Conviction ? 'BULLISH' : 'BEARISH';
                 const biasCls = bias === 'BULLISH' ? 'text-success' : 'text-danger';
@@ -1853,7 +1941,7 @@
                     gatekeeperBadge = `<span class="badge bg-danger-subtle text-accent-short ms-1" style="font-size: 8px; border: 1px solid rgba(255, 77, 77, 0.2); padding: 2px 4px;" title="Approved by Daily Macro Gatekeeper"><i class="bi bi-shield-fill-check"></i> GATED</span>`;
                 }
                 
-                body.innerHTML += `
+                htmlBuffer += `
                     <tr>
                         <td class="text-dim">#${rank}</td>
                         <td class="ticker-name">
@@ -1879,6 +1967,20 @@
                     </tr>
                 `;
             });
+            
+            if (totalPages > 1) {
+                htmlBuffer += `
+                    <tr class="bg-dark bg-opacity-50">
+                        <td colspan="8" class="py-2 text-center border-top border-secondary border-opacity-10">
+                            <button class="btn btn-sm btn-outline-secondary me-2 px-3 py-1" onclick="changeAnalysisPage(-1)" ${currentAnalysisPage === 1 ? 'disabled' : ''} style="font-size: 11px;">Previous</button>
+                            <span class="text-dim mx-2" style="font-size: 11px;">Page ${currentAnalysisPage} of ${totalPages} (${sortedData.length} total)</span>
+                            <button class="btn btn-sm btn-outline-secondary ms-2 px-3 py-1" onclick="changeAnalysisPage(1)" ${currentAnalysisPage === totalPages ? 'disabled' : ''} style="font-size: 11px;">Next</button>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            body.innerHTML = htmlBuffer;
             document.getElementById('analysis-updated').innerText = `Last scan: ${new Date().toLocaleTimeString()}`;
         }
 
@@ -1983,8 +2085,35 @@
                 // Header widget
                 const wv = document.getElementById('model-sentiment-widget');
                 const ws = document.getElementById('model-strength-widget');
-                if (wv) { wv.className = `widget-value ${cls}`; wv.textContent = sent; }
-                if (ws) { ws.textContent = `Strength: ${str}`; }
+                
+                const dg = data.daily_gatekeepers || {};
+                if (dg.status && dg.status.startsWith("RUNNING")) {
+                    if (wv) { 
+                        wv.className = "widget-value text-warning"; 
+                        wv.textContent = "SCANNING"; 
+                        wv.style.fontSize = "11px";
+                    }
+                    if (ws) { 
+                        ws.textContent = "DAILY MACRO SCAN"; 
+                        ws.className = "widget-sub text-warning fw-bold animate-pulse"; 
+                    }
+                } else {
+                    if (wv) { 
+                        wv.className = `widget-value ${cls}`; 
+                        wv.textContent = sent; 
+                        wv.style.fontSize = ""; 
+                    }
+                    if (ws) { 
+                        ws.textContent = `Strength: ${str}`; 
+                        ws.className = "widget-sub"; 
+                    }
+                }
+
+                // Dynamic Modal Update
+                const modalEl = document.getElementById('modelModal');
+                if (modalEl && modalEl.classList.contains('show')) {
+                    populateModelModal();
+                }
 
             } catch(e) {
                 const wv = document.getElementById('model-sentiment-widget');
@@ -1992,8 +2121,7 @@
             }
         }
 
-        function openModelModal() {
-            if (!_modelData) { fetchModelSnapshot(); }
+        function populateModelModal() {
             const d = _modelData || {};
 
             const sent = d.overall_sentiment || 'UNAVAILABLE';
@@ -2030,7 +2158,16 @@
             const dg = d.daily_gatekeepers || {};
             setTxt('dg-long-count', dg.long_eligible_count ?? '0');
             setTxt('dg-short-count', dg.short_eligible_count ?? '0');
-            setTxt('dg-modal-ts', dg.timestamp ? `Daily trend scan run at: ${new Date(dg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : '—');
+            
+            if (dg.status && dg.status.startsWith("RUNNING")) {
+                setTxt('dg-modal-ts', `⚠️ ${dg.status}...`);
+                const tsEl = document.getElementById('dg-modal-ts');
+                if (tsEl) { tsEl.className = 'text-warning fw-bold animate-pulse'; }
+            } else {
+                setTxt('dg-modal-ts', dg.timestamp ? `Daily trend scan run at: ${new Date(dg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : '—');
+                const tsEl = document.getElementById('dg-modal-ts');
+                if (tsEl) { tsEl.className = 'text-dim'; }
+            }
 
             const longBadges = document.getElementById('dg-long-badges');
             if (longBadges) {
@@ -2071,8 +2208,16 @@
                     </tr>`
                 ).join('') || '<tr><td colspan="4" class="text-dim text-center">No data</td></tr>';
             }
+        }
 
-            new bootstrap.Modal(document.getElementById('modelModal')).show();
+        async function openModelModal() {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modelModal')).show();
+            if (!_modelData) {
+                const tsEl = document.getElementById('model-modal-ts');
+                if (tsEl) tsEl.textContent = 'Loading latest conviction scores...';
+                await fetchModelSnapshot();
+            }
+            populateModelModal();
         }
 
         // ── MARKET SNAPSHOT ─────────────────────────────────────────────
@@ -2098,14 +2243,19 @@
                     ws.textContent = chPct !== null && chPct !== undefined ? fmtPct(chPct) + ' today' : 'Unavailable';
                 }
 
+                // Dynamic Modal Update
+                const modalEl = document.getElementById('marketModal');
+                if (modalEl && modalEl.classList.contains('show')) {
+                    populateMarketModal();
+                }
+
             } catch(e) {
                 const wv = document.getElementById('nifty-price-widget');
                 if (wv) { wv.textContent = 'ERR'; }
             }
         }
 
-        function openMarketModal() {
-            if (!_marketData) { fetchMarketSnapshot(); }
+        function populateMarketModal() {
             const d = _marketData || {};
 
             const sent  = d.market_sentiment || 'UNAVAILABLE';
@@ -2193,8 +2343,16 @@
                 const mbar = document.getElementById('ma-bullish-bar');
                 if (mbar) mbar.style.width = `${a.bullish_pct ?? 50}%`;
             }
+        }
 
-            new bootstrap.Modal(document.getElementById('marketModal')).show();
+        async function openMarketModal() {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('marketModal')).show();
+            if (!_marketData) {
+                const tsEl = document.getElementById('market-modal-ts');
+                if (tsEl) tsEl.textContent = 'Loading indices & analytics...';
+                await fetchMarketSnapshot();
+            }
+            populateMarketModal();
         }
 
         // ── AUTO-POLL ON LOAD ────────────────────────────────────────────

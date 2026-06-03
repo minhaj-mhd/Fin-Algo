@@ -1,15 +1,15 @@
 {
     "initial_capital": 99517.68,
-    "virtual_capital": 99749.57,
-    "used_margin": 0,
-    "available_margin": 99749.57,
-    "realized_charges": 908.18,
+    "virtual_capital": 99485.06,
+    "used_margin": 0.0,
+    "available_margin": 99485.06,
+    "realized_charges": 955.41,
     "open_positions_count": 0,
     "unrealized_pnl_inr": 0.0,
-    "day_realized_pnl_inr": -14.53,
-    "total_pnl_inr": 231.89,
-    "total_pnl_pct": 0.233,
+    "day_realized_pnl_inr": 0.0,
+    "total_pnl_inr": -32.62,
+    "total_pnl_pct": -0.0328,
     "positions": [],
     "pending_positions": [],
-    "timestamp": "2026-06-01T15:15:01.569502"
+    "timestamp": "2026-06-03T15:02:56.128095"
 }

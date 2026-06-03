@@ -1,6 +1,6 @@
 # 🔄 Shadow Tracker & Execution Loop
 
-The risk management, entry confirmation, and live trade tracking of the Vanguard engine are centrally governed by the **Shadow Tracker**. Implemented in `vanguard_signal_engine.py` under the `shadow_tracker_loop()`, this daemon thread polls the WebSocket price feed every 5 seconds to manage live sandbox portfolios, execute trailing risk strategies, and process dynamic exit rules.
+The risk management, entry confirmation, and live trade tracking of the Vanguard engine are centrally governed by the **Shadow Tracker**. Implemented in `scripts/vanguard/trade_state.py` (lifecycle rules) and `scripts/vanguard/orchestrator.py` (loop coordination), this daemon thread polls the WebSocket price feed every 5 seconds to manage live sandbox portfolios, execute trailing risk strategies, and process dynamic exit rules.
 
 ---
 

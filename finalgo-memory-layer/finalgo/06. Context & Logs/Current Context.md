@@ -11,12 +11,13 @@ This document tracks the active development topics, current focus, and immediate
 * **Regime-Aware Routing**: Completed implementation and execution of `strategy_50_regime_backtest.py` across all 50 strategies, evaluating both gated and ungated passes for May 2026. Restored strategy-specific high-precision exits for top performers.
 * **Market Psychology Indicators**: Architecting an intelligent layer that goes beyond technical analysis to quantify market psychology. Integrating order flow, volume profiles, and news sentiment into a predictive model to anticipate shifts in retail and institutional trader behavior ahead of momentum inflection points.
 * **System Refinement**: Completed transition from Vanguard V1 static thresholds to V2.3 dynamic ATR-based logic, conviction scoring, and live UI strategy badges.
+* **Codebase and Memory Layer Synchronization**: Successfully untracked cache directories to resolve repository bloat, aligned documentation files (`Codebase File Directory.md`, `Global System Architecture.md`, `Model Inference Data Structure.md`, etc.) to the new modular architecture, conducted a Gemini Pro audit, stripped dead tracker code from the AI veto logic, and pruned the `scratch/` directory of disposable one-off scripts.
 * **Memory Integration**: Established this Obsidian vault as a shared memory layer for project continuity, updated with the latest 50-strategy backtest outcomes.
 
 ## Next Steps
 
 * [ ] Build the first real `tests/` suite for trade lifecycle, risk math, feature-schema validation, and broker adapter mocks.
-* [ ] Audit tracked generated artifacts under `data/`, `models/`, and raw cache folders, then move non-canonical outputs out of git tracking.
+* [x] Audit tracked generated artifacts under `data/`, `models/`, and raw cache folders, then move non-canonical outputs out of git tracking.
 * [ ] Deprecate or archive random-split training scripts and document walk-forward/temporal validation as the production standard.
 * [ ] Rewrite `README.md` into a clean operator guide with fixed encoding, current run modes, caveats, token requirements, and safety limits.
 * [ ] Pin dependencies or add a lock file so future installs reproduce the current working environment.
@@ -26,5 +27,5 @@ This document tracks the active development topics, current focus, and immediate
 
 Linked to: [[Welcome|Main Navigation Index]]
 
-Concluded Session: [[06. Context & Logs/Conversations/Conv-2026-06-03-Scripts-Restructuring|Conversation Log: Scripts Restructuring]]
+Concluded Session: [[06. Context & Logs/Conversations/Conv-2026-06-03-Memory-Layer-Sync|Conversation Log: Memory Layer Sync]]
 

@@ -162,25 +162,26 @@
                 const res = await fetch('/vanguard_status');
                 const data = await res.json();
 
-                document.getElementById('total-signals').innerText = data.trades.length;
+                const trades = data.trades || [];
+                document.getElementById('total-signals').innerText = trades.length;
 
                 const tableBody = document.getElementById('stats-table-body');
                 tableBody.innerHTML = '';
 
                 // Display latest 20 signals with full details
-                data.trades.slice().reverse().forEach(t => {
-                    const date = new Date(t.timestamp).toLocaleString();
+                trades.slice().reverse().forEach(t => {
+                    const date = t.timestamp ? new Date(t.timestamp).toLocaleString() : '—';
                     const row = document.createElement('tr');
 
                     row.innerHTML = `
                         <td>${date}</td>
                         <td class="fw-bold text-primary">
-                            <a href="/ticker/${t.ticker}" style="color: inherit; text-decoration: none;">
-                                ${t.ticker.replace('.NS', '')} <i class="bi bi-cpu"></i>
+                            <a href="/ticker/${t.ticker || ''}" style="color: inherit; text-decoration: none;">
+                                ${(t.ticker || '').replace('.NS', '')} <i class="bi bi-cpu"></i>
                             </a>
                         </td>
-                        <td><span class="badge bg-dark border border-secondary">${t.tech_score.toFixed(4)}</span></td>
-                        <td><span class="trend-up">${(t.nlp_sentiment > 0 ? '+' : '')}${t.nlp_sentiment.toFixed(2)}</span></td>
+                        <td><span class="badge bg-dark border border-secondary">${(t.tech_score || 0).toFixed(4)}</span></td>
+                        <td><span class="trend-up">${(t.nlp_sentiment > 0 ? '+' : '')}${(t.nlp_sentiment || 0).toFixed(2)}</span></td>
                         <td><span class="text-success fw-bold">ELITE</span></td>
                         <td class="trend-up">+0.60% (Avg)</td>
                     `;
