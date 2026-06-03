@@ -20,6 +20,7 @@ from scripts.vanguard.ai_veto import AIVetoManager
 from scripts.vanguard.persistence import log_trade, save_latest_scores
 
 from scripts.database_manager import init_db, get_trades_by_status
+from scripts.tv_ta import get_tv_sentiment
 from scripts.strategy_filters import StrategyFilters
 from scripts.terminal_utils import log
 from scripts.tickers import TICKERS
@@ -407,14 +408,20 @@ class VanguardOrchestrator:
                 instrument_key = self.broker.get_instrument_key(ticker)
                 df_15m = self._ws_manager.cache.get_candles(instrument_key, "15minute", count=5)
                 if df_15m is not None and not df_15m.empty:
-                    last_row = df_15m.iloc[-1]
-                    return {
-                        'timestamp': last_row['timestamp'],
-                        'open':  float(last_row['open']),
-                        'high':  float(last_row['high']),
-                        'low':   float(last_row['low']),
-                        'close': float(last_row['close']),
-                    }
+                    now = pd.Timestamp.now()
+                    ts_series = pd.to_datetime(df_15m['timestamp'])
+                    if ts_series.dt.tz is not None:
+                        ts_series = ts_series.dt.tz_localize(None)
+                    completed = df_15m[ts_series + pd.Timedelta(minutes=15) <= now]
+                    if not completed.empty:
+                        last_row = completed.iloc[-1]
+                        return {
+                            'timestamp': pd.Timestamp(last_row['timestamp']).to_pydatetime(),
+                            'open':  float(last_row['open']),
+                            'high':  float(last_row['high']),
+                            'low':   float(last_row['low']),
+                            'close': float(last_row['close']),
+                        }
             except Exception:
                 pass
 
@@ -767,11 +774,13 @@ class VanguardOrchestrator:
             return pd.DataFrame()
 
         raw_display_aligned = raw_display.reset_index(drop=True)
-        scores_df["dv_raw"] = raw_display_aligned["Dollar_Volume"]
-        scores_df["rvol_raw"] = raw_display_aligned["RVOL"]
-        scores_df["dist_52h_model"] = raw_display_aligned["Dist_52W_High"]
-        scores_df["dist_52h_actual"] = raw_display_aligned["High_52W_Actual"]
-        scores_df["Return_Raw"] = raw_display_aligned["Return"]
+        scores_df = scores_df.assign(
+            dv_raw=raw_display_aligned["Dollar_Volume"],
+            rvol_raw=raw_display_aligned["RVOL"],
+            dist_52h_model=raw_display_aligned["Dist_52W_High"],
+            dist_52h_actual=raw_display_aligned["High_52W_Actual"],
+            Return_Raw=raw_display_aligned["Return"]
+        )
 
         save_latest_scores(scores_df, self.long_eligible_tickers, self.short_eligible_tickers)
 
@@ -781,7 +790,10 @@ class VanguardOrchestrator:
 
         return scores_df
 
-    def start_shadow_trade(self, ticker, conviction, tech_score, entry_price, side, reason, one_hour_prob, long_score=None, short_score=None, strategy_id=None):
+    def start_shadow_trade(self, ticker, conviction, entry_price, side, reason, one_hour_prob,
+                           nlp_sentiment=None, tv_sentiment=None,
+                           long_score=None, short_score=None, strategy_id=None,
+                           score_15m=None, score_30m=None, score_1d=None, is_ensemble=False):
         now = datetime.now()
         trade = {
             "trade_id":            f"TRADE-{ticker}-{side}-{now.strftime('%y%m%d%H%M%S')}",
@@ -805,9 +817,15 @@ class VanguardOrchestrator:
             
             "strategy_id":         strategy_id,
             "one_hour_prob":       one_hour_prob,
-            "tech_score":          float(tech_score) if tech_score is not None else None,
+            "tech_score":          float(conviction) if conviction is not None else None,
+            "nlp_sentiment":       float(nlp_sentiment) if nlp_sentiment is not None else None,
+            "tv_sentiment":        str(tv_sentiment) if tv_sentiment is not None else None,
             "long_score":          float(long_score) if long_score is not None else None,
             "short_score":         float(short_score) if short_score is not None else None,
+            "score_15m":           float(score_15m) if score_15m is not None else None,
+            "score_30m":           float(score_30m) if score_30m is not None else None,
+            "score_1d":            float(score_1d) if score_1d is not None else None,
+            "is_ensemble":         is_ensemble,
             "net_pnl_amt":         0.0,
         }
 
@@ -818,7 +836,10 @@ class VanguardOrchestrator:
         self.risk_manager.update_upstox_stats(self.active_shadow_trades)
         log_trade(trade)
 
-    def start_vetoed_tracking(self, ticker, conviction, tech_score, entry_price, side, reason, one_hour_prob, long_score=None, short_score=None, strategy_id=None):
+    def start_vetoed_tracking(self, ticker, conviction, entry_price, side, reason, one_hour_prob,
+                              nlp_sentiment=None, tv_sentiment=None,
+                              long_score=None, short_score=None, strategy_id=None,
+                              score_15m=None, score_30m=None, score_1d=None, is_ensemble=False):
         now = datetime.now()
         trade = {
             "trade_id":            f"VETO-{ticker}-{side}-{now.strftime('%y%m%d%H%M%S')}",
@@ -841,9 +862,15 @@ class VanguardOrchestrator:
             
             "strategy_id":         strategy_id,
             "one_hour_prob":       one_hour_prob,
-            "tech_score":          float(tech_score) if tech_score is not None else None,
+            "tech_score":          float(conviction) if conviction is not None else None,
+            "nlp_sentiment":       float(nlp_sentiment) if nlp_sentiment is not None else None,
+            "tv_sentiment":        str(tv_sentiment) if tv_sentiment is not None else None,
             "long_score":          float(long_score) if long_score is not None else None,
             "short_score":         float(short_score) if short_score is not None else None,
+            "score_15m":           float(score_15m) if score_15m is not None else None,
+            "score_30m":           float(score_30m) if score_30m is not None else None,
+            "score_1d":            float(score_1d) if score_1d is not None else None,
+            "is_ensemble":         is_ensemble,
             "net_pnl_amt":         0.0,
         }
 
@@ -1059,44 +1086,6 @@ class VanguardOrchestrator:
                             else:
                                 print(f"[CONVICTION-OK] {trade['ticker']} {trade['side']} — XGBoost still aligned.")
 
-                        # Evaluated Exits (SL, BE, Trailing Stop, Time Expiry, EOD)
-                        should_exit, exit_status, exit_note = TradeStateManager.evaluate_open_trade_exit(trade, price, pnl, now)
-
-                        if should_exit or is_conviction_flip:
-                            if is_conviction_flip:
-                                trade["status"] = "CLOSED"
-                                trade["comment"] = trade.get("comment", "") + flip_note
-                            else:
-                                trade["status"] = exit_status
-                                trade["comment"] = trade.get("comment", "") + (exit_note or "")
-
-                            trade["exit_price"] = price
-                            
-                            sell_value = trade["quantity"] * price
-                            total_exit_costs = self.risk_manager.calculate_exit_charges(sell_value)
-                            
-                            if trade["side"] == "LONG":
-                                gross_pnl = (price - trade["entry_price"]) * trade["quantity"]
-                            else:
-                                gross_pnl = (trade["entry_price"] - price) * trade["quantity"]
-                                
-                            net_pnl = gross_pnl - total_exit_costs - (trade.get("buy_brokerage") or 0.0)
-                            trade["final_profit_pct"] = (net_pnl / (trade["entry_price"] * trade["quantity"])) * 100
-                            trade["net_pnl_amt"] = net_pnl
-
-                            with self.lock:
-                                self.risk_manager.virtual_capital += net_pnl
-                                self.risk_manager.used_margin -= trade.get("margin_used", 0.0)
-                                self.risk_manager.realized_charges += total_exit_costs
-
-                            self._mark_recently_closed(trade["ticker"])
-                            self.risk_manager.update_upstox_stats(self.active_shadow_trades)
-                            log_trade(trade)
-                            
-                            strat_disp = f"S{trade.get('strategy_id')}" if trade.get('strategy_id') is not None else "AI"
-                            print(f"[{trade['status']}] {trade['ticker']} ({strat_disp}) | Net P&L: {trade['final_profit_pct']:.2f}% (Rs{net_pnl:.2f})")
-                            continue
-
                         # --- Time Expiry Extension Check ---
                         raw_time_expiry = now >= datetime.fromisoformat(trade["exit_time"])
                         if (
@@ -1146,6 +1135,44 @@ class VanguardOrchestrator:
                                             
                                     threading.Thread(target=_gemini_check_extension, args=(trade, price, pnl, ext_count), daemon=True).start()
                                     continue
+
+                        # Evaluated Exits (SL, BE, Trailing Stop, Time Expiry, EOD)
+                        should_exit, exit_status, exit_note = TradeStateManager.evaluate_open_trade_exit(trade, price, pnl, now)
+
+                        if should_exit or is_conviction_flip:
+                            if is_conviction_flip:
+                                trade["status"] = "CLOSED"
+                                trade["comment"] = trade.get("comment", "") + flip_note
+                            else:
+                                trade["status"] = exit_status
+                                trade["comment"] = trade.get("comment", "") + (exit_note or "")
+
+                            trade["exit_price"] = price
+                            
+                            sell_value = trade["quantity"] * price
+                            total_exit_costs = self.risk_manager.calculate_exit_charges(sell_value)
+                            
+                            if trade["side"] == "LONG":
+                                gross_pnl = (price - trade["entry_price"]) * trade["quantity"]
+                            else:
+                                gross_pnl = (trade["entry_price"] - price) * trade["quantity"]
+                                
+                            net_pnl = gross_pnl - total_exit_costs - (trade.get("buy_brokerage") or 0.0)
+                            trade["final_profit_pct"] = (net_pnl / (trade["entry_price"] * trade["quantity"])) * 100
+                            trade["net_pnl_amt"] = net_pnl
+
+                            with self.lock:
+                                self.risk_manager.virtual_capital += net_pnl
+                                self.risk_manager.used_margin -= trade.get("margin_used", 0.0)
+                                self.risk_manager.realized_charges += total_exit_costs
+
+                            self._mark_recently_closed(trade["ticker"])
+                            self.risk_manager.update_upstox_stats(self.active_shadow_trades)
+                            log_trade(trade)
+                            
+                            strat_disp = f"S{trade.get('strategy_id')}" if trade.get('strategy_id') is not None else "AI"
+                            print(f"[{trade['status']}] {trade['ticker']} ({strat_disp}) | Net P&L: {trade['final_profit_pct']:.2f}% (Rs{net_pnl:.2f})")
+                            continue
 
                         # Live updates
                         if trade["status"] == "OPEN":
@@ -1293,36 +1320,39 @@ class VanguardOrchestrator:
                             is_s1 = reason.startswith("[S1-")
                             veto_stage = "S1" if is_s1 else "S2"
 
-                            is_vetoed = False
-                            sentiment_upper = sentiment.upper()
-                            if "VETO" in sentiment_upper:
-                                is_vetoed = True
-                            elif side == "LONG" and sentiment_upper in ["STRONG BEARISH", "BEARISH", "NEUTRAL"]:
-                                is_vetoed = True
-                            elif side == "SHORT" and sentiment_upper in ["STRONG BULLISH", "BULLISH", "NEUTRAL"]:
-                                is_vetoed = True
+                            is_vetoed = "VETO" in sentiment.upper()
 
                             entry_price = self.broker.get_live_price(ticker)
                             if not entry_price or entry_price <= 0:
                                 entry_price = float(full_feature_row["Close"])
 
-                            if not is_vetoed:
-                                sent_map = {
-                                    "STRONG BULLISH": 1.0, "BULLISH": 0.75,
-                                    "NEUTRAL": 0.5, "BEARISH": 0.25, "STRONG BEARISH": 0.0,
-                                }
-                                sent_score = sent_map.get(sentiment, 0.5)
+                            # Fetch TradingView Sentiment (Analytics only)
+                            tv_sentiment = get_tv_sentiment(ticker)
 
+                            sent_map = {
+                                "STRONG BULLISH": 1.0, "BULLISH": 0.75,
+                                "NEUTRAL": 0.5, "BEARISH": 0.25, "STRONG BEARISH": 0.0,
+                                "VETOED": 0.0,
+                            }
+                            nlp_score = sent_map.get(sentiment, 0.5)
+
+                            if not is_vetoed:
                                 self.veto_stats["s1_passes"] += 1
                                 self.veto_stats["s2_passes"] += 1
                                 log(f"[✓ PASS] {side} {ticker} confirmed by AI | Sentiment: {sentiment} | {reason}")
                                 
                                 self.start_shadow_trade(
-                                    ticker, conviction, sent_score, entry_price,
+                                    ticker, conviction, entry_price,
                                     side, f"[{sentiment}] {reason}", one_hour_prob,
+                                    nlp_sentiment=nlp_score,
+                                    tv_sentiment=tv_sentiment,
                                     long_score=full_feature_row.get("long_score"),
                                     short_score=full_feature_row.get("short_score"),
-                                    strategy_id=strategy_id
+                                    strategy_id=strategy_id,
+                                    score_15m=full_feature_row.get("score_15m"),
+                                    score_30m=full_feature_row.get("score_30m"),
+                                    score_1d=full_feature_row.get("score_1d"),
+                                    is_ensemble=full_feature_row.get("is_ensemble", False)
                                 )
                                 break
                             else:
@@ -1340,11 +1370,17 @@ class VanguardOrchestrator:
                                     print(f"[✗ S2-VETO] Rank {int(sig[rank_col])} {side} {sig['ticker']} | Conv: {conviction:.4f} | {rule_tag} | {reason}")
 
                                 self.start_vetoed_tracking(
-                                    sig["ticker"], conviction, conviction, entry_price,
+                                    sig["ticker"], conviction, entry_price,
                                     side, f"[{veto_stage}-VETO] {reason}", one_hour_prob,
-                                    long_score=sig["long_score"],
-                                    short_score=sig["short_score"],
-                                    strategy_id=strategy_id
+                                    nlp_sentiment=nlp_score,
+                                    tv_sentiment=tv_sentiment,
+                                    long_score=sig.get("long_score"),
+                                    short_score=sig.get("short_score"),
+                                    strategy_id=strategy_id,
+                                    score_15m=sig.get("score_15m"),
+                                    score_30m=sig.get("score_30m"),
+                                    score_1d=sig.get("score_1d"),
+                                    is_ensemble=sig.get("is_ensemble", False)
                                 )
 
                 # End scan cycle summary

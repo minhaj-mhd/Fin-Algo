@@ -250,6 +250,32 @@ class AIVetoManager:
         current_price = float(features.get("Close", 0))
         sr = self._compute_sr_levels(dict(features), current_price)
 
+        strategy_id = features.get("strategy_id") if hasattr(features, "get") else (features["strategy_id"] if "strategy_id" in features else None)
+        signal_source = features.get("signal_source") if hasattr(features, "get") else (features["signal_source"] if "signal_source" in features else None)
+        is_ensemble = features.get("is_ensemble", False) if hasattr(features, "get") else (features["is_ensemble"] if "is_ensemble" in features else False)
+
+        strategy_descr = {
+            2: "Short-Side Specialist [Rules: ML Short_Rank <= 5; Target: Top bearish momentum stocks selected by the machine learning model]",
+            8: "Opening Range Breakout Short [Rules: Time >= 10:00 AM, ML Short_Rank <= 5, Close <= Low * 1.002; Target: Strong bearish breakdown candidates selling off heavily near their session lows]",
+            10: "Quad-Timeframe Unanimous Long [Rules: ML Long_Rank <= 3; Target: Extremely strong bullish trend unanimity aligned across 15m, 1h, and daily timeframes]",
+            18: "Volatility Expansion Short [Rules: ML Short_Rank <= 3, ATR_14_Pct > 1.5%; Target: Bearish setups displaying massive expansion in true range/volatility for high-momentum shorting]",
+            19: "Low-Vol Grind Long [Rules: ML Long_Rank <= 5, IBS < 0.15; Target: High-ranked bullish stocks experiencing quiet consolidation or intraday low-volume accumulation near the bottom of their range, building base for breakout]",
+            35: "Volatility Contraction Long [Rules: ML Long_Rank <= 5, ATR_14_Pct < 0.2%; Target: Extreme volatility compression / squeeze setups priming for a explosive upward breakout]",
+            36: "The Opening Drive Long [Rules: Time <= 10:30 AM, ML Long_Rank <= 10, Gap_Pct > 0.3%; Target: Stocks displaying massive gap-and-go morning momentum drives on strong initial volume]",
+            39: "The VWAP Pinch Long [Rules: ML Long_Rank <= 3, ATR_14_Pct < 0.2%, abs(Close - SMA20) / SMA20 < 0.2%; Target: Squeeze setups where the close is pinched tight against the 20-period moving average under low volatility]",
+            42: "Trend Exhaustion Trap Short [Rules: ML Short_Rank <= 10, IBS < 0.3; Target: Bearish setups sitting near the daily low, identifying high-probability exhaustion/seller trap setups for a continuation breakdown]"
+        }
+
+        strategy_details = []
+        if strategy_id is not None and not pd.isna(strategy_id):
+            strategy_details.append(f"Strategy Triggered: S{int(strategy_id)} - {strategy_descr.get(int(strategy_id), 'Unknown Strategy')}")
+        if signal_source:
+            strategy_details.append(f"Signal Pipeline Source: {signal_source}")
+        if is_ensemble:
+            strategy_details.append("★ ENSEMBLE CONFLUENCE ★: This high-conviction signal is simultaneously matched and confirmed by BOTH the mathematical structural strategy filter AND the machine learning predictive model pipeline.")
+
+        strategy_str = "\n".join(f"  → {d}" for d in strategy_details) if strategy_details else "  → Pure AI Prediction (No structural strategy triggered)"
+
         price_history_str = "N/A"
         try:
             hist_df = get_recent_candles_fn(ticker, interval='1minute', count=30)
@@ -363,82 +389,33 @@ class AIVetoManager:
         daily_sma20 = _f("Daily_SMA20_Dist", pct=True, decimals=2)
         daily_atr = _f("Daily_ATR_Pct", pct=True, decimals=2)
 
-        prompt_flash = f"""You are a professional intraday technical analyst reviewing a real-time trade signal.
-All data below is LIVE from the current 1-hour bar. No external data is available — evaluate ONLY what is provided.
+        prompt_flash = f"""You are a professional intraday risk analyst checking if a trade is blocked by an immediate hard structural price wall.
+The machine learning model has already approved the trade's technical strength (RSI, volume, trend, conviction). You must NOT evaluate momentum, volume, or trend.
+Your ONLY job is a geometric check: Is there an immediate hard structural price wall (Bollinger Bands, Donchian channels, SMAs, 52W High) within 0.2% of the current price that physically blocks this trade?
 
 ═══ TRADE PROPOSAL ═══════════════════════════════════════════════
 TICKER  : {ticker}
 SIDE    : {side}
 PRICE   : ₹{price}
 ML CONVICTION : {conviction:.4f}
-  → Universe Rank : #{int(features.get("Long_Rank" if side == "LONG" else "Short_Rank", 999))} of ~172 stocks screened this cycle
-  → Min gate      : {self.min_conviction:.2f}
-  → Scale context : 0.15=gate | 0.25=moderate | 0.35+=STRONG | 0.50+=very strong
-  → IMPORTANT: This signal survived ML pre-filtering and ranks in the TOP candidates. Do NOT label it "low conviction".
-
-═══ MOMENTUM & OSCILLATORS ═══════════════════════════════════════
-RSI-14 (intraday)  : {_f("RSI_14_Raw", decimals=1)}  {'→ OVERBOUGHT' if float(_f("RSI_14_Raw", "50")) > 70 else ('→ OVERSOLD' if float(_f("RSI_14_Raw", "50")) < 30 else '→ NEUTRAL ZONE')}
-RSI-14 (daily)     : {daily_rsi}
-Stochastic %K      : {stoch_k}
-Bollinger %B       : {percent_b_raw}
-1H Return          : {_f("Return_Raw", pct=True, decimals=2)}
-Up Streak          : {up_streak} consecutive green bars
-Down Streak        : {dn_streak} consecutive red bars
-Green Bar Ratio(5) : {green_ratio}
-Bar Close Position : {bar_pos}
-Accumulation(5)    : {accumulation}
 
 ═══ PRICE STRUCTURE & KEY LEVELS ═════════════════════════════════
-vs SMA-6  (fast)   : {_vs(sma6)}   [₹{sma6}]
-vs SMA-12 (medium) : {_vs(sma12)}  [₹{sma12}]
-vs SMA-50 (daily)  : {_vs(sma50)}  [₹{sma50}]
-BB Upper           : ₹{bb_upper}  ({round((bb_upper/price-1)*100,2) if bb_upper else 'N/A'}% above)
-BB Lower           : ₹{bb_lower}  ({round((1-bb_lower/price)*100,2) if bb_lower else 'N/A'}% below)
-Donchian High(20)  : ₹{don_upper}
-Donchian Low(20)   : ₹{don_lower}
-1-ATR Resistance   : ₹{r1_atr}    ATR = ₹{atr_abs}
-1-ATR Support      : ₹{s1_atr}
-52-Week High       : ₹{high_52w}  ({_f("dist_52h_actual", pct=True, decimals=1)} from 52W high)
-{nearest_wall_label.upper()} : {wall_str}
-
-═══ VOLUME ════════════════════════════════════════════════════════
-RVOL (Relative Vol): {rvol}x  {'→ HIGH ACTIVITY' if float(rvol) > 2 else ('→ MODERATE' if float(rvol) > 1 else '→ THIN')}
-Dollar Volume      : {dv_str}
-
-═══ MARKET & SECTOR CONTEXT ══════════════════════════════════════
-Market Regime      : {regime_str}
-Nifty 1H Return    : {nifty_1h}
-Nifty 5H Return    : {nifty_5h}
-Stock vs Nifty     : {stock_vs_nifty}
-Stock vs Sector    : {vs_sector}
-Sector Breadth     : {sector_breadth}
-VIX Level          : {vix}  (5D MA: {vix_ma}){'  ← EXTREME FEAR' if vix_extreme else ''}
-
-═══ DAILY TREND ALIGNMENT ════════════════════════════════════════
-Daily Trend (5D)   : {daily_trend_str}
-Daily RSI          : {daily_rsi}
-Daily vs SMA-20    : {daily_sma20}
-Daily ATR %        : {daily_atr}
+{sr_context}
 
 ═══ RECENT PRICE ACTION (last 30 min, 1-min bars) ════════════════
 {price_history_str}
 
 ═══ TASK ══════════════════════════════════════════════════════════
-1. Evaluate if ALL of the following align for a {side} trade:
-   - Momentum direction (RSI, Stoch, streak)
-   - Price structure (price vs SMAs, band position)
-   - Volume confirmation (RVOL > 1.5 preferred)
-   - Market regime support (is Nifty + Regime aligned with {side}?)
-   - Daily trend alignment (intraday trade WITH the daily trend is safer)
-   - Proximity risk: Is {nearest_wall_label} too close (< 0.3%) to allow a clean move?
+Determine if the trade is physically blocked by an immediate structural price wall (within 0.2% of current price).
+- If there is a massive resistance/support level within 0.2%, set "veto" to "TRUE" and state the level in "reason".
+- Otherwise, set "veto" to "FALSE" and "reason" to "No immediate wall within 0.2%".
+- Default bias is PASS (veto = FALSE). The ML model's statistics are preferred.
 
-2. Output STRICT JSON only — no markdown, no extra text:
-{{"sentiment": "LABEL", "reason": "concise 1-sentence rationale covering the confluences or conflicts", "probability": "XX%"}}
-
-Labels: STRONG BULLISH | BULLISH | NEUTRAL | BEARISH | STRONG BEARISH
+Output STRICT JSON only — no markdown, no extra text:
+{{"veto": "TRUE|FALSE", "reason": "concise explanation"}}
 """
 
-        sent1, reason1, prob1 = "NEUTRAL", "N/A", "N/A"
+        sent1, reason1, prob1 = "PASS", "N/A", "N/A"
         stage1_success = False
 
         total_combinations = len(self.s1_model_tiers) * len(self.api_keys)
@@ -453,12 +430,15 @@ Labels: STRONG BULLISH | BULLISH | NEUTRAL | BEARISH | STRONG BEARISH
                 log(f"[S1] Attempting {current_model} (Key {current_key}) for {ticker}...")
                 resp1 = layer1_client.models.generate_content(
                     model=current_model, contents=prompt_flash,
-                    config=types.GenerateContentConfig(temperature=0.1)
+                    config=types.GenerateContentConfig(
+                        temperature=0.1
+                    )
                 )
                 data1 = self.parse_gemini_json(resp1.text)
-                sent1 = data1.get("sentiment", "NEUTRAL").upper()
+                veto_s1 = str(data1.get("veto", "FALSE")).upper() == "TRUE"
+                sent1 = "VETOED" if veto_s1 else "PASS"
                 reason1 = data1.get("reason", "N/A")
-                prob1 = data1.get("probability", "N/A")
+                prob1 = "N/A"
                 stage1_success = True
                 log(f"[S1-OK] {current_model} (Key {current_key}) succeeded for {ticker}.")
                 break
@@ -484,15 +464,9 @@ Labels: STRONG BULLISH | BULLISH | NEUTRAL | BEARISH | STRONG BEARISH
                     
         if not stage1_success:
             log(f"[S1-FAILED] Both model tiers failed for {ticker}. Skipping trade.")
-            return "NEUTRAL", "Stage 1 Audit Error (All Models/Keys Exhausted)", "N/A"
+            return "SYSTEM_ERROR", "Stage 1 Audit Error (All Models/Keys Exhausted)", "N/A"
 
-        is_vetoed = False
-        if side == "LONG" and sent1 in ["STRONG BEARISH", "BEARISH", "NEUTRAL"]:
-            is_vetoed = True
-        elif side == "SHORT" and sent1 in ["STRONG BULLISH", "BULLISH", "NEUTRAL"]:
-            is_vetoed = True
-
-        if is_vetoed:
+        if sent1 == "VETOED":
             final_reason = f"[S1-VETO] {reason1}"
             self.sentiment_cache[cache_key] = (sent1, final_reason, time.time(), prob1)
             return sent1, final_reason, prob1
@@ -510,21 +484,33 @@ Labels: STRONG BULLISH | BULLISH | NEUTRAL | BEARISH | STRONG BEARISH
             f"UpStreak={up_streak} | DnStreak={dn_streak} | Conviction={conviction:.4f}"
         )
 
+        # Retrieve rich sector context for Stage 2
+        sector = features.get("Sector", "N/A")
+        sector_rank = features.get("Sector_Rank", "N/A")
+        try:
+            sector_rank_str = f"#{int(float(sector_rank))}"
+        except Exception:
+            sector_rank_str = str(sector_rank)
+        sector_mean_ret = _f("Sector_Mean_Return", pct=True, decimals=2)
+        sector_breadth = _f("Sector_Breadth", pct=True, decimals=0)
+
         prompt_search = f"""# ROLE: Institutional Risk Auditor (CRO) — Capital Protection Division
 # CURRENT DATE/TIME: {current_dt}
-# YOUR ONLY OBJECTIVE: Determine if fundamental/news reality CONTRADICTS the technical signal.
-# You are NOT here to predict price. You are here to VETO trades where news overrides technicals.
+# YOUR ONLY OBJECTIVE: Determine if fundamental/news/corporate reality CONTRADICTS the technical signal.
+# You are NOT here to predict price. You are here to VETO trades where news/fundamentals overrides technicals.
 
 ════════════════════════════════════════════════════════════════
 AUDIT PROFILE
 ════════════════════════════════════════════════════════════════
 Company         : {company_name} (NSE: {ticker})
+Sector          : {sector} (Rank: {sector_rank_str} | Mean Return: {sector_mean_ret} | Breadth: {sector_breadth})
 Proposed Trade  : {side}
 Current Price   : ₹{price}
 ML Conviction   : {conviction:.4f}
   → Universe Rank : #{int(features.get("Long_Rank" if side == "LONG" else "Short_Rank", 999))} of ~172 stocks screened this cycle
   → Min gate      : {self.min_conviction:.2f}
 RVOL            : {rvol}x
+{strategy_str}
 
 S1 TECHNICAL VERDICT  : {sent1}
 S1 PROBABILITY        : {prob1}
@@ -537,21 +523,24 @@ RECENT PRICE ACTION (last 30 min, 1-min bars):
 {price_history_str}
 
 ════════════════════════════════════════════════════════════════
-STEP 1 — GROUNDED NEWS SEARCH
+STEP 1 — GROUNDED NEWS SEARCH (INDIAN FINANCIAL MARKETS)
 ════════════════════════════════════════════════════════════════
+Perform highly targeted Google Searches to find localized Indian financial news (specifically targeting NSE/BSE listed entities).
 Search for ALL of the following (use Google Search grounding):
-  • "{company_name} stock news"
-  • "{company_name} NSE results earnings"
+  • "{company_name} NSE stock news today"
+  • "{ticker.replace('.NS', '')} share price target brokerage"
   • "{company_name} block deal bulk deal today"
+  • "{company_name} NSE results earnings dividend buyback corporate action"
+  • "{company_name} SEBI regulatory dispute legal news"
 
 Classify findings into two buckets:
 
 BUCKET A — Structural (P0, last 7 days):
-  Earnings beat/miss, upgrades/downgrades, regulatory action, promotors pledge, dividend, industry shocks.
-  → These OVERRIDE technicals. A rating downgrade for a LONG = mandatory VETO.
+  Earnings beat/miss, target rating upgrades/downgrades, SEBI/regulatory action, promotors pledge/stake changes, dividend/split/merger corporate actions, industry shocks.
+  → These OVERRIDE technicals. A rating downgrade or regulatory ban for a LONG = mandatory VETO.
 
 BUCKET B — Tactical (P1, last 6 hours):
-  Block deals, bulk deals, volume spike explanations, AGM, analysts meet.
+  Block deals, bulk deals, sudden localized volume spike explanations, AGM, analysts meet.
   → These MODIFY conviction but may not VETO unless strong directional conflict.
 
 If NO material news is found in either bucket, explicitly state "No material catalyst found."
@@ -561,27 +550,20 @@ STEP 2 — VETO DECISION MATRIX
 ════════════════════════════════════════════════════════════════
 Apply the following rules IN ORDER (first triggered rule wins):
 
-RULE 1 — HARD VETO (Fundamental Conflict):
-  • LONG + Bucket A shows: earnings miss, rating downgrade, promoter sell, regulatory ban → VETO=TRUE
-  • SHORT + Bucket A shows: earnings beat, rating upgrade, buyback, strong guidance → VETO=TRUE
+RULE 1 — HARD VETO (Fundamental & Corporate Conflict):
+  • LONG + Bucket A shows: earnings miss, rating downgrade, promoter sell/pledge increase, regulatory ban/SEBI fine, tax demand, negative corporate governance issue → VETO=TRUE
+  • SHORT + Bucket A shows: earnings beat, rating upgrade, buyback announcement, promoter buy/pledge reduction, major order win, regulatory clearance → VETO=TRUE
 
 RULE 2 — SOFT VETO (Tactical Conflict):
-  • LONG + Bucket B shows: large block sell, negative headline → consider VETO if S1 conviction < 0.25
-  • SHORT + Bucket B shows: large block buy, positive headline → consider VETO if S1 conviction < 0.25
+  • LONG + Bucket B shows: large block sell, negative headline → consider VETO if ML conviction < 0.25
+  • SHORT + Bucket B shows: large block buy, positive headline → consider VETO if ML conviction < 0.25
 
 RULE 3 — BREAKOUT OVERRIDE (Do NOT veto):
-  • If RVOL > 3.0 AND Bucket A/B shows POSITIVE catalysts AND {side}=LONG:
+  • If RVOL > 3.0 AND Bucket A/B shows strong POSITIVE catalysts AND {side}=LONG:
     Resistance levels are TARGETS in a genuine breakout, not walls. Do NOT veto.
 
-RULE 4 — MAGNET EFFECT (Price Action):
-  • VETO SHORT if price has been grinding within 0.5% of a resistance level for >15 minutes.
-  • VETO LONG if price is sitting on a support level without a bounce for >15 minutes.
-
-RULE 5 — S/R PROXIMITY RISK:
-  • If {nearest_wall_label} is within 0.3% of current price AND no strong catalyst supports pushing through → VETO=TRUE
-
-RULE 6 — NO NEWS = DEFER TO S1:
-  • If no material news found, set veto_decision=FALSE and anchor to S1's probability ({prob1}).
+RULE 4 — NO NEWS = PASS:
+  • If no material news/governance issues are found, set veto_decision=FALSE.
 
 ════════════════════════════════════════════════════════════════
 STEP 3 — FINAL OUTPUT
@@ -592,7 +574,7 @@ Output STRICT JSON only — absolutely no markdown, no extra text, no commentary
   "chain_of_thought": "does the news CONFIRM, CONTRADICT, or is NEUTRAL to the {side} technical signal?",
   "structural_bias": "BULLISH|BEARISH|NEUTRAL",
   "veto_decision": "TRUE|FALSE",
-  "veto_rule_triggered": "RULE 1|RULE 2|RULE 3|RULE 4|RULE 5|RULE 6|NONE",
+  "veto_rule_triggered": "RULE 1|RULE 2|RULE 3|RULE 4|NONE",
   "final_sentiment": "STRONG BULLISH|BULLISH|NEUTRAL|BEARISH|STRONG BEARISH",
   "support_resistance_risk": "HIGH|MEDIUM|LOW",
   "probability": "XX%",
@@ -635,15 +617,6 @@ Output STRICT JSON only — absolutely no markdown, no extra text, no commentary
                 prob2 = data2.get("probability", prob1)
                 risk = data2.get("risk_factor", "N/A")
                 sr_risk = data2.get("support_resistance_risk", "LOW").upper()
-
-                if sr_risk == "HIGH":
-                    veto_triggered = True
-                    veto_rule = "RULE 5 (S/R Proximity)"
-                    risk = f"[S/R RISK: HIGH] {risk}"
-
-                if sent2 == "NEUTRAL" and veto_rule not in ("NONE", "RULE 6", "N/A"):
-                    veto_triggered = True
-                    risk = f"[NEUTRAL — News Conflict] {risk}"
 
                 if veto_triggered:
                     sent2 = "VETOED"
