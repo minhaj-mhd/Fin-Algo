@@ -1,0 +1,312 @@
+{
+    "features": [
+        "Norm_Opening_Gap",
+        "Gap_Fill_Status",
+        "Norm_Morning_Return",
+        "Norm_Morning_Range",
+        "ORB_Position",
+        "Morning_Body_Direction",
+        "Morning_Volume_Ratio",
+        "Volume_Acceleration",
+        "VWAP_Deviation",
+        "Norm_First_Candle_Return",
+        "Norm_First_Candle_Range",
+        "Norm_Post_Open_Trend",
+        "IBS_Morning",
+        "Prev_Day_Return",
+        "Vol_20d",
+        "ADR_20d",
+        "Prev_Day_Volume_Ratio",
+        "Prev_Day_IBS",
+        "Dist_SMA_20",
+        "Relative_Morning_Return"
+    ],
+    "folds": [
+        {
+            "fold": 0,
+            "test_months": [
+                "2022-09",
+                "2022-10"
+            ],
+            "metrics": {
+                "fold": 0,
+                "train_dates": 114,
+                "test_dates": 40,
+                "spearman_residual": 0.016
+            }
+        },
+        {
+            "fold": 1,
+            "test_months": [
+                "2022-11",
+                "2022-12"
+            ],
+            "metrics": {
+                "fold": 1,
+                "train_dates": 124,
+                "test_dates": 43,
+                "spearman_residual": 0.0405
+            }
+        },
+        {
+            "fold": 2,
+            "test_months": [
+                "2023-01",
+                "2023-02"
+            ],
+            "metrics": {
+                "fold": 2,
+                "train_dates": 124,
+                "test_dates": 41,
+                "spearman_residual": 0.0354
+            }
+        },
+        {
+            "fold": 3,
+            "test_months": [
+                "2023-03",
+                "2023-04"
+            ],
+            "metrics": {
+                "fold": 3,
+                "train_dates": 124,
+                "test_dates": 38,
+                "spearman_residual": 0.0271
+            }
+        },
+        {
+            "fold": 4,
+            "test_months": [
+                "2023-05",
+                "2023-06"
+            ],
+            "metrics": {
+                "fold": 4,
+                "train_dates": 124,
+                "test_dates": 43,
+                "spearman_residual": 0.0091
+            }
+        },
+        {
+            "fold": 5,
+            "test_months": [
+                "2023-07",
+                "2023-08"
+            ],
+            "metrics": {
+                "fold": 5,
+                "train_dates": 122,
+                "test_dates": 43,
+                "spearman_residual": 0.0072
+            }
+        },
+        {
+            "fold": 6,
+            "test_months": [
+                "2023-09",
+                "2023-10"
+            ],
+            "metrics": {
+                "fold": 6,
+                "train_dates": 122,
+                "test_dates": 40,
+                "spearman_residual": 0.0628
+            }
+        },
+        {
+            "fold": 7,
+            "test_months": [
+                "2023-11",
+                "2023-12"
+            ],
+            "metrics": {
+                "fold": 7,
+                "train_dates": 124,
+                "test_dates": 40,
+                "spearman_residual": 0.0312
+            }
+        },
+        {
+            "fold": 8,
+            "test_months": [
+                "2024-01",
+                "2024-02"
+            ],
+            "metrics": {
+                "fold": 8,
+                "train_dates": 126,
+                "test_dates": 42,
+                "spearman_residual": 0.0131
+            }
+        },
+        {
+            "fold": 9,
+            "test_months": [
+                "2024-03",
+                "2024-04"
+            ],
+            "metrics": {
+                "fold": 9,
+                "train_dates": 123,
+                "test_dates": 38,
+                "spearman_residual": 0.0046
+            }
+        },
+        {
+            "fold": 10,
+            "test_months": [
+                "2024-05",
+                "2024-06"
+            ],
+            "metrics": {
+                "fold": 10,
+                "train_dates": 122,
+                "test_dates": 40,
+                "spearman_residual": -0.0083
+            }
+        },
+        {
+            "fold": 11,
+            "test_months": [
+                "2024-07",
+                "2024-08"
+            ],
+            "metrics": {
+                "fold": 11,
+                "train_dates": 120,
+                "test_dates": 43,
+                "spearman_residual": 0.0005
+            }
+        },
+        {
+            "fold": 12,
+            "test_months": [
+                "2024-09",
+                "2024-10"
+            ],
+            "metrics": {
+                "fold": 12,
+                "train_dates": 120,
+                "test_dates": 43,
+                "spearman_residual": -0.0203
+            }
+        },
+        {
+            "fold": 13,
+            "test_months": [
+                "2024-11",
+                "2024-12"
+            ],
+            "metrics": {
+                "fold": 13,
+                "train_dates": 121,
+                "test_dates": 39,
+                "spearman_residual": 0.0317
+            }
+        },
+        {
+            "fold": 14,
+            "test_months": [
+                "2025-01",
+                "2025-02"
+            ],
+            "metrics": {
+                "fold": 14,
+                "train_dates": 126,
+                "test_dates": 43,
+                "spearman_residual": 0.0306
+            }
+        },
+        {
+            "fold": 15,
+            "test_months": [
+                "2025-03",
+                "2025-04"
+            ],
+            "metrics": {
+                "fold": 15,
+                "train_dates": 125,
+                "test_dates": 38,
+                "spearman_residual": 0.0383
+            }
+        },
+        {
+            "fold": 16,
+            "test_months": [
+                "2025-05",
+                "2025-06"
+            ],
+            "metrics": {
+                "fold": 16,
+                "train_dates": 125,
+                "test_dates": 42,
+                "spearman_residual": 0.013
+            }
+        },
+        {
+            "fold": 17,
+            "test_months": [
+                "2025-07",
+                "2025-08"
+            ],
+            "metrics": {
+                "fold": 17,
+                "train_dates": 120,
+                "test_dates": 42,
+                "spearman_residual": 0.0268
+            }
+        },
+        {
+            "fold": 18,
+            "test_months": [
+                "2025-09",
+                "2025-10"
+            ],
+            "metrics": {
+                "fold": 18,
+                "train_dates": 123,
+                "test_dates": 42,
+                "spearman_residual": -0.0131
+            }
+        },
+        {
+            "fold": 19,
+            "test_months": [
+                "2025-11",
+                "2025-12"
+            ],
+            "metrics": {
+                "fold": 19,
+                "train_dates": 122,
+                "test_dates": 41,
+                "spearman_residual": 0.0218
+            }
+        },
+        {
+            "fold": 20,
+            "test_months": [
+                "2026-01",
+                "2026-02"
+            ],
+            "metrics": {
+                "fold": 20,
+                "train_dates": 126,
+                "test_dates": 40,
+                "spearman_residual": 0.0057
+            }
+        },
+        {
+            "fold": 21,
+            "test_months": [
+                "2026-03",
+                "2026-04"
+            ],
+            "metrics": {
+                "fold": 21,
+                "train_dates": 125,
+                "test_dates": 39,
+                "spearman_residual": 0.0096
+            }
+        }
+    ]
+}

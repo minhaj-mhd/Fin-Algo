@@ -13,6 +13,7 @@ This document tracks the active development topics, current focus, and immediate
 * **System Refinement**: Completed transition from Vanguard V1 static thresholds to V2.3 dynamic ATR-based logic, conviction scoring, and live UI strategy badges.
 * **Codebase and Memory Layer Synchronization**: Successfully untracked cache directories to resolve repository bloat, aligned documentation files (`Codebase File Directory.md`, `Global System Architecture.md`, `Model Inference Data Structure.md`, etc.) to the new modular architecture, conducted a Gemini Pro audit, stripped dead tracker code from the AI veto logic, and pruned the `scratch/` directory of disposable one-off scripts.
 * **Memory Integration**: Established this Obsidian vault as a shared memory layer for project continuity, updated with the latest 50-strategy backtest outcomes.
+* **10:30 AM Momentum Strategy (V2 & V3)**: Completed implementation and testing of the V3 two-layer XGBoost strategy following the V2 forensic audit. V3 utilized a 4.5-year dataset (~1100 days) and vol-normalized features. Results conclusively confirm the model is noise: Layer A achieved 51.4% OOS accuracy, Layer B achieved 0.017 Spearman rho, and the best backtest threshold yielded flat returns with a -33.4% max drawdown. Standard tabular XGBoost models on intraday OHLCV cannot robustly predict 10:30 momentum returns. The project for Strategy 1030 has been shelved. Details in [[06. Context & Logs/Conversations/Conv-2026-06-03-Strategy-1030-V3|Conversation Log: 10:30 Momentum Strategy V3 Run]].
 
 ## Next Steps
 

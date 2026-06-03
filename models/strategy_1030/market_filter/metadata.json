@@ -1,0 +1,306 @@
+{
+    "features": [
+        "SP500_Overnight_Ret",
+        "Nasdaq_Overnight_Ret",
+        "Nikkei_Overnight_Ret",
+        "HangSeng_Overnight_Ret",
+        "VIX_Level",
+        "VIX_Change",
+        "VIX_Zscore_20d",
+        "Nifty_Gap",
+        "Nifty_Morning_Ret",
+        "Prev_Day_Nifty_Ret"
+    ],
+    "folds": [
+        {
+            "fold": 0,
+            "test_months": [
+                "2022-09",
+                "2022-10"
+            ],
+            "metrics": {
+                "fold": 0,
+                "train_rows": 114,
+                "test_rows": 40,
+                "accuracy": 0.475
+            }
+        },
+        {
+            "fold": 1,
+            "test_months": [
+                "2022-11",
+                "2022-12"
+            ],
+            "metrics": {
+                "fold": 1,
+                "train_rows": 124,
+                "test_rows": 43,
+                "accuracy": 0.5581
+            }
+        },
+        {
+            "fold": 2,
+            "test_months": [
+                "2023-01",
+                "2023-02"
+            ],
+            "metrics": {
+                "fold": 2,
+                "train_rows": 124,
+                "test_rows": 41,
+                "accuracy": 0.5854
+            }
+        },
+        {
+            "fold": 3,
+            "test_months": [
+                "2023-03",
+                "2023-04"
+            ],
+            "metrics": {
+                "fold": 3,
+                "train_rows": 124,
+                "test_rows": 38,
+                "accuracy": 0.6316
+            }
+        },
+        {
+            "fold": 4,
+            "test_months": [
+                "2023-05",
+                "2023-06"
+            ],
+            "metrics": {
+                "fold": 4,
+                "train_rows": 124,
+                "test_rows": 43,
+                "accuracy": 0.4884
+            }
+        },
+        {
+            "fold": 5,
+            "test_months": [
+                "2023-07",
+                "2023-08"
+            ],
+            "metrics": {
+                "fold": 5,
+                "train_rows": 122,
+                "test_rows": 43,
+                "accuracy": 0.5581
+            }
+        },
+        {
+            "fold": 6,
+            "test_months": [
+                "2023-09",
+                "2023-10"
+            ],
+            "metrics": {
+                "fold": 6,
+                "train_rows": 122,
+                "test_rows": 40,
+                "accuracy": 0.475
+            }
+        },
+        {
+            "fold": 7,
+            "test_months": [
+                "2023-11",
+                "2023-12"
+            ],
+            "metrics": {
+                "fold": 7,
+                "train_rows": 124,
+                "test_rows": 40,
+                "accuracy": 0.45
+            }
+        },
+        {
+            "fold": 8,
+            "test_months": [
+                "2024-01",
+                "2024-02"
+            ],
+            "metrics": {
+                "fold": 8,
+                "train_rows": 126,
+                "test_rows": 42,
+                "accuracy": 0.619
+            }
+        },
+        {
+            "fold": 9,
+            "test_months": [
+                "2024-03",
+                "2024-04"
+            ],
+            "metrics": {
+                "fold": 9,
+                "train_rows": 123,
+                "test_rows": 38,
+                "accuracy": 0.6316
+            }
+        },
+        {
+            "fold": 10,
+            "test_months": [
+                "2024-05",
+                "2024-06"
+            ],
+            "metrics": {
+                "fold": 10,
+                "train_rows": 122,
+                "test_rows": 40,
+                "accuracy": 0.525
+            }
+        },
+        {
+            "fold": 11,
+            "test_months": [
+                "2024-07",
+                "2024-08"
+            ],
+            "metrics": {
+                "fold": 11,
+                "train_rows": 120,
+                "test_rows": 43,
+                "accuracy": 0.5349
+            }
+        },
+        {
+            "fold": 12,
+            "test_months": [
+                "2024-09",
+                "2024-10"
+            ],
+            "metrics": {
+                "fold": 12,
+                "train_rows": 120,
+                "test_rows": 43,
+                "accuracy": 0.4419
+            }
+        },
+        {
+            "fold": 13,
+            "test_months": [
+                "2024-11",
+                "2024-12"
+            ],
+            "metrics": {
+                "fold": 13,
+                "train_rows": 121,
+                "test_rows": 39,
+                "accuracy": 0.4615
+            }
+        },
+        {
+            "fold": 14,
+            "test_months": [
+                "2025-01",
+                "2025-02"
+            ],
+            "metrics": {
+                "fold": 14,
+                "train_rows": 126,
+                "test_rows": 43,
+                "accuracy": 0.4186
+            }
+        },
+        {
+            "fold": 15,
+            "test_months": [
+                "2025-03",
+                "2025-04"
+            ],
+            "metrics": {
+                "fold": 15,
+                "train_rows": 125,
+                "test_rows": 38,
+                "accuracy": 0.5263
+            }
+        },
+        {
+            "fold": 16,
+            "test_months": [
+                "2025-05",
+                "2025-06"
+            ],
+            "metrics": {
+                "fold": 16,
+                "train_rows": 125,
+                "test_rows": 42,
+                "accuracy": 0.4048
+            }
+        },
+        {
+            "fold": 17,
+            "test_months": [
+                "2025-07",
+                "2025-08"
+            ],
+            "metrics": {
+                "fold": 17,
+                "train_rows": 120,
+                "test_rows": 42,
+                "accuracy": 0.5476
+            }
+        },
+        {
+            "fold": 18,
+            "test_months": [
+                "2025-09",
+                "2025-10"
+            ],
+            "metrics": {
+                "fold": 18,
+                "train_rows": 123,
+                "test_rows": 42,
+                "accuracy": 0.381
+            }
+        },
+        {
+            "fold": 19,
+            "test_months": [
+                "2025-11",
+                "2025-12"
+            ],
+            "metrics": {
+                "fold": 19,
+                "train_rows": 122,
+                "test_rows": 41,
+                "accuracy": 0.6585
+            }
+        },
+        {
+            "fold": 20,
+            "test_months": [
+                "2026-01",
+                "2026-02"
+            ],
+            "metrics": {
+                "fold": 20,
+                "train_rows": 126,
+                "test_rows": 40,
+                "accuracy": 0.575
+            }
+        },
+        {
+            "fold": 21,
+            "test_months": [
+                "2026-03",
+                "2026-04"
+            ],
+            "metrics": {
+                "fold": 21,
+                "train_rows": 125,
+                "test_rows": 39,
+                "accuracy": 0.3846
+            }
+        }
+    ],
+    "aggregate_oos": {
+        "accuracy": 0.5144,
+        "n_predictions": 900
+    }
+}

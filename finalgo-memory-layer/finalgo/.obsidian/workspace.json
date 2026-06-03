@@ -41,12 +41,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "06. Context & Logs/Current Context.md",
+                "file": "06. Context & Logs/Conversations/Conv-2026-06-03-Transformer-Research.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Current Context"
+              "title": "Conv-2026-06-03-Transformer-Research"
             }
           }
         ],
@@ -214,13 +214,21 @@
   },
   "active": "08024666b22b56ac",
   "lastOpenFiles": [
+    "06. Context & Logs/Conversations/Conv-2026-06-03-Strategy-1030-V2-Audit.md",
+    "research_1030_strategy/implementation_plan.md",
+    "06. Context & Logs/Conversations/Conv-2026-06-03-Codebase-Architecture-Alignment.md",
+    "research_1030_strategy/architecture_research_report.md",
+    "research_1030_strategy/feature_engineering_report.md",
+    "07. Cluster Research/FINAL_CONCLUSION.md",
+    "06. Context & Logs/Current Context.md",
+    "06. Context & Logs/Conversations/Conv-2026-06-03-Transformer-Research.md",
+    "06. Context & Logs/Conversations/Conv-2026-06-03-Vanguard-Engine-Optimization.md",
     "06. Context & Logs/Conversations/Conv-2026-06-03-Test-Suite.md",
     "06. Context & Logs/Conversations/Conv-2026-06-03-Root-Folder-Cleanup.md",
     "06. Context & Logs/Conversations/Conv-2026-06-03-Docs-and-Dependencies.md",
     "01. Core Architecture/Global System Architecture.md",
     "06. Context & Logs/Conversations/Conv-2026-06-03-Memory-Layer-Sync.md",
     "06. Context & Logs/Daily Logs/2026-06-01.md",
-    "06. Context & Logs/Conversations/Conv-2026-06-03-Codebase-Architecture-Alignment.md",
     "06. Context & Logs/Daily Logs/2026-06-03.md",
     "05. Archives/legacy_archive/scripts/check_tickers_in_data.py",
     "05. Archives/legacy_archive/scripts/generate_guide.py",
@@ -228,7 +236,6 @@
     "06. Context & Logs/Conversations/Conv-2026-06-03-Scripts-Restructuring.md",
     "06. Context & Logs/Conversations/Conv-2026-06-03-Session-Initialization.md",
     "07. Cluster Research/Deep_Dive_High_Return_Clusters.md",
-    "07. Cluster Research/FINAL_CONCLUSION.md",
     "07. Cluster Research/Walk_Forward_Validation_Report.md",
     "07. Cluster Research/Feature_Set_Analysis.md",
     "07. Cluster Research/Out_of_Sample_Validation_Report.md",
@@ -236,14 +243,7 @@
     "07. Cluster Research/Master_Veto_Override_Table.md",
     "07. Cluster Research/Feature_Definitions.md",
     "tasks.md",
-    "07. Cluster Research/Unsupervised_Vetoed_Trades_Analysis.md",
-    "07. Cluster Research/Failed-Unanimous-Multi-TF-Strategy.md",
     "07. Cluster Research",
-    "05. Archives/Deep_Dive_High_Return_Clusters.md",
-    "05. Archives/Unsupervised_Vetoed_Trades_Analysis.md",
-    "05. Archives/Failed-Unanimous-Multi-TF-Strategy.md",
-    "03. Trading Strategies/MTF_Limit_Order_Architecture.md",
-    "01. Core Architecture/Vanguard System Features.md",
     "05. Archives/legacy_archive/scripts/test_quick.py",
     "05. Archives/legacy_archive/scripts/train_daily_transformer.py",
     "05. Archives/legacy_archive/scripts/train_daily_xgboost.py",
