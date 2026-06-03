@@ -15,18 +15,18 @@ The Vanguard system consists of a structured suite of Python scripts, backtester
 
 ## 📈 2. Backtesters & Strategy Simulators
 *   **[`scripts/strategy_filters.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/strategy_filters.py)**: Encapsulates structural rule filters for Strategy 1 through 50 (e.g. ORB volatility bands, stochastic zones, moving average cross-confluences).
-*   **[`scripts/strategy_10x_backtest.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/strategy_10x_backtest.py)**: Backtests the 10 core strategies (e.g., Strategy 8 ORB, Strategy 10 Quad-TF) across historical NSE data with strict 0.06% round-trip friction.
-*   **[`scripts/strategy_25x_backtest.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/strategy_25x_backtest.py)**: Advanced simulator covering 25 refined mean-reversion and trend strategies.
-*   **[`scripts/strategy_35x_backtest.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/strategy_35x_backtest.py)**: Deep simulator exploring 35 complex timeframe confluence setups.
-*   **[`scripts/backtest_multi_tf_v2.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/backtest_multi_tf_v2.py)**: Multi-timeframe execution backtest sweep supporting trailing stops and profit margins.
+*   **[`scripts/backtests/strategy_10x_backtest.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/backtests/strategy_10x_backtest.py)**: Backtests the 10 core strategies (e.g., Strategy 8 ORB, Strategy 10 Quad-TF) across historical NSE data with strict 0.06% round-trip friction.
+*   **[`scripts/backtests/strategy_25x_backtest.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/backtests/strategy_25x_backtest.py)**: Advanced simulator covering 25 refined mean-reversion and trend strategies.
+*   **[`scripts/backtests/strategy_35x_backtest.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/backtests/strategy_35x_backtest.py)**: Deep simulator exploring 35 complex timeframe confluence setups.
+*   **[`scripts/backtests/backtest_multi_tf_v2.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/backtests/backtest_multi_tf_v2.py)**: Multi-timeframe execution backtest sweep supporting trailing stops and profit margins.
 
 ---
 
 ## ⚙️ 3. Training & Data Collection Pipelines
 *   **[`scripts/feature_utils.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/feature_utils.py)**: The central numeric indicator calculator. Computes SMA, EMA, WMA, HMA, RSI, ROC, CCI, Stochastic, Bollinger Bands, OBV, CMF, and custom daily/15M/30M feature sets. Includes microstructural calculation modules (IBS, Buy Pressure).
-*   **[`scripts/train_ranking.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/train_ranking.py)**: Core trainer for standard XGBoost relative ranking models.
-*   **[`scripts/collect_upstox_3y.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/collect_upstox_3y.py)**: Data gatherer connecting to Upstox API to cache 3 years of 1-Hour candles for training.
-*   **[`scripts/collect_upstox_daily_5y.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/collect_upstox_daily_5y.py)**: Data collector for 5 years of daily NSE stock histories.
+*   **[`scripts/training/train_ranking.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/training/train_ranking.py)**: Core trainer for standard XGBoost relative ranking models.
+*   **[`scripts/collectors/collect_upstox_3y.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/collectors/collect_upstox_3y.py)**: Data gatherer connecting to Upstox API to cache 3 years of 1-Hour candles for training.
+*   **[`scripts/collectors/collect_upstox_daily_5y.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/collectors/collect_upstox_daily_5y.py)**: Data collector for 5 years of daily NSE stock histories.
 
 ---
 

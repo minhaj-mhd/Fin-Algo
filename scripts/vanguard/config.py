@@ -37,7 +37,7 @@ GEMINI_ENABLED_DEFAULT = True
 GEMINI_STATE_FILE = "data/gemini_usage.json"
 MAX_GEMINI_KEYS = 3
 GEMINI_MAX_REQUESTS_PER_DAY = 20
-GEMINI_MODEL_TIERS = ["gemini-3.5-flash", "gemini-3.1-flash-lite"]
+GEMINI_MODEL_TIERS = ["gemini-3.5-flash", "gemini-2.5-flash"]
 
 # --- Features & Filters thresholds ---
 MIN_CONVICTION = 0.10

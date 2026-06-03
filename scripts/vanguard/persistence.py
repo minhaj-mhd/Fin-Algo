@@ -30,15 +30,23 @@ def save_latest_scores(scores_df, long_eligible, short_eligible):
     if scores_df.empty:
         return
         
+    # Safely ensure all multi-tf scores exist in the dataframe
+    for col in ["score_15m", "score_30m", "score_1d"]:
+        if col not in scores_df.columns:
+            scores_df[col] = 0.0
+
     dashboard_cols = [
         "ticker", "Close", "long_score", "short_score", "Long_Conviction",
         "Short_Conviction", "Long_Rank", "Short_Rank", "dv_raw", "rvol_raw",
-        "dist_52h_model", "dist_52h_actual", "daily_long_eligible", "daily_short_eligible"
+        "dist_52h_model", "dist_52h_actual", "daily_long_eligible", "daily_short_eligible",
+        "score_15m", "score_30m", "score_1d"
     ]
     
     # Safely compute flag mappings
-    scores_df["daily_long_eligible"] = scores_df["ticker"].apply(lambda x: x in long_eligible)
-    scores_df["daily_short_eligible"] = scores_df["ticker"].apply(lambda x: x in short_eligible)
+    scores_df = scores_df.assign(
+        daily_long_eligible=scores_df["ticker"].apply(lambda x: x in long_eligible),
+        daily_short_eligible=scores_df["ticker"].apply(lambda x: x in short_eligible)
+    )
     
     latest_data = (
         scores_df[dashboard_cols]

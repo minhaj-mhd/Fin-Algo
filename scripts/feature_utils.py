@@ -366,7 +366,7 @@ def compute_features(df, legacy=True):
                 if col not in df.columns:
                     df[col] = 0.0
 
-    return df
+    return df.copy()
 
 def compute_features_15min(df, legacy=False):
     """Given a dataframe with columns Open/High/Low/Close/Volume indexed by datetime,
@@ -407,7 +407,7 @@ def compute_features_15min(df, legacy=False):
     # RVOL_4: Relative volume over 4 periods
     df['RVOL_4'] = df['Volume'] / (df['Volume'].rolling(4).mean() + 1e-8)
     
-    return df
+    return df.copy()
 
 def compute_features_30min(df, legacy=False):
     """Given a dataframe with columns Open/High/Low/Close/Volume indexed by datetime,
@@ -448,7 +448,7 @@ def compute_features_30min(df, legacy=False):
     # RVOL_4: Relative volume over 2 periods (2 * 30min = 1 hour)
     df['RVOL_4'] = df['Volume'] / (df['Volume'].rolling(2).mean() + 1e-8)
     
-    return df
+    return df.copy()
 
 
 def compute_features_daily_xgb(df):
@@ -555,6 +555,8 @@ def compute_features_daily_xgb(df):
     df['IBS_3'] = df['IBS'].rolling(3).mean().fillna(0.5)
     df['IBS_5'] = df['IBS'].rolling(5).mean().fillna(0.5)
 
+    df = df.copy()
+
     # ═══════════════════════════════════════════════════════════════════════════
     # SECTION 5: VOLATILITY REGIME FEATURES
     # ═══════════════════════════════════════════════════════════════════════════
@@ -628,6 +630,8 @@ def compute_features_daily_xgb(df):
     df['Gap_Fill_Pct'] = pd.Series(df['Gap_Fill_Pct'], index=df.index).clip(-5, 5).fillna(0)
     df['Avg_Gap_5D'] = df['Overnight_Gap'].rolling(5).mean()
 
+    df = df.copy()
+
     # ═══════════════════════════════════════════════════════════════════════════
     # SECTION 9: MOMENTUM STREAKS & CONSISTENCY
     # ═══════════════════════════════════════════════════════════════════════════
@@ -675,6 +679,8 @@ def compute_features_daily_xgb(df):
         df[f'RSI_lag{lag}']           = df['RSI_14'].shift(lag)
         df[f'Volume_Zscore_lag{lag}'] = df['Volume_Zscore'].shift(lag)
         df[f'OC_Range_lag{lag}']      = df['OC_Range'].shift(lag)
+
+    df = df.copy()
 
     # ═══════════════════════════════════════════════════════════════════════════
     # SECTION 13: 52-WEEK CONTEXT
@@ -739,10 +745,10 @@ def compute_features_daily_xgb(df):
     # Momentum reversal potential: strong recent move + RSI extreme
     df['Return5_x_RSI_Extreme'] = df['Return_5D'] * (df['RSI_14'] - 50).abs()
 
+    df = df.copy()
+
     # ═══════════════════════════════════════════════════════════════════════════
     # SECTION 17: XGBOOST-SPECIFIC BINARY ZONE SIGNALS
-    # Trees naturally split at thresholds — binary features encode
-    # well-known zones that trading wisdom recognizes.
     # ═══════════════════════════════════════════════════════════════════════════
 
     # RSI zones
@@ -771,7 +777,7 @@ def compute_features_daily_xgb(df):
     df['Gap_Up']   = (df['Overnight_Gap'] > 0.005).astype(float)
     df['Gap_Down'] = (df['Overnight_Gap'] < -0.005).astype(float)
 
-    return df
+    return df.copy()
 
 
 def compute_features_daily_transformer(df):
@@ -864,6 +870,8 @@ def compute_features_daily_transformer(df):
     # IBS — powerful daily mean-reversion signal, continuous [0,1]
     df['IBS'] = (df['Close'] - df['Low']) / (df['High'] - df['Low'] + 1e-8)
 
+    df = df.copy()
+
     # ═══════════════════════════════════════════════════════════════════════════
     # SECTION 5: VOLATILITY REGIME (smooth, continuous)
     # ═══════════════════════════════════════════════════════════════════════════
@@ -911,6 +919,8 @@ def compute_features_daily_transformer(df):
     # ═══════════════════════════════════════════════════════════════════════════
     df['Overnight_Gap'] = (df['Open'] - df['Close'].shift(1)) / (df['Close'].shift(1) + 1e-8)
 
+    df = df.copy()
+
     # ═══════════════════════════════════════════════════════════════════════════
     # SECTION 9: DIRECTION CONSISTENCY (continuous [-1, 1])
     # ═══════════════════════════════════════════════════════════════════════════
@@ -957,7 +967,7 @@ def compute_features_daily_transformer(df):
     # NOTE: No binary/categorical features — transformers need smooth gradients.
     # NOTE: No interaction features — multi-head attention discovers these natively.
 
-    return df
+    return df.copy()
 
 
 def compute_features_daily_transformer_v2(df):
@@ -1049,6 +1059,6 @@ def compute_features_daily_transformer_v2(df):
 
     # Drop intermediate columns that could leak raw price/scale info
     # The return dataframe has exactly 32 features, all stationary.
-    return df
+    return df.copy()
 
 

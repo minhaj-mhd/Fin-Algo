@@ -95,8 +95,6 @@ class GeminiRateTracker:
 class AIVetoManager:
     def __init__(self, min_conviction=config.MIN_CONVICTION):
         self.gemini_enabled = config.GEMINI_ENABLED_DEFAULT
-        self.api_keys = []
-        self.clients = []
         self.min_conviction = min_conviction
 
         # Rotation State
@@ -106,20 +104,15 @@ class AIVetoManager:
 
         self.sentiment_cache = {}
 
-        try:
-            keys_env = os.getenv("GEMINI_API_KEYS") or os.getenv("GEMINI_API_KEY")
-            if keys_env:
-                self.api_keys = [k.strip() for k in keys_env.split(",") if k.strip()]
+        from scripts.gemini_client_manager import GeminiRotator
+        self.rotator = GeminiRotator()
+        self.api_keys = self.rotator.main_keys
 
-            if self.api_keys:
-                self.clients = [genai.Client(api_key=k) for k in self.api_keys]
-                log(f"[OK] Gemini AI Veto Manager: ACTIVE ({len(self.api_keys)} Keys Loaded)")
-            else:
-                self.gemini_enabled = False
-                log("[WARN] Gemini API Keys not found. AI Audit Layer: DISABLED.")
-        except Exception as e:
+        if self.rotator.main_keys or self.rotator.backup_key:
+            log(f"[OK] Gemini AI Veto Manager: ACTIVE ({len(self.rotator.main_keys)} Main Keys, Backup Key: {'Configured' if self.rotator.backup_key else 'None'})")
+        else:
             self.gemini_enabled = False
-            log(f"[ERROR] Gemini Config Error: {e}")
+            log("[WARN] Gemini API Keys not found. AI Audit Layer: DISABLED.")
 
         self.gemini_tracker = GeminiRateTracker(max_keys=len(self.api_keys) if self.api_keys else 1)
 
@@ -418,49 +411,28 @@ Output STRICT JSON only — no markdown, no extra text:
         sent1, reason1, prob1 = "PASS", "N/A", "N/A"
         stage1_success = False
 
-        total_combinations = len(self.s1_model_tiers) * len(self.api_keys)
-        attempts = 0
-        
-        while attempts < total_combinations:
-            current_model = self.s1_model_tiers[self.s1_active_tier_idx]
-            current_key = self.s1_active_key_idx
-            
+        for current_model in self.s1_model_tiers:
             try:
-                layer1_client = self.clients[current_key]
-                log(f"[S1] Attempting {current_model} (Key {current_key}) for {ticker}...")
-                resp1 = layer1_client.models.generate_content(
-                    model=current_model, contents=prompt_flash,
-                    config=types.GenerateContentConfig(
-                        temperature=0.1
+                log(f"[S1] Attempting {current_model} via rotator for {ticker}...")
+                def run_s1(client):
+                    return client.models.generate_content(
+                        model=current_model, contents=prompt_flash,
+                        config=types.GenerateContentConfig(
+                            temperature=0.1
+                        )
                     )
-                )
+                resp1 = self.rotator.execute(run_s1)
                 data1 = self.parse_gemini_json(resp1.text)
                 veto_s1 = str(data1.get("veto", "FALSE")).upper() == "TRUE"
                 sent1 = "VETOED" if veto_s1 else "PASS"
                 reason1 = data1.get("reason", "N/A")
                 prob1 = "N/A"
                 stage1_success = True
-                log(f"[S1-OK] {current_model} (Key {current_key}) succeeded for {ticker}.")
+                log(f"[S1-OK] {current_model} succeeded for {ticker}.")
                 break
-                
             except Exception as e:
-                err_str = str(e)
-                if "429" in err_str or "503" in err_str or "quota" in err_str.lower():
-                    log(f"[S1-ROTATE] {current_model} Key {current_key} exhausted ({err_str[:80]}). Rotating...")
-                    self.s1_active_key_idx += 1
-                    if self.s1_active_key_idx >= len(self.api_keys):
-                        self.s1_active_key_idx = 0
-                        self.s1_active_tier_idx += 1
-                        if self.s1_active_tier_idx >= len(self.s1_model_tiers):
-                            self.s1_active_tier_idx = 0
-                        log(f"[S1-FALLBACK] All keys exhausted. Rotating to {self.s1_model_tiers[self.s1_active_tier_idx]}...")
-                    attempts += 1
-                    time.sleep(1)
-                    continue
-                else:
-                    log(f"[WARN] Stage 1 non-quota error ({current_model}, Key {current_key}) for {ticker}: {e}")
-                    time.sleep(2)
-                    break
+                log(f"[S1-WARN] Stage 1 call failed on model {current_model}: {e}")
+                time.sleep(1)
                     
         if not stage1_success:
             log(f"[S1-FAILED] Both model tiers failed for {ticker}. Skipping trade.")
@@ -582,31 +554,28 @@ Output STRICT JSON only — absolutely no markdown, no extra text, no commentary
 }}
 """
 
-        stage2_retries = 2
-        for _ in range(stage2_retries):
-            model_name, key_idx = self.gemini_tracker.get_next_available(len(self.api_keys))
-            if model_name is None:
-                log(f"[L2-FAILED] Stage 2 limits exhausted for {ticker}. Skipping.")
-                return "SYSTEM_ERROR", "[L2-FAILED] Layer 2 audit skipped: API limits exhausted.", "N/A"
-
+        stage2_success = False
+        sent2, final_reason, prob2 = "SYSTEM_ERROR", "[L2-FAILED] Layer 2 search audit failed.", "N/A"
+        
+        for model_name in self.s1_model_tiers:
             try:
-                stage2_client = self.clients[key_idx]
-                resp2 = stage2_client.models.generate_content(
-                    model=model_name,
-                    contents=prompt_search,
-                    config=types.GenerateContentConfig(
-                        tools=[{"google_search": {}}], 
-                        temperature=0.1
+                log(f"[S2] Attempting {model_name} via rotator for {ticker}...")
+                def run_s2(client):
+                    return client.models.generate_content(
+                        model=model_name,
+                        contents=prompt_search,
+                        config=types.GenerateContentConfig(
+                            tools=[{"google_search": {}}], 
+                            temperature=0.1
+                        )
                     )
-                )
+                resp2 = self.rotator.execute(run_s2)
                 resp2_text = self._extract_response_text(resp2)
                 data2 = self.parse_gemini_json(resp2_text)
 
                 if not data2 or not any(k in data2 for k in ("veto_decision", "final_sentiment", "chain_of_thought")):
-                    log(f"[L2-EMPTY] Stage 2 returned empty/unparseable JSON for {ticker} (using {model_name}). Skipping.")
-                    return "SYSTEM_ERROR", "[L2-EMPTY] Layer 2 returned no usable data.", "N/A"
-
-                self.gemini_tracker.increment_usage(model_name, key_idx)
+                    log(f"[L2-EMPTY] Stage 2 returned empty/unparseable JSON for {ticker} (using {model_name}).")
+                    continue
 
                 news_found = data2.get("news_found", "N/A")
                 cot = data2.get("chain_of_thought", "N/A")
@@ -627,17 +596,12 @@ Output STRICT JSON only — absolutely no markdown, no extra text, no commentary
                     log(f"[STAGE 2 PASS] {ticker} {side} cleared by {model_name} [{veto_rule}]: {cot}")
 
                 self.sentiment_cache[cache_key] = (sent2, final_reason, time.time(), prob2)
+                stage2_success = True
                 return sent2, final_reason, prob2
 
             except Exception as e_search:
-                err_str = str(e_search)
-                if "429" in err_str or "503" in err_str or "UNAVAILABLE" in err_str or "quota" in err_str.lower():
-                    log(f"[RETRY] Stage 2 Rate Limited ({model_name}, Key {key_idx}). Retrying...")
-                    self.gemini_tracker.mark_exhausted(model_name, key_idx)
-                    time.sleep(1)
-                    continue
-                else:
-                    log(f"[WARN] Stage 2 Search Error for {ticker}: {e_search}")
-                    break
+                log(f"[S2-WARN] Stage 2 call failed on model {model_name}: {e_search}")
+                time.sleep(1)
 
-        return "SYSTEM_ERROR", "[L2-FAILED] Layer 2 search audit failed (API error/timeout).", "N/A"
+        if not stage2_success:
+            return "SYSTEM_ERROR", "[L2-FAILED] Layer 2 search audit failed (API error/timeout).", "N/A"

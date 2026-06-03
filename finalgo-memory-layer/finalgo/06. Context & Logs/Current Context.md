@@ -5,6 +5,7 @@ This document tracks the active development topics, current focus, and immediate
 ## Active Focus
 
 * **Vanguard Engine Modular Refactoring**: Successfully completed the **[[06. Context & Logs/Vanguard Engine Refactor Roadmap|Vanguard Engine Refactor Roadmap]]**, breaking down the 3,300+ line monolith into a clean, 9-module cohesive package under `scripts/vanguard/`. All imports, schedule scans, WebSocket integrations, and trade state machines are successfully isolated, and backward-compatible execution is verified.
+* **Scripts Directory Restructuring**: Successfully organized and grouped 70+ scripts inside `scripts/` into modular subdirectories (`backtests/`, `training/`, `research/`, `collectors/`), keeping the `scripts/` root clean and aligned. Updated import references and verified zero system compilation or execution issues.
 * **Codebase Streamlining & Phase 1/2 Cleanup**: Executed Phase 1 and 2 of the Codebase Cleanup Strategy. Successfully isolated 35 stale Python and Markdown files to `legacy_archive/`, updated the shared codebase index directory, and verified system compilation and dashboard snapshot APIs run with zero PyTorch or deprecated file dependencies.
 * **Daily Gatekeeper Fix & PyTorch Cleanup**: Successfully pruned all retired daily temporal transformer PyTorch code from `vanguard_signal_engine.py`. Aligned the daily macro scan to the correct 165-feature `daily_xgb` schema, resolving a critical feature-mismatch bug and restoring true gatekeeper filters in live production.
 * **Regime-Aware Routing**: Completed implementation and execution of `strategy_50_regime_backtest.py` across all 50 strategies, evaluating both gated and ungated passes for May 2026. Restored strategy-specific high-precision exits for top performers.
@@ -25,5 +26,5 @@ This document tracks the active development topics, current focus, and immediate
 
 Linked to: [[Welcome|Main Navigation Index]]
 
-Concluded Session: [[06. Context & Logs/Conversations/Conv-2026-06-01-Vanguard-Size-Check|Conversation Log: Vanguard Size Check]]
+Concluded Session: [[06. Context & Logs/Conversations/Conv-2026-06-03-Scripts-Restructuring|Conversation Log: Scripts Restructuring]]
 

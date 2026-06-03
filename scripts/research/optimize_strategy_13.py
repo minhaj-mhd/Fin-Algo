@@ -15,7 +15,7 @@ from datetime import datetime
 sys.path.append(os.getcwd())
 
 # Import helpers from the main backtester to ensure feature calculation consistency
-from scripts.strategy_25x_backtest import (
+from scripts.backtests.strategy_25x_backtest import (
     load_and_filter_csv,
     predict_timeframe_scores,
     align_timeframes,

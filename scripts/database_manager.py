@@ -45,7 +45,11 @@ def init_db():
             buy_brokerage REAL,
             long_score REAL,
             short_score REAL,
-            strategy_id INTEGER
+            score_15m REAL,
+            score_30m REAL,
+            score_1d REAL,
+            strategy_id INTEGER,
+            is_ensemble INTEGER
         )
     ''')
     
@@ -86,7 +90,11 @@ def init_db():
         ('breakeven_locked', 'INTEGER'),
         ('long_score', 'REAL'),
         ('short_score', 'REAL'),
+        ('score_15m', 'REAL'),
+        ('score_30m', 'REAL'),
+        ('score_1d', 'REAL'),
         ('strategy_id', 'INTEGER'),
+        ('is_ensemble', 'INTEGER'),
     ]:
         try:
             cursor.execute(f'ALTER TABLE trades ADD COLUMN {col} {col_type}')
@@ -111,8 +119,8 @@ def log_trade(trade_data):
             quantity, net_pnl_amt, margin_used, tv_sentiment,
             pending_since, extension_count, extended_exit_time, extension_pending,
             stop_loss_pct, take_profit_pct, trailing_active, breakeven_locked, buy_brokerage,
-            long_score, short_score, strategy_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            long_score, short_score, score_15m, score_30m, score_1d, strategy_id, is_ensemble
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         trade_data.get('trade_id'),
         trade_data.get('timestamp'),
@@ -144,7 +152,11 @@ def log_trade(trade_data):
         trade_data.get('buy_brokerage'),
         trade_data.get('long_score'),
         trade_data.get('short_score'),
-        trade_data.get('strategy_id')
+        trade_data.get('score_15m'),
+        trade_data.get('score_30m'),
+        trade_data.get('score_1d'),
+        trade_data.get('strategy_id'),
+        1 if trade_data.get('is_ensemble') else 0
     ))
     
     conn.commit()
@@ -478,7 +490,7 @@ def get_portfolio_summary():
     cursor.execute('''
         SELECT ticker, side, quantity, entry_price, exit_price,
                final_profit_pct, net_pnl_amt, status, timestamp, comment, one_hour_prob,
-               tech_score, long_score, short_score, strategy_id
+               tech_score, long_score, short_score, strategy_id, is_ensemble
         FROM trades
         WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT")
           AND trade_id LIKE "T-%"
@@ -530,7 +542,7 @@ def get_strategy_performance():
     
     # Also fetch recent strategy trades
     cursor.execute('''
-        SELECT ticker, side, entry_price, exit_price, final_profit_pct, status, timestamp, strategy_id, comment
+        SELECT ticker, side, entry_price, exit_price, final_profit_pct, status, timestamp, strategy_id, is_ensemble, comment
         FROM trades
         WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT") AND timestamp >= ? AND strategy_id IS NOT NULL
         ORDER BY timestamp DESC

@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 sys.path.append(os.getcwd())
 
-from scripts.strategy_25x_backtest import (
+from scripts.backtests.strategy_25x_backtest import (
     load_and_filter_csv,
     predict_timeframe_scores,
     align_timeframes,

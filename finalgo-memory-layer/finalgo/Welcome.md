@@ -76,7 +76,7 @@ This index is designed to link every major component of the system together, ena
     ```
 * **To run the 10x strategies backtester:**
     ```bash
-    python scripts/strategy_10x_backtest.py
+    python scripts/backtests/strategy_10x_backtest.py
     ```
 
 This memory layer is automatically maintained and expanded as the Vanguard project evolves. Use it to check structural designs, research hyperparameters, or verify execution rules before making changes.
