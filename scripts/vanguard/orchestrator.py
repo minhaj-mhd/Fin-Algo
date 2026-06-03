@@ -572,24 +572,31 @@ class VanguardOrchestrator:
             print(f"[WARN] Batch daily fetch failed: {e}")
 
         all_dfs = {}
+        def _fetch_hist_data(ticker):
+            try:
+                from scripts.upstox_broker import UpstoxSandboxBroker
+                temp_broker = UpstoxSandboxBroker()
+                hist_df = temp_broker.get_historical_data(ticker, interval="60minute", days=60, fallback=False)
+                if hist_df is not None and not hist_df.empty:
+                    hist_df = hist_df.rename(columns={
+                        "open": "Open", "high": "High", "low": "Low", 
+                        "close": "Close", "volume": "Volume"
+                    })
+                    if "timestamp" in hist_df.columns:
+                        hist_df.set_index("timestamp", inplace=True)
+                    return ticker, hist_df
+            except Exception:
+                pass
+            return ticker, None
+
+        import concurrent.futures
         try:
-            for i, ticker in enumerate(tickers):
-                try:
-                    from scripts.upstox_broker import UpstoxSandboxBroker
-                    temp_broker = UpstoxSandboxBroker()
-                    hist_df = temp_broker.get_historical_data(ticker, interval="60minute", days=60, fallback=False)
-                    if hist_df is not None and not hist_df.empty:
-                        hist_df = hist_df.rename(columns={
-                            "open": "Open", "high": "High", "low": "Low", 
-                            "close": "Close", "volume": "Volume"
-                        })
-                        if "timestamp" in hist_df.columns:
-                            hist_df.set_index("timestamp", inplace=True)
-                        all_dfs[ticker] = hist_df
-                except Exception:
-                    pass
-                if i % 5 == 0:
-                    time.sleep(0.1)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
+                future_to_ticker = {executor.submit(_fetch_hist_data, ticker): ticker for ticker in tickers}
+                for future in concurrent.futures.as_completed(future_to_ticker):
+                    ticker, df = future.result()
+                    if df is not None:
+                        all_dfs[ticker] = df
         except Exception as e:
             print(f"[WARN] Upstox Scan Loop Error: {e}")
 
@@ -618,48 +625,43 @@ class VanguardOrchestrator:
 
         from scripts.feature_utils import compute_features, RSI
 
-        for ticker in tickers:
+        def _compute_features_for_ticker(ticker, df_input, daily_data_input, is_legacy_flag):
             try:
-                if ticker in all_dfs:
-                    df = all_dfs[ticker].ffill().dropna()
-                else:
-                    continue
+                df_curr = df_input.ffill().dropna()
+                if len(df_curr) < 25:
+                    return None
 
-                if len(df) < 25:
-                    continue
+                df_curr = compute_features(df_curr, legacy=is_legacy_flag)
 
-                is_legacy = not any(str(self.model_manager.active_model_name).startswith(p) for p in ["v6", "v7", "v8", "v9"])
-                df = compute_features(df, legacy=is_legacy)
-
-                df['Return_6H'] = df['Close'].pct_change(6).fillna(0)
-                df['Return_1D'] = df['Close'].pct_change(7).fillna(0)
-                price_dir = np.sign(df['Return'])
-                vol_change = df['Volume'].pct_change()
-                df['VP_Divergence'] = (price_dir * vol_change).fillna(0)
-                green_bar = (df['Close'] > df['Open']).astype(float)
-                high_vol = (df['Volume'] > df['Volume'].rolling(20).mean()).astype(float)
-                df['Accumulation_5'] = (green_bar * high_vol).rolling(5).sum().fillna(0)
-                df['Bar_Position'] = ((df['Close'] - df['Low']) / (df['High'] - df['Low'] + 1e-8)).fillna(0)
-                df['Green_Bar_Ratio_5'] = green_bar.rolling(5).mean().fillna(0)
+                df_curr['Return_6H'] = df_curr['Close'].pct_change(6).fillna(0)
+                df_curr['Return_1D'] = df_curr['Close'].pct_change(7).fillna(0)
+                price_dir = np.sign(df_curr['Return'])
+                vol_change = df_curr['Volume'].pct_change()
+                df_curr['VP_Divergence'] = (price_dir * vol_change).fillna(0)
+                green_bar = (df_curr['Close'] > df_curr['Open']).astype(float)
+                high_vol = (df_curr['Volume'] > df_curr['Volume'].rolling(20).mean()).astype(float)
+                df_curr['Accumulation_5'] = (green_bar * high_vol).rolling(5).sum().fillna(0)
+                df_curr['Bar_Position'] = ((df_curr['Close'] - df_curr['Low']) / (df_curr['High'] - df_curr['Low'] + 1e-8)).fillna(0)
+                df_curr['Green_Bar_Ratio_5'] = green_bar.rolling(5).mean().fillna(0)
                 
-                df['RSI_14_Raw'] = df['RSI_14'].copy()
-                df['Stoch_K_Raw'] = df['Stoch_K'].copy()
-                df['PercentB_Raw'] = df['PercentB'].copy()
+                df_curr['RSI_14_Raw'] = df_curr['RSI_14'].copy()
+                df_curr['Stoch_K_Raw'] = df_curr['Stoch_K'].copy()
+                df_curr['PercentB_Raw'] = df_curr['PercentB'].copy()
 
                 daily_rsi_lag = 50.0
                 daily_sma20_lag = None
                 daily_atr_lag = 0.0
                 daily_close_lag5 = None
                 
-                if not daily_data.empty:
+                if not daily_data_input.empty:
                     try:
-                        if len(tickers) > 1:
-                            if ticker in daily_data.columns.get_level_values(1):
-                                df_daily = daily_data.xs(ticker, axis=1, level=1).ffill().dropna()
+                        if isinstance(daily_data_input.columns, pd.MultiIndex):
+                            if ticker in daily_data_input.columns.get_level_values(1):
+                                df_daily = daily_data_input.xs(ticker, axis=1, level=1).ffill().dropna()
                             else:
                                 df_daily = pd.DataFrame()
                         else:
-                            df_daily = daily_data.ffill().dropna()
+                            df_daily = daily_data_input.ffill().dropna()
                             
                         if len(df_daily) >= 20:
                             high = df_daily['High']
@@ -690,25 +692,37 @@ class VanguardOrchestrator:
                 daily_close_lag5 = _safe_float(daily_close_lag5, None)
                 daily_atr_lag = _safe_float(daily_atr_lag, 0.0)
 
-                df['Daily_RSI'] = daily_rsi_lag
+                df_curr['Daily_RSI'] = daily_rsi_lag
                 if daily_sma20_lag is not None:
-                    df['Daily_SMA20_Dist'] = (df['Close'] / daily_sma20_lag) - 1
+                    df_curr['Daily_SMA20_Dist'] = (df_curr['Close'] / daily_sma20_lag) - 1
                 else:
-                    df['Daily_SMA20_Dist'] = 0.0
+                    df_curr['Daily_SMA20_Dist'] = 0.0
                 
                 if daily_close_lag5 is not None:
-                    df['Daily_Trend'] = np.sign(df['Close'] - daily_close_lag5)
+                    df_curr['Daily_Trend'] = np.sign(df_curr['Close'] - daily_close_lag5)
                 else:
-                    df['Daily_Trend'] = 0.0
+                    df_curr['Daily_Trend'] = 0.0
                     
-                df['Daily_ATR_Pct'] = (daily_atr_lag / df['Close']) if daily_atr_lag else 0.0
+                df_curr['Daily_ATR_Pct'] = (daily_atr_lag / df_curr['Close']) if daily_atr_lag else 0.0
 
-                latest = df.iloc[-1].copy()
+                latest = df_curr.iloc[-1].copy()
                 latest["ticker"] = ticker
-                all_latest_data.append(latest)
-                valid_tickers.append(ticker)
+                return latest
             except Exception:
-                continue
+                return None
+
+        is_legacy = not any(str(self.model_manager.active_model_name).startswith(p) for p in ["v6", "v7", "v8", "v9"])
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            future_to_ticker = {
+                executor.submit(_compute_features_for_ticker, ticker, all_dfs[ticker], daily_data, is_legacy): ticker
+                for ticker in tickers if ticker in all_dfs
+            }
+            for future in concurrent.futures.as_completed(future_to_ticker):
+                res = future.result()
+                if res is not None:
+                    all_latest_data.append(res)
+                    valid_tickers.append(res["ticker"])
 
         if not all_latest_data:
             print("[WARN] No valid ticker data processed.")
