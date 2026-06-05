@@ -178,7 +178,7 @@ def get_performance_stats():
     cursor = conn.cursor()
     
     # 1. TOTAL STATS (filtered from START_DATE_FILTER onwards)
-    cursor.execute('SELECT SUM(final_profit_pct), COUNT(*) FROM trades WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT") AND trade_id LIKE "T-%" AND timestamp >= ?', (START_DATE_FILTER,))
+    cursor.execute('SELECT SUM(final_profit_pct), COUNT(*) FROM trades WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT", "OPEN") AND (trade_id LIKE "T-%" OR trade_id LIKE "TRADE-%") AND timestamp >= ?', (START_DATE_FILTER,))
     row = cursor.fetchone()
     total_alpha = row[0] or 0.0
     total_trades = row[1]
@@ -187,15 +187,15 @@ def get_performance_stats():
     today_str = datetime.now().strftime('%Y-%m-%d')
     
     # Daily Total
-    cursor.execute('SELECT SUM(final_profit_pct), COUNT(*) FROM trades WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT") AND trade_id LIKE "T-%" AND timestamp LIKE ?', (f'{today_str}%',))
+    cursor.execute('SELECT SUM(final_profit_pct), COUNT(*) FROM trades WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT", "OPEN") AND (trade_id LIKE "T-%" OR trade_id LIKE "TRADE-%") AND timestamp LIKE ?', (f'{today_str}%',))
     d_row = cursor.fetchone()
     daily_alpha = d_row[0] or 0.0
     daily_trades = d_row[1]
     
     # Daily Breakdown (Long vs Short)
-    cursor.execute('SELECT SUM(final_profit_pct) FROM trades WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT") AND side="LONG" AND trade_id LIKE "T-%" AND timestamp LIKE ?', (f'{today_str}%',))
+    cursor.execute('SELECT SUM(final_profit_pct) FROM trades WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT", "OPEN") AND side="LONG" AND (trade_id LIKE "T-%" OR trade_id LIKE "TRADE-%") AND timestamp LIKE ?', (f'{today_str}%',))
     daily_long = cursor.fetchone()[0] or 0.0
-    cursor.execute('SELECT SUM(final_profit_pct) FROM trades WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT") AND side="SHORT" AND trade_id LIKE "T-%" AND timestamp LIKE ?', (f'{today_str}%',))
+    cursor.execute('SELECT SUM(final_profit_pct) FROM trades WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT", "OPEN") AND side="SHORT" AND (trade_id LIKE "T-%" OR trade_id LIKE "TRADE-%") AND timestamp LIKE ?', (f'{today_str}%',))
     daily_short = cursor.fetchone()[0] or 0.0
 
     # 3. WEEKLY STATS (From last Monday, but never before START_DATE_FILTER)
@@ -207,15 +207,15 @@ def get_performance_stats():
     weekly_start = max(monday_str, START_DATE_FILTER)
     
     # Weekly Total
-    cursor.execute('SELECT SUM(final_profit_pct), COUNT(*) FROM trades WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT") AND trade_id LIKE "T-%" AND timestamp >= ?', (weekly_start,))
+    cursor.execute('SELECT SUM(final_profit_pct), COUNT(*) FROM trades WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT", "OPEN") AND (trade_id LIKE "T-%" OR trade_id LIKE "TRADE-%") AND timestamp >= ?', (weekly_start,))
     w_row = cursor.fetchone()
     weekly_alpha = w_row[0] or 0.0
     weekly_trades = w_row[1]
     
     # Weekly Breakdown (Long vs Short)
-    cursor.execute('SELECT SUM(final_profit_pct) FROM trades WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT") AND side="LONG" AND trade_id LIKE "T-%" AND timestamp >= ?', (weekly_start,))
+    cursor.execute('SELECT SUM(final_profit_pct) FROM trades WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT", "OPEN") AND side="LONG" AND (trade_id LIKE "T-%" OR trade_id LIKE "TRADE-%") AND timestamp >= ?', (weekly_start,))
     weekly_long = cursor.fetchone()[0] or 0.0
-    cursor.execute('SELECT SUM(final_profit_pct) FROM trades WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT") AND side="SHORT" AND trade_id LIKE "T-%" AND timestamp >= ?', (weekly_start,))
+    cursor.execute('SELECT SUM(final_profit_pct) FROM trades WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT", "OPEN") AND side="SHORT" AND (trade_id LIKE "T-%" OR trade_id LIKE "TRADE-%") AND timestamp >= ?', (weekly_start,))
     weekly_short = cursor.fetchone()[0] or 0.0
     
     # AI VETOED STATS (filtered from START_DATE_FILTER onwards)
@@ -439,7 +439,7 @@ def get_today_realized_pnl():
         SELECT COALESCE(SUM(net_pnl_amt), 0.0)
         FROM trades
         WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT")
-          AND trade_id LIKE "T-%"
+          AND (trade_id LIKE "T-%" OR trade_id LIKE "TRADE-%")
           AND timestamp LIKE ?
     ''', (f'{today_str}%',))
     result = cursor.fetchone()[0]
@@ -466,7 +466,7 @@ def get_portfolio_summary():
             COALESCE(AVG(net_pnl_amt), 0.0)                     AS avg_pnl_inr
         FROM trades
         WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT")
-          AND trade_id LIKE "T-%"
+          AND (trade_id LIKE "T-%" OR trade_id LIKE "TRADE-%")
           AND timestamp LIKE ?
     ''', (f'{today_str}%',))
     row = dict(cursor.fetchone())
@@ -481,7 +481,7 @@ def get_portfolio_summary():
         ), 0.0)
         FROM trades
         WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT")
-          AND trade_id LIKE "T-%"
+          AND (trade_id LIKE "T-%" OR trade_id LIKE "TRADE-%")
           AND timestamp LIKE ?
     ''', (f'{today_str}%',))
     today_charges = float(cursor.fetchone()[0] or 0.0)
@@ -493,7 +493,7 @@ def get_portfolio_summary():
                tech_score, long_score, short_score, strategy_id, is_ensemble
         FROM trades
         WHERE status IN ("CLOSED", "STOP_LOSS", "TAKE_PROFIT")
-          AND trade_id LIKE "T-%"
+          AND (trade_id LIKE "T-%" OR trade_id LIKE "TRADE-%")
           AND timestamp LIKE ?
         ORDER BY timestamp DESC
         LIMIT 50

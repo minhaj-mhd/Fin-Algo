@@ -217,14 +217,15 @@ class ModelManager:
                 Short_Conviction=short_conviction,
                 Long_Rank=pd.Series(long_conviction).rank(ascending=False).values,
                 Short_Rank=pd.Series(short_conviction).rank(ascending=False).values
-            )
+            ).copy()
 
             # Score 15-Min model
             if hasattr(self, 'tf_15m_long') and self.tf_15m_long:
                 try:
                     missing_15 = [c for c in self.tf_15m_features if c not in scores_df.columns]
                     if missing_15:
-                        scores_df = scores_df.assign(**{col: 0.0 for col in missing_15})
+                        missing_df = pd.DataFrame(0.0, index=scores_df.index, columns=missing_15)
+                        scores_df = pd.concat([scores_df, missing_df], axis=1)
                     X_15 = scores_df[self.tf_15m_features].values
                     X_15_clean = np.nan_to_num(X_15)
                     
@@ -250,7 +251,8 @@ class ModelManager:
                 try:
                     missing_30 = [c for c in self.tf_30m_features if c not in scores_df.columns]
                     if missing_30:
-                        scores_df = scores_df.assign(**{col: 0.0 for col in missing_30})
+                        missing_df = pd.DataFrame(0.0, index=scores_df.index, columns=missing_30)
+                        scores_df = pd.concat([scores_df, missing_df], axis=1)
                     X_30 = scores_df[self.tf_30m_features].values
                     X_30_clean = np.nan_to_num(X_30)
                     
@@ -276,7 +278,8 @@ class ModelManager:
                 try:
                     missing_d = [c for c in self.tf_daily_features if c not in scores_df.columns]
                     if missing_d:
-                        scores_df = scores_df.assign(**{col: 0.0 for col in missing_d})
+                        missing_df = pd.DataFrame(0.0, index=scores_df.index, columns=missing_d)
+                        scores_df = pd.concat([scores_df, missing_df], axis=1)
                     X_d = scores_df[self.tf_daily_features].values
                     X_d_clean = np.nan_to_num(X_d)
                     

@@ -46,7 +46,7 @@ def save_latest_scores(scores_df, long_eligible, short_eligible):
     scores_df = scores_df.assign(
         daily_long_eligible=scores_df["ticker"].apply(lambda x: x in long_eligible),
         daily_short_eligible=scores_df["ticker"].apply(lambda x: x in short_eligible)
-    )
+    ).copy()
     
     latest_data = (
         scores_df[dashboard_cols]

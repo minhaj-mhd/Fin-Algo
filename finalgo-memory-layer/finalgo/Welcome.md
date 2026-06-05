@@ -18,6 +18,7 @@ This index is designed to link every major component of the system together, ena
 ### 2. Model Suite
 
 * **[[02. Model Suite/Multi-Timeframe Models|Multi-Timeframe Models]]**: Breakdown of the 4 core models (Daily, 1H, 30M, 15M) and their respective features.
+* **[[02. Model Suite/Training Data & Regime Requirements|Training Data Requirements]]**: The "row count fallacy", regime overfitting, and the 3-year standard mandate for all models.
 * **[[02. Model Suite/Model Registry & File Structures|Model Registry & File Structures]]**: Code locations, metadata, scaler requirements, and registry paths.
 * **[[02. Model Suite/Model Performance & Statistics|Model Performance & Statistics]]**: Hyperparameter logs, walk-forward validation folds, and return metrics under market friction.
 * **[[02. Model Suite/Empirical Regime Simulation Results|Empirical Regime Simulation Results]]**: The dual-pass backtest matrix deciding the Trend vs Reversal routing of all strategies.
@@ -43,6 +44,19 @@ This index is designed to link every major component of the system together, ena
 ### 5. Archives
 
 * **`05. Archives/`**: A folder containing individual, modular markdown files for all retired and obsolete systems. We use individual files here instead of a monolithic ledger for better searchability in Obsidian, while still keeping them physically separated from active codebase documentation.
+
+### 8. Model Analysis
+
+* **[[08. Model Analysis/1-Hour Vanguard Model/Advanced Alpha Visualizations|1-Hour Alpha Visualizations]]**: SHAP analysis, prediction bucket evaluation, and cumulative returns for the 1-Hour Core Model (v8_upstox_3y).
+* **[[08. Model Analysis/30-Minute Vanguard Model/Complete Edge Catalog|30-Min Edge Catalog]]**: Exhaustive dual-model parameter exploration, dead-end tests, and tiered execution strategy for the 30-Minute models.
+* **[[08. Model Analysis/30-Minute Vanguard Model/OOS Calibration & Thresholds|30-Min OOS Calibration]]**: Signal inversion discovery (both failed), threshold sweeps, and fee-adjusted win rate analysis.
+* **[[08. Model Analysis/30-Minute Vanguard Model/Time of Day Conviction|30-Min Time of Day Conviction]]**: Heatmaps revealing 15:15 IST as the primary alpha window for Longs, 14:15 IST for Shorts.
+* **[[08. Model Analysis/30-Minute Vanguard Model/Dual Confirmation Architecture|30-Min Dual-Lock Architecture]]**: Why Dual-Lock adds minimal value for 30-min models (unlike 1-hour).
+* **[[08. Model Analysis/30-Minute Vanguard Model/Weekly Consistency & Regimes|30-Min Weekly Consistency]]**: Week-by-week stability analysis and inverse regime dependency discovery.
+
+### 7. MCP Integrations
+
+* **[[07. MCP Integrations/MCP Registry|MCP Registry]]**: Tracks the research, configuration, and status of external Model Context Protocol (MCP) tools connected to the Vanguard workspace.
 
 ### 6. Context & Logs
 

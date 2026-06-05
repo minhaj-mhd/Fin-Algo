@@ -519,7 +519,7 @@ class VanguardOrchestrator:
             'Nifty_RSI': 50.0, 'Nifty_HL_Range': 0.0, 'Nifty_20H_Std': 0.0
         }
         try:
-            nifty_raw = yf.download("^NSEI", period="15d", interval="1h", progress=False, auto_adjust=True)
+            nifty_raw = yf.download("^NSEI", period="15d", interval="1h", progress=False, auto_adjust=True, timeout=15)
             if not nifty_raw.empty:
                 if isinstance(nifty_raw.columns, pd.MultiIndex):
                     nifty_raw.columns = [col[0] for col in nifty_raw.columns]
@@ -544,7 +544,7 @@ class VanguardOrchestrator:
             'VIX_High': 0, 'VIX_Extreme': 0
         }
         try:
-            vix_raw = yf.download("^INDIAVIX", period="15d", interval="1d", progress=False, auto_adjust=True)
+            vix_raw = yf.download("^INDIAVIX", period="15d", interval="1d", progress=False, auto_adjust=True, timeout=15)
             if not vix_raw.empty:
                 if isinstance(vix_raw.columns, pd.MultiIndex):
                     vix_raw.columns = [col[0] for col in vix_raw.columns]
@@ -584,6 +584,8 @@ class VanguardOrchestrator:
                     })
                     if "timestamp" in hist_df.columns:
                         hist_df.set_index("timestamp", inplace=True)
+                    import time
+                    time.sleep(0.3)
                     return ticker, hist_df
             except Exception:
                 pass
@@ -591,7 +593,7 @@ class VanguardOrchestrator:
 
         import concurrent.futures
         try:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
                 future_to_ticker = {executor.submit(_fetch_hist_data, ticker): ticker for ticker in tickers}
                 for future in concurrent.futures.as_completed(future_to_ticker):
                     ticker, df = future.result()
@@ -794,7 +796,7 @@ class VanguardOrchestrator:
             dist_52h_model=raw_display_aligned["Dist_52W_High"],
             dist_52h_actual=raw_display_aligned["High_52W_Actual"],
             Return_Raw=raw_display_aligned["Return"]
-        )
+        ).copy()
 
         save_latest_scores(scores_df, self.long_eligible_tickers, self.short_eligible_tickers)
 
@@ -1060,8 +1062,8 @@ class VanguardOrchestrator:
                                     trade["peak_price"] = min(trade.get("peak_price", 99999999.0), price)
                                 trade["peak_profit_pct"] = max(trade.get("peak_profit_pct", 0.0), pnl)
                                 log_trade(trade)
+                                continue  # Only skip if it remains PENDING_ENTRY
 
-                            continue
 
                         # Peak Profit tracking
                         if trade["side"] == "LONG":
