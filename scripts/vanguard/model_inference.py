@@ -159,28 +159,7 @@ class ModelManager:
         if scores_df.empty:
             return pd.DataFrame()
 
-        # Z-Scoring logic
-        exclude_from_z = [
-            "ticker", "DateTime", "Close", "Open", "High", "Low", "Volume",
-            "Market_Mean_Return", "Relative_Return", "Market_Mean_Volatility", "Relative_Volatility",
-            "Hour", "DayOfWeek", "Sector",
-            "Nifty_1H_Return", "Nifty_3H_Return", "Nifty_5H_Return", "Nifty_RSI", "Nifty_HL_Range", "Nifty_20H_Std",
-            "Sector_Mean_Return", "Stock_vs_Sector", "Sector_Breadth", "Sector_Count", "Sector_Volatility", "Sector_Rank",
-            "VIX_Level", "VIX_Change", "VIX_5D_MA", "VIX_High", "VIX_Extreme", "Market_Regime",
-            "Is_Open_Hour", "Is_Close_Hour", "Time_To_Close", "Up_Streak", "Down_Streak",
-            "RSI_14_Raw", "Stoch_K_Raw", "PercentB_Raw", "Daily_RSI", "Daily_SMA20_Dist", "Daily_Trend", "Daily_ATR_Pct",
-            "Bar_Position", "Green_Bar_Ratio_5", "Accumulation_5"
-        ]
-
-        features_to_zscore = [c for c in self.feature_cols if c not in exclude_from_z]
-        for col in features_to_zscore:
-            if col in scores_df.columns:
-                mean = scores_df[col].mean()
-                std = scores_df[col].std()
-                if pd.isna(std) or std == 0:
-                    scores_df[col] = 0.0
-                else:
-                    scores_df[col] = (scores_df[col] - mean) / std
+        # Z-Scoring has been completely removed because the model was trained on raw features.
 
         try:
             missing = [c for c in self.feature_cols if c not in scores_df.columns]
@@ -207,8 +186,12 @@ class ModelManager:
 
             long_score = self.bst_long.predict(dmatrix)
             short_score = self.bst_short.predict(dmatrix)
-            long_conviction = long_score - short_score
-            short_conviction = short_score - long_score
+            
+            l_centered = long_score - np.mean(long_score)
+            s_centered = short_score - np.mean(short_score)
+            
+            long_conviction = l_centered - s_centered
+            short_conviction = s_centered - l_centered
             
             scores_df = scores_df.assign(
                 long_score=long_score,
@@ -242,7 +225,7 @@ class ModelManager:
                     d_15 = xgb.DMatrix(X_15_final, feature_names=self.tf_15m_features)
                     l_15 = self.tf_15m_long.predict(d_15)
                     s_15 = self.tf_15m_short.predict(d_15)
-                    scores_df["score_15m"] = l_15 - s_15
+                    scores_df["score_15m"] = (l_15 - np.mean(l_15)) - (s_15 - np.mean(s_15))
                 except Exception as e15:
                     log(f"[WARN] 15m scoring failed: {e15}")
 
@@ -269,7 +252,7 @@ class ModelManager:
                     d_30 = xgb.DMatrix(X_30_final, feature_names=self.tf_30m_features)
                     l_30 = self.tf_30m_long.predict(d_30)
                     s_30 = self.tf_30m_short.predict(d_30)
-                    scores_df["score_30m"] = l_30 - s_30
+                    scores_df["score_30m"] = (l_30 - np.mean(l_30)) - (s_30 - np.mean(s_30))
                 except Exception as e30:
                     log(f"[WARN] 30m scoring failed: {e30}")
 
@@ -296,7 +279,7 @@ class ModelManager:
                     d_d = xgb.DMatrix(X_d_final, feature_names=self.tf_daily_features)
                     l_d = self.tf_daily_long.predict(d_d)
                     s_d = self.tf_daily_short.predict(d_d)
-                    scores_df["score_1d"] = l_d - s_d
+                    scores_df["score_1d"] = (l_d - np.mean(l_d)) - (s_d - np.mean(s_d))
                 except Exception as ed:
                     log(f"[WARN] 1d scoring failed: {ed}")
 

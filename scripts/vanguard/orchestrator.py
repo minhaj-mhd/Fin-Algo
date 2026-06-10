@@ -220,6 +220,12 @@ class VanguardOrchestrator:
             self.risk_manager.update_upstox_stats(self.active_shadow_trades)
 
     def update_daily_macro_filters(self):
+        now = datetime.now()
+        now_date_str = now.strftime("%Y-%m-%d")
+        if now.weekday() >= 5 or now_date_str in getattr(config, "NSE_HOLIDAYS_2026", set()):
+            log(f"[{now.strftime('%H:%M')}] Holiday/Weekend: Skipping Daily Macro Scan.")
+            return
+
         log("\n" + "=" * 60)
         log("RUNNING DAILY MACRO TREND SCAN (GATEKEEPER SELECTION)")
         log("=" * 60)
@@ -238,23 +244,47 @@ class VanguardOrchestrator:
             log(f"[WARN] Failed to write running status to daily_gatekeepers: {e}")
 
         try:
-            tickers = list(TICKERS)
-            log(f"[DAILY-SCAN] Fetching 1y daily bars for {len(tickers)} symbols via yfinance...")
+            tickers_list = list(TICKERS)
+            log(f"[DAILY-SCAN] Fetching 1y daily bars for {len(tickers_list)} symbols via yfinance in chunks...")
             
-            df_batch = yf.download(
-                tickers, period="1y", interval="1d",
-                progress=False, auto_adjust=True, timeout=45
-            )
+            import time
+            all_df_pieces = []
+            chunk_size = 40
             
-            if df_batch.empty:
-                raise ValueError("Downloaded empty batch from yfinance.")
+            for i in range(0, len(tickers_list), chunk_size):
+                chunk = tickers_list[i:i+chunk_size]
+                df_chunk = yf.download(chunk, period="1y", interval="1d", progress=False, auto_adjust=True, timeout=20)
+                if not df_chunk.empty:
+                    all_df_pieces.append(df_chunk)
+                time.sleep(1)
+                
+            if not all_df_pieces:
+                raise ValueError("Downloaded empty batch from yfinance across all chunks.")
+                
+            df_batch = pd.concat(all_df_pieces, axis=1) if len(all_df_pieces) > 1 else all_df_pieces[0]
+            
+            # Retry missing tickers (Yahoo sometimes returns generic 'delisted' errors for rate limits)
+            missing = []
+            if len(tickers_list) > 1 and isinstance(df_batch.columns, pd.MultiIndex):
+                for t in tickers_list:
+                    if t not in df_batch.columns.get_level_values(1) or df_batch.xs(t, level=1, axis=1)['Close'].isna().all():
+                        missing.append(t)
+            
+            if missing:
+                log(f"[DAILY-SCAN] Retrying {len(missing)} failed symbols...")
+                time.sleep(3)
+                df_retry = yf.download(missing, period="1y", interval="1d", progress=False, auto_adjust=True, timeout=30)
+                if not df_retry.empty:
+                    if len(missing) == 1:
+                        df_retry.columns = pd.MultiIndex.from_product([df_retry.columns, missing])
+                    df_batch = pd.concat([df_batch, df_retry], axis=1)
                 
             from scripts.feature_utils import compute_features_daily_xgb
             
             all_ticker_dfs = {}
-            for ticker in tickers:
+            for ticker in tickers_list:
                 try:
-                    if len(tickers) > 1:
+                    if len(tickers_list) > 1:
                         if ticker in df_batch.columns.get_level_values(1):
                             ticker_df = df_batch.xs(ticker, level=1, axis=1).copy()
                         else:
@@ -312,21 +342,7 @@ class VanguardOrchestrator:
             df_aligned['Market_Mean_Volatility'] = df_aligned.groupby('Query_ID')['HL_Range'].transform('mean')
             df_aligned['Relative_Volatility']    = df_aligned['HL_Range'] / (df_aligned['Market_Mean_Volatility'] + 1e-8)
             
-            exclude_cols = {
-                'DateTime', 'Query_ID', 'Ticker', 'Next_Day_Return',
-                'Open', 'High', 'Low', 'Close', 'Volume',
-                'Market_Mean_Return', 'Relative_Return',
-                'Market_Mean_Volatility', 'Relative_Volatility',
-                'Hour', 'DayOfWeek', 'Is_Open_Hour', 'Is_Close_Hour', 'Time_To_Close'
-            }
-            feature_cols = [c for c in self.model_manager.daily_feature_cols if c not in exclude_cols]
-            
-            for col in feature_cols:
-                if col in df_aligned.columns:
-                    grp_mean = df_aligned.groupby('Query_ID')[col].transform('mean')
-                    grp_std  = df_aligned.groupby('Query_ID')[col].transform('std')
-                    df_aligned[col] = (df_aligned[col] - grp_mean) / (grp_std + 1e-8)
-                    
+
             df_aligned[self.model_manager.daily_feature_cols] = df_aligned[self.model_manager.daily_feature_cols].fillna(0)
             df_aligned = df_aligned.sort_values(['Ticker', 'DateTime']).reset_index(drop=True)
             
@@ -403,27 +419,10 @@ class VanguardOrchestrator:
                 self.short_eligible_tickers = set(TICKERS)
 
     def get_last_completed_15min_candle(self, ticker):
-        if self._ws_manager is not None:
-            try:
-                instrument_key = self.broker.get_instrument_key(ticker)
-                df_15m = self._ws_manager.cache.get_candles(instrument_key, "15minute", count=5)
-                if df_15m is not None and not df_15m.empty:
-                    now = pd.Timestamp.now()
-                    ts_series = pd.to_datetime(df_15m['timestamp'])
-                    if ts_series.dt.tz is not None:
-                        ts_series = ts_series.dt.tz_localize(None)
-                    completed = df_15m[ts_series + pd.Timedelta(minutes=15) <= now]
-                    if not completed.empty:
-                        last_row = completed.iloc[-1]
-                        return {
-                            'timestamp': pd.Timestamp(last_row['timestamp']).to_pydatetime(),
-                            'open':  float(last_row['open']),
-                            'high':  float(last_row['high']),
-                            'low':   float(last_row['low']),
-                            'close': float(last_row['close']),
-                        }
-            except Exception:
-                pass
+        # We exclusively use the REST API for candle confirmation to avoid 
+        # "cold-start" partial candle bugs from the websocket cache.
+        # Since we now gate this call with `now < next_boundary`, it only
+        # runs once per pending trade, making it perfectly safe for rate limits.
 
         df = self.broker.get_recent_candles(ticker, interval='1minute', count=120)
         if df is None or df.empty:
@@ -809,55 +808,59 @@ class VanguardOrchestrator:
     def start_shadow_trade(self, ticker, conviction, entry_price, side, reason, one_hour_prob,
                            nlp_sentiment=None, tv_sentiment=None,
                            long_score=None, short_score=None, strategy_id=None,
-                           score_15m=None, score_30m=None, score_1d=None, is_ensemble=False):
+                           score_15m=None, score_30m=None, score_1d=None, is_ensemble=False, size_multiplier=1.0):
         now = datetime.now()
+        now = datetime.now()
+        
         trade = {
-            "trade_id":            f"TRADE-{ticker}-{side}-{now.strftime('%y%m%d%H%M%S')}",
-            "ticker":              ticker,
-            "side":                side,
-            "quantity":            0,
-            "entry_price":         entry_price,
-            "exit_price":          entry_price,
-            "stop_loss_pct":       0.50,
-            "take_profit_pct":     1.00,
-            "peak_profit_pct":     0.0,
-            "peak_price":          entry_price,
-            "timestamp":           now.isoformat(),
-            "exit_time":           (now + timedelta(hours=1)).isoformat(),
-            "status":              "PENDING_ENTRY",
-            "comment":             f"PENDING-CANDLE-CONFIRMATION | {reason}",
-            "margin_used":         0.0,
-            "buy_brokerage":       config.BROKERAGE_PER_ORDER,
-            "final_profit_pct":    0.0,
-            "pending_since":       now.isoformat(),
-            
-            "strategy_id":         strategy_id,
-            "one_hour_prob":       one_hour_prob,
-            "tech_score":          float(conviction) if conviction is not None else None,
-            "nlp_sentiment":       float(nlp_sentiment) if nlp_sentiment is not None else None,
-            "tv_sentiment":        str(tv_sentiment) if tv_sentiment is not None else None,
-            "long_score":          float(long_score) if long_score is not None else None,
-            "short_score":         float(short_score) if short_score is not None else None,
-            "score_15m":           float(score_15m) if score_15m is not None else None,
-            "score_30m":           float(score_30m) if score_30m is not None else None,
-            "score_1d":            float(score_1d) if score_1d is not None else None,
-            "is_ensemble":         is_ensemble,
-            "net_pnl_amt":         0.0,
-        }
-
+                "size_multiplier":     size_multiplier,
+                "trade_id":            f"TRADE-{ticker}-{side}-{now.strftime('%y%m%d%H%M%S')}",
+                "ticker":              ticker,
+                "side":                side,
+                "quantity":            0,
+                "entry_price":         entry_price,
+                "exit_price":          entry_price,
+                "stop_loss_pct":       0.50,
+                "take_profit_pct":     1.00,
+                "peak_profit_pct":     0.0,
+                "peak_price":          entry_price,
+                "timestamp":           now.isoformat(),
+                "exit_time":           (now + timedelta(hours=1)).isoformat(),
+                "status":              "PENDING_ENTRY",
+                "comment":             f"PENDING-CANDLE-CONFIRMATION | {reason}",
+                "margin_used":         0.0,
+                "buy_brokerage":       config.BROKERAGE_PER_ORDER,
+                "final_profit_pct":    0.0,
+                "pending_since":       now.isoformat(),
+                
+                "strategy_id":         strategy_id,
+                "one_hour_prob":       one_hour_prob,
+                "tech_score":          float(conviction) if conviction is not None else None,
+                "nlp_sentiment":       float(nlp_sentiment) if nlp_sentiment is not None else None,
+                "tv_sentiment":        str(tv_sentiment) if tv_sentiment is not None else None,
+                "long_score":          float(long_score) if long_score is not None else None,
+                "short_score":         float(short_score) if short_score is not None else None,
+                "score_15m":           float(score_15m) if score_15m is not None else None,
+                "score_30m":           float(score_30m) if score_30m is not None else None,
+                "score_1d":            float(score_1d) if score_1d is not None else None,
+                "is_ensemble":         is_ensemble,
+                "net_pnl_amt":         0.0,
+            }
+        
         with self.lock:
             self.active_shadow_trades.append(trade)
             self.risk_manager.realized_charges += config.BROKERAGE_PER_ORDER
-
+        
         self.risk_manager.update_upstox_stats(self.active_shadow_trades)
         log_trade(trade)
 
     def start_vetoed_tracking(self, ticker, conviction, entry_price, side, reason, one_hour_prob,
                               nlp_sentiment=None, tv_sentiment=None,
                               long_score=None, short_score=None, strategy_id=None,
-                              score_15m=None, score_30m=None, score_1d=None, is_ensemble=False):
+                              score_15m=None, score_30m=None, score_1d=None, is_ensemble=False, size_multiplier=1.0):
         now = datetime.now()
         trade = {
+            "size_multiplier":     size_multiplier,
             "trade_id":            f"VETO-{ticker}-{side}-{now.strftime('%y%m%d%H%M%S')}",
             "ticker":              ticker,
             "side":                side,
@@ -989,9 +992,21 @@ class VanguardOrchestrator:
                                 continue
 
                             # 3. Candle Confirmation check
-                            candle = self.get_last_completed_15min_candle(trade["ticker"])
                             raw_since = trade.get("pending_since") or trade["timestamp"]
                             pending_since = datetime.fromisoformat(raw_since)
+                            
+                            # Gate check: wait until the 15-minute boundary crosses before querying API
+                            if "next_check_boundary" not in trade:
+                                minute = pending_since.minute
+                                next_15 = ((minute // 15) + 1) * 15
+                                trade["next_check_boundary"] = (pending_since.replace(minute=0, second=0, microsecond=0) + timedelta(minutes=next_15)).isoformat()
+                            
+                            next_boundary = datetime.fromisoformat(trade["next_check_boundary"])
+                            
+                            if now < next_boundary:
+                                continue
+                                
+                            candle = self.get_last_completed_15min_candle(trade["ticker"])
                             
                             if candle is not None:
                                 candle_close_time = candle["timestamp"] + timedelta(minutes=15)
@@ -1004,6 +1019,7 @@ class VanguardOrchestrator:
                                         orig_score = trade.get("tech_score", 0.0)
                                         
                                         is_conv_ok, reason_low = TradeStateManager.check_conviction_gate(conv_score, orig_score, self.risk_manager.min_conviction)
+                                        
                                         if not aligned or not is_conv_ok:
                                             block_reason = "XGBoost conviction flipped" if not aligned else f"conviction too low at entry ({reason_low})"
                                             print(f"[PENDING -> CANCELLED] {trade['ticker']} confirmation blocked. {block_reason}.")
@@ -1019,8 +1035,8 @@ class VanguardOrchestrator:
                                         # Execute entry order
                                         entry_price = price
                                         stop_loss_pct, take_profit_pct = self.compute_15min_atr(trade["ticker"])
-                                        qty = self.risk_manager.calculate_trade_quantity(entry_price, stop_loss_pct)
-                                        
+                                        base_qty = self.risk_manager.calculate_trade_quantity(entry_price, stop_loss_pct)
+                                        qty = max(1, int(base_qty * trade.get("size_multiplier", 1.0)))                                        
                                         sl_mult = 1 - (stop_loss_pct / 100) if trade["side"] == "LONG" else 1 + (stop_loss_pct / 100)
                                         sl_price = round(entry_price * sl_mult, 2)
                                         
@@ -1041,6 +1057,11 @@ class VanguardOrchestrator:
                                         
                                         log_trade(trade)
                                         self.risk_manager.update_upstox_stats(self.active_shadow_trades)
+                                    else:
+                                        print(f"[PENDING -> EXTENDED] {trade['ticker']} 15m candle unconfirmed. Waiting for next candle.")
+                                        trade["next_check_boundary"] = (next_boundary + timedelta(minutes=15)).isoformat()
+                                        log_trade(trade)
+                                        continue
 
                             # Timeout check
                             if now - pending_since > timedelta(minutes=45) and trade["status"] == "PENDING_ENTRY":
@@ -1199,6 +1220,10 @@ class VanguardOrchestrator:
                     except Exception as e_indiv:
                         print(f"[WARN] Error tracking trade {trade.get('ticker')}: {e_indiv}")
 
+                # Update stats JSON in real-time for Upstox Portfolio UI tab
+                if current_trades:
+                    self.risk_manager.update_upstox_stats(self.active_shadow_trades)
+
                 # Clean concluded trades from memory periodically
                 with self.lock:
                     self.active_shadow_trades = [
@@ -1213,8 +1238,17 @@ class VanguardOrchestrator:
     def run(self):
         while True:
             try:
+                now = datetime.now()
+                now_date_str = now.strftime("%Y-%m-%d")
+                
+                # 0. Holiday / Weekend Check
+                if now.weekday() >= 5 or now_date_str in getattr(config, "NSE_HOLIDAYS_2026", set()):
+                    print(f"[{now.strftime('%H:%M')}] Market Holiday or Weekend. Engine will not trade today.")
+                    time.sleep(3600)  # Sleep for an hour
+                    continue
+
                 # 1. Daily Capital Reset
-                now_date = datetime.now().date()
+                now_date = now.date()
                 with self.lock:
                     open_count = len([t for t in self.active_shadow_trades if t["status"] == "OPEN"])
 
@@ -1276,12 +1310,12 @@ class VanguardOrchestrator:
                             strategy_id = sig['strategy_id']
                             if pd.isna(strategy_id) or strategy_id is None:
                                 strategy_id = None
-                            else:
+                            elif isinstance(strategy_id, float):
                                 strategy_id = int(strategy_id)
                                 
-                            strat_display = f"S{strategy_id}" if strategy_id is not None else "AI"
+                            strat_display = f"S{strategy_id}" if isinstance(strategy_id, int) else str(strategy_id) if strategy_id else "AI"
                             rank_col = "Long_Rank" if side == "LONG" else "Short_Rank"
-                            is_eligible_time = is_trading_window or (strategy_id is not None and "09:15" <= now_str < "15:05")
+                            is_eligible_time = "10:15" <= now_str < "15:05"
 
                             if not is_eligible_time:
                                 log(f"[SCAN ONLY] {side} {ticker} ({strat_display}) | Conviction: {conviction:.4f} (Outside Window)")
@@ -1309,19 +1343,42 @@ class VanguardOrchestrator:
                                 log(f"[VETO-COOLDOWN] {side} {ticker} vetoed recently. Skipping.")
                                 continue
 
-                            # 4. Gemini AI Veto Audit
-                            log(f"[AUDIT] {side} {ticker} ({strat_display}) | Conviction: {conviction:.4f} | Verifying...")
+                            # 4. Gemini AI Veto Audit (or Vanguard Bypass)
                             full_feature_row = scores_df[scores_df['ticker'] == ticker].iloc[0].copy()
                             full_feature_row['strategy_id'] = sig.get('strategy_id')
                             full_feature_row['signal_source'] = sig.get('source')
                             full_feature_row['is_ensemble'] = sig.get('is_ensemble', False)
                             
+                            size_multiplier = sig.get('size_multiplier', 1.0)
+                            
+                            log(f"[AUDIT] {side} {ticker} ({strat_display}) | Conviction: {conviction:.4f} | Verifying...")
                             sentiment, reason, one_hour_prob = self.ai_veto_manager.gemini_audit(
                                 ticker, side, conviction, full_feature_row, self.broker.get_recent_candles
                             )
 
+                            entry_price = self.broker.get_live_price(ticker)
+                            if not entry_price or entry_price <= 0:
+                                entry_price = float(full_feature_row["Close"])
+
+                            # Fetch TradingView Sentiment (Analytics only)
+                            tv_sentiment = get_tv_sentiment(ticker)
+
                             if sentiment == "SYSTEM_ERROR":
-                                log(f"[SKIP] {ticker} skipped due to AI API error.")
+                                log(f"[SKIP] {ticker} skipped due to AI API error. Tracking as VETOED.")
+                                self.start_vetoed_tracking(
+                                    ticker, conviction, entry_price,
+                                    side, f"[API-ERROR] {reason}", one_hour_prob,
+                                    nlp_sentiment=0.5,
+                                    tv_sentiment=tv_sentiment,
+                                    long_score=full_feature_row.get("long_score"),
+                                    short_score=full_feature_row.get("short_score"),
+                                    strategy_id=strategy_id,
+                                    score_15m=full_feature_row.get("score_15m"),
+                                    score_30m=full_feature_row.get("score_30m"),
+                                    score_1d=full_feature_row.get("score_1d"),
+                                    is_ensemble=full_feature_row.get("is_ensemble", False),
+                                    size_multiplier=size_multiplier
+                                )
                                 continue
 
                             # Session stats refresh
@@ -1337,13 +1394,6 @@ class VanguardOrchestrator:
                             veto_stage = "S1" if is_s1 else "S2"
 
                             is_vetoed = "VETO" in sentiment.upper()
-
-                            entry_price = self.broker.get_live_price(ticker)
-                            if not entry_price or entry_price <= 0:
-                                entry_price = float(full_feature_row["Close"])
-
-                            # Fetch TradingView Sentiment (Analytics only)
-                            tv_sentiment = get_tv_sentiment(ticker)
 
                             sent_map = {
                                 "STRONG BULLISH": 1.0, "BULLISH": 0.75,
@@ -1368,7 +1418,8 @@ class VanguardOrchestrator:
                                     score_15m=full_feature_row.get("score_15m"),
                                     score_30m=full_feature_row.get("score_30m"),
                                     score_1d=full_feature_row.get("score_1d"),
-                                    is_ensemble=full_feature_row.get("is_ensemble", False)
+                                    is_ensemble=full_feature_row.get("is_ensemble", False),
+                                    size_multiplier=size_multiplier
                                 )
                                 break
                             else:
@@ -1396,7 +1447,8 @@ class VanguardOrchestrator:
                                     score_15m=sig.get("score_15m"),
                                     score_30m=sig.get("score_30m"),
                                     score_1d=sig.get("score_1d"),
-                                    is_ensemble=sig.get("is_ensemble", False)
+                                    is_ensemble=sig.get("is_ensemble", False),
+                                    size_multiplier=size_multiplier
                                 )
 
                 # End scan cycle summary
