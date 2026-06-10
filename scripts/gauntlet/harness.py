@@ -126,7 +126,13 @@ class XGBBinaryAdapter:
             run_params["tree_method"] = "hist"
         if "seed" not in run_params and "random_state" not in run_params:
             run_params["seed"] = seed
-            
+        
+        # Dynamically calculate scale_pos_weight if not explicitly provided
+        if "scale_pos_weight" not in run_params:
+            pos_rate = ytr_bin.mean()
+            if pos_rate > 0.0:
+                run_params["scale_pos_weight"] = (1.0 - pos_rate) / pos_rate
+                
         model = xgb.train(
             run_params, dtrain,
             num_boost_round=num_boost_round,
