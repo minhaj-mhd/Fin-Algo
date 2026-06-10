@@ -113,5 +113,20 @@
     "tree_method": "hist",
     "device": "cuda"
   },
-  "trained_at": "2026-05-28T19:34:00.481988"
+  "trained_at": "2026-05-28T19:34:00.481988",
+  "gauntlet": {
+    "run_id": "run_t8_regression",
+    "verdict": {
+      "long": "FILTER_GRADE",
+      "short": "FILTER_GRADE"
+    },
+    "binding_cost_bps": 10.0,
+    "dataset_sha256": "b10b37fcbee368ceb8b43b35888df1d5f72736ec9786b6d681e8b9d43bc8e296",
+    "config_hash": "5f7d069f151d620562bd44c2ee291f125e0fadbe523c09aac8b91b655e77ce2f",
+    "git_commit": "65acdc6424858d96bd1832310254c1c78a5d16ac",
+    "evaluated_at": "2026-06-10",
+    "checksum": "3f401fa9048b5420a16ab3abc7afb6901df6f0f75bcbdf6b4c262948d6d23fdb",
+    "pct_unverifiable": 0.0003685035094033045,
+    "unverified_label_waiver_reason": "Pre-drop 14:15 target bars omitted from 3y training file but verified consistent."
+  }
 }

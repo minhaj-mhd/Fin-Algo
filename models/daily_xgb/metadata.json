@@ -390,5 +390,20 @@
     "tree_method": "hist",
     "device": "cuda"
   },
-  "trained_at": "2026-05-29T22:12:03.172359"
+  "trained_at": "2026-05-29T22:12:03.172359",
+  "gauntlet": {
+    "run_id": "20260610T102743Z-5f7d069f",
+    "verdict": {
+      "long": "DEAD",
+      "short": "DEAD"
+    },
+    "binding_cost_bps": 10.0,
+    "dataset_sha256": "664878fcb9209f4afc16ef46fe51dfb5db7be0a4fd86ae19c34d94ddd2edda85",
+    "config_hash": "5f7d069f151d620562bd44c2ee291f125e0fadbe523c09aac8b91b655e77ce2f",
+    "git_commit": "65acdc6424858d96bd1832310254c1c78a5d16ac",
+    "evaluated_at": "2026-06-10",
+    "checksum": "d45d0e9525249dd7157c577bfc86d6a86bf7eea40f58a5900b4521b6cda5d5b7",
+    "pct_unverifiable": 0.0,
+    "unverified_label_waiver_reason": "Daily close-to-close returns have no intraday target bars."
+  }
 }

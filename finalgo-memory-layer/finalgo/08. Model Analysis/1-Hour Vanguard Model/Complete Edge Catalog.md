@@ -127,13 +127,14 @@ The Long direction is the weakest alpha source in the system, but it is still re
 
 ## 4. Recommended Tiered Execution Strategy
 
-Based on all findings, the live engine should implement three tiers of execution, with capital allocation scaling with conviction:
+Based on all findings, the live engine should implement four tiers of execution, with capital allocation scaling with conviction:
 
 | Tier | Signal | Position Size | Expected WR |
 |---|---|---|---|
-| **Tier A (Max Size)** | Dual-Lock Short: `S > 0.100` AND `L < -0.160` | 100% of slot capital | 74–76% |
+| **Tier A (Max Size)** | Dual-Lock Short: `S > 0.100` AND `L < -0.160` at 2PM | 100% of slot capital | 74–76% |
 | **Tier B (Standard)** | Short Model Only: `S > 0.087` at 2PM | 75% of slot capital | 68% |
-| **Tier C (Standard)** | Dual-Lock Long: `L > 0.080` AND `S < -0.200` at 2PM | 50% of slot capital | 60% |
+| **Tier C (Standard)** | Inverted Long Short: `L < -0.167` at 2PM | 50% of slot capital | 62% |
+| **Tier D (Half Size)** | Dual-Lock Long: `L > 0.080` AND `S < -0.200` at 2PM | 50% of slot capital | 60% |
 
 All tiers are subject to the **Macro Regime Filter** (see [[Dual Confirmation Architecture]]).
 

@@ -5,19 +5,14 @@
 
 ## Configuration
 
-To enable the Vanguard AI agent to natively execute Python code, run machine learning backtests, and generate plots within the chat, add the `jupyter` block to your existing `mcp_config.json`.
+We have removed all wrapper scripts and environment variable hacks. The clean configuration uses standard `uvx` to launch the MCP bridge, and we disable token authentication on the local Jupyter server to allow seamless connection.
+
+### Step 1: Update your MCP Config
+Add this clean block to your `mcp_config.json` (located at `C:\Users\loq\.gemini\config\mcp_config.json`):
 
 ```json
 {
   "mcpServers": {
-    "sqlite": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@berthojoris/mcp-sqlite-server",
-        "sqlite:////c:/Users/loq/Desktop/Trading/finalgo/data/vanguard_trades.db"
-      ]
-    },
     "jupyter": {
       "command": "uvx",
       "args": [
@@ -28,12 +23,16 @@ To enable the Vanguard AI agent to natively execute Python code, run machine lea
 }
 ```
 
-## Agent Capabilities Enabled
-Once active, the agent gains the ability to:
-1. Natively spin up a secure Python kernel.
-2. Load XGBoost models and `pandas` dataframes into memory without flooding standard output.
-3. Generate and return interactive plots (e.g., drawdown curves for the 50-strategy regime backtests) directly in the UI.
+### Step 2: Launch the Jupyter Server Locally
+Before asking the AI to run any notebook tasks, you must have the local Jupyter backend running on port 8888. Because the MCP bridge connects over localhost, we can safely disable the token to bypass authentication errors.
 
-## Maintenance Notes
-- **CRITICAL PREREQUISITE**: The `uvx` command requires you to have the **`uv` package manager** installed. It is the modern, lightning-fast Python toolchain.
-- If you don't have `uv` installed, you can install it via PowerShell: `irm https://astral.sh/uv/install.ps1 | iex`
+Run this command in a separate terminal from your project root:
+```powershell
+env\Scripts\jupyter.exe notebook --port=8888 --no-browser --ServerApp.token="" --ServerApp.password="" --ServerApp.disable_check_xsrf=True --ServerApp.allow_origin="*"
+```
+
+*(If you prefer to use your global `uvx`, you can run `uvx --from jupyter-core jupyter notebook --port=8888 --no-browser --ServerApp.token="" --ServerApp.password="" --ServerApp.disable_check_xsrf=True --ServerApp.allow_origin="*"` instead).*
+
+### Step 3: Agent Initialization
+Once your config is updated, **reload the IDE**. 
+When the IDE connects, the AI will now natively have the Jupyter tools available (`setup_notebook`, `execute_notebook_code`, etc.). The agent will call `setup_notebook` targeting `http://127.0.0.1:8888` to verify the connection.

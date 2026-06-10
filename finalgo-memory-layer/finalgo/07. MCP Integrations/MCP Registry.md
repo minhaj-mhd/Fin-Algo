@@ -18,7 +18,7 @@ By integrating external MCPs, we enhance the agent's capabilities in securely qu
 
 | MCP Name | Primary Use Case | Configuration Link | Status |
 | :--- | :--- | :--- | :--- |
-| *None Yet* | | | |
+| **TradingView** | Read and control live TradingView Desktop charts via CDP. | [[07. MCP Integrations/TradingView MCP Setup\|Docs]] | 🟡 Pending Setup |
 
 ---
 
