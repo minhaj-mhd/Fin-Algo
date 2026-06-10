@@ -14,6 +14,8 @@ This index is designed to link every major component of the system together, ena
 
 * **[[01. Core Architecture/Global System Architecture|Global System Architecture]]**: The high-level blueprint of the Vanguard Engine, linking technical ranks (XGBoost) and sentiment RAG filters (PrimoGPT).
 * **[[01. Core Architecture/Vanguard System Features|Vanguard System Features]]**: Core features, release specifications, and settings for Vanguard v2.5 Hardened.
+* **[[01. Core Architecture/Validation Gauntlet Architecture|Validation Gauntlet Architecture]]**: 📐 The canonical self-testing evaluation harness spec — the single source of truth for all model metrics (purged WF, leakage probes, cost invariants, 3-tier verdicts, phased build plan P0–P7).
+* **[[01. Core Architecture/Validation Gauntlet Remediation Plan|Validation Gauntlet Remediation Plan]]**: 🔧 Post-audit fix spec (R1–R8) closing the 6 critical + 9 moderate gaps found in the P0–P7 build: prefix-invariance wiring, label-integrity rebuild, verdict-engine fixes, true pre-registration, T8 + preds.npz, hygiene, and the final re-baseline campaign.
 
 ### 2. Model Suite
 
@@ -25,6 +27,7 @@ This index is designed to link every major component of the system together, ena
 * **[[02. Model Suite/Feature Engineering & Normalization|Feature Engineering & Normalization]]**: Details on absolute/relative feature calculations, normalization strategies, and cross-sectional Z-scoring.
 * **[[02. Model Suite/Model Inference Data Structure|Model Inference Data Structure]]**: Master specification for the feature vector used by `xgb_long_model` and `xgb_short_model` at inference time.
 * **[[02. Model Suite/V8 Microstructure Feature Comparison|V8 Microstructure Feature Comparison]]**: Performance analysis of microstructure features (IBS, Buy Pressure) and the removal of the leaky `Gap_Pct`.
+* **[[02. Model Suite/Advanced Tree Models Roadmap|Advanced Tree Models Roadmap]]**: The 5 advanced techniques (CatBoost, LightGBM, Custom Objectives, Monotonic Constraints, DART) to explore for combating structural fee erosion.
 
 ### 3. Trading Strategies & Friction
 
@@ -45,6 +48,18 @@ This index is designed to link every major component of the system together, ena
 
 * **`05. Archives/`**: A folder containing individual, modular markdown files for all retired and obsolete systems. We use individual files here instead of a monolithic ledger for better searchability in Obsidian, while still keeping them physically separated from active codebase documentation.
 
+### 6. Context & Logs
+
+* **[[06. Context & Logs/Current Context|Current Context]]**: Tracks the ongoing development topics, current focus, and immediate next steps.
+* **[[06. Context & Logs/Codebase Cleanup Strategy|Codebase Cleanup Strategy]]**: Audit and phased strategy to isolate and prune stale Python and obsolete Markdown files.
+* **[[06. Context & Logs/Vanguard Engine Refactor Roadmap|Vanguard Engine Refactor Roadmap]]**: Why/how plan for splitting `vanguard_signal_engine.py` into safer production modules, with task lists for artifact hygiene, tests, validation discipline, docs, and reproducible environments.
+* **[[06. Context & Logs/Conversations/Conv-2026-06-01-Docs-Reorganization|Conversations Log]]**: Compacted, segregated logs of active work sessions.
+* **[[06. Context & Logs/Daily Logs/2026-05-31|Daily Logs (Latest)]]**: Daily updates and work logs.
+
+### 7. Research & Backtests
+
+* **[[07. Research & Backtests/V18-Hybrid-Veto-Scalability|V18 Hybrid Veto Scalability]]**: Portfolio simulation, leverage stress testing, and the efficient frontier (A1 vs A3 vs A5) of the Hybrid Random Forest system.
+
 ### 8. Model Analysis
 
 * **[[08. Model Analysis/1-Hour Vanguard Model/Advanced Alpha Visualizations|1-Hour Alpha Visualizations]]**: SHAP analysis, prediction bucket evaluation, and cumulative returns for the 1-Hour Core Model (v8_upstox_3y).
@@ -54,17 +69,9 @@ This index is designed to link every major component of the system together, ena
 * **[[08. Model Analysis/30-Minute Vanguard Model/Dual Confirmation Architecture|30-Min Dual-Lock Architecture]]**: Why Dual-Lock adds minimal value for 30-min models (unlike 1-hour).
 * **[[08. Model Analysis/30-Minute Vanguard Model/Weekly Consistency & Regimes|30-Min Weekly Consistency]]**: Week-by-week stability analysis and inverse regime dependency discovery.
 
-### 7. MCP Integrations
+### 10. MCP Integrations
 
-* **[[07. MCP Integrations/MCP Registry|MCP Registry]]**: Tracks the research, configuration, and status of external Model Context Protocol (MCP) tools connected to the Vanguard workspace.
-
-### 6. Context & Logs
-
-* **[[06. Context & Logs/Current Context|Current Context]]**: Tracks the ongoing development topics, current focus, and immediate next steps.
-* **[[06. Context & Logs/Codebase Cleanup Strategy|Codebase Cleanup Strategy]]**: Audit and phased strategy to isolate and prune stale Python and obsolete Markdown files.
-* **[[06. Context & Logs/Vanguard Engine Refactor Roadmap|Vanguard Engine Refactor Roadmap]]**: Why/how plan for splitting `vanguard_signal_engine.py` into safer production modules, with task lists for artifact hygiene, tests, validation discipline, docs, and reproducible environments.
-* **[[06. Context & Logs/Conversations/Conv-2026-06-01-Docs-Reorganization|Conversations Log]]**: Compacted, segregated logs of active work sessions.
-* **[[06. Context & Logs/Daily Logs/2026-05-31|Daily Logs (Latest)]]**: Daily updates and work logs.
+* **[[10. MCP Integrations/MCP Registry|MCP Registry]]**: Tracks the research, configuration, and status of external Model Context Protocol (MCP) tools connected to the Vanguard workspace.
 
 ---
 
