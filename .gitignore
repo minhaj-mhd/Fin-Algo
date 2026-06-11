@@ -32,4 +32,8 @@ scratch/
 # Gauntlet cache and predictions
 data/gauntlet/_cache/
 data/gauntlet/*/preds.npz
+data/gauntlet/2*/
+data/raw_daily_10y/
+data/raw_global_daily/
+data/model_analysis/gauntlet_reports/
 
