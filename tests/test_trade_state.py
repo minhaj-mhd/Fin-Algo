@@ -94,3 +94,39 @@ def test_evaluate_open_trade_time_expiry():
     assert should_exit
     assert status == "CLOSED"
     assert "Expiry" in note
+
+def test_check_candle_direction():
+    # Test LONG cases
+    # 1. Bullish candle (close > open)
+    candle_long_bullish = {"open": 100.0, "high": 110.0, "low": 95.0, "close": 105.0}
+    assert TradeStateManager.check_candle_direction("LONG", candle_long_bullish) == True
+
+    # 2. Bearish but close is in top 40% (63.3% of total length)
+    candle_long_bearish_ok = {"open": 105.0, "high": 110.0, "low": 95.0, "close": 104.5}
+    assert TradeStateManager.check_candle_direction("LONG", candle_long_bearish_ok) == True
+
+    # 3. Bearish and close is below 60% of total length (53.3% of total length)
+    candle_long_bearish_fail = {"open": 105.0, "high": 110.0, "low": 95.0, "close": 103.0}
+    assert TradeStateManager.check_candle_direction("LONG", candle_long_bearish_fail) == False
+
+    # Test SHORT cases
+    # 1. Bearish candle (close < open)
+    candle_short_bearish = {"open": 100.0, "high": 105.0, "low": 90.0, "close": 95.0}
+    assert TradeStateManager.check_candle_direction("SHORT", candle_short_bearish) == True
+
+    # 2. Bullish but close is in bottom 40% (35% of total length)
+    candle_short_bullish_ok = {"open": 95.0, "high": 110.0, "low": 90.0, "close": 97.0}
+    assert TradeStateManager.check_candle_direction("SHORT", candle_short_bullish_ok) == True
+
+    # 3. Bullish and close is above 40% of total length (60% of total length)
+    candle_short_bullish_fail = {"open": 95.0, "high": 110.0, "low": 90.0, "close": 102.0}
+    assert TradeStateManager.check_candle_direction("SHORT", candle_short_bullish_fail) == False
+
+    # Edge cases
+    # 1. None candle
+    assert TradeStateManager.check_candle_direction("LONG", None) == False
+
+    # 2. Invalid high/low (zero range)
+    candle_zero_range = {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0}
+    assert TradeStateManager.check_candle_direction("LONG", candle_zero_range) == False
+

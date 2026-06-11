@@ -42,7 +42,7 @@ class VanguardOrchestrator:
 
         self.signal_generator = SignalGenerator(self.strategy_filters)
         self.risk_manager = RiskManager()
-        self.ai_veto_manager = AIVetoManager(self.risk_manager.min_conviction)
+        self.ai_veto_manager = AIVetoManager()
 
         # 2. Internal state variables
         self.active_shadow_trades = []
@@ -1030,28 +1030,47 @@ class VanguardOrchestrator:
                            long_score=None, short_score=None, strategy_id=None,
                            score_15m=None, score_30m=None, score_1d=None, is_ensemble=False, size_multiplier=1.0):
         now = datetime.now()
-        now = datetime.now()
         
-        trade = {
+        # 1. Fetch look-back completed candle
+        candle = self.get_last_completed_15min_candle(ticker)
+        
+        # 2. Check if the completed candle matches our direction
+        is_confirmed = False
+        if candle is not None:
+            from scripts.vanguard.trade_state import TradeStateManager
+            is_confirmed = TradeStateManager.check_candle_direction(side, candle)
+            
+        if is_confirmed:
+            # Entry confirmed on the spot!
+            stop_loss_pct, take_profit_pct = self.compute_15min_atr(ticker)
+            base_qty = self.risk_manager.calculate_trade_quantity(entry_price, stop_loss_pct)
+            qty = max(1, int(base_qty * size_multiplier))
+            
+            sl_mult = 1 - (stop_loss_pct / 100) if side == "LONG" else 1 + (stop_loss_pct / 100)
+            sl_price = round(entry_price * sl_mult, 2)
+            
+            order_res = self.broker.place_order(ticker, side, quantity=qty, price=entry_price, stop_loss=sl_price)
+            order_id = order_res.get("order_id", "SANDBOX-SUCCESS")
+            
+            trade = {
                 "size_multiplier":     size_multiplier,
                 "trade_id":            f"TRADE-{ticker}-{side}-{now.strftime('%y%m%d%H%M%S')}",
                 "ticker":              ticker,
                 "side":                side,
-                "quantity":            0,
+                "quantity":            qty,
                 "entry_price":         entry_price,
                 "exit_price":          entry_price,
-                "stop_loss_pct":       0.50,
-                "take_profit_pct":     1.00,
+                "stop_loss_pct":       stop_loss_pct,
+                "take_profit_pct":     take_profit_pct,
                 "peak_profit_pct":     0.0,
                 "peak_price":          entry_price,
                 "timestamp":           now.isoformat(),
                 "exit_time":           (now + timedelta(hours=1)).isoformat(),
-                "status":              "PENDING_ENTRY",
-                "comment":             f"PENDING-CANDLE-CONFIRMATION | {reason}",
-                "margin_used":         0.0,
+                "status":              "OPEN",
+                "comment":             f"{order_id} | Look-back candle confirmed | {reason}",
+                "margin_used":         (qty * entry_price) / config.MARGIN_MULTIPLIER,
                 "buy_brokerage":       config.BROKERAGE_PER_ORDER,
                 "final_profit_pct":    0.0,
-                "pending_since":       now.isoformat(),
                 
                 "strategy_id":         strategy_id,
                 "one_hour_prob":       one_hour_prob,
@@ -1066,11 +1085,58 @@ class VanguardOrchestrator:
                 "is_ensemble":         is_ensemble,
                 "net_pnl_amt":         0.0,
             }
-        
-        with self.lock:
-            self.active_shadow_trades.append(trade)
-            self.risk_manager.realized_charges += config.BROKERAGE_PER_ORDER
-        
+            
+            with self.lock:
+                self.active_shadow_trades.append(trade)
+                self.risk_manager.realized_charges += config.BROKERAGE_PER_ORDER
+                self.risk_manager.used_margin += trade["margin_used"]
+                
+            print(f"[IMMEDIATE ENTRY] Confirmed {ticker} ({side}) at {entry_price} (Order: {order_id})")
+        else:
+            # Entry failed look-back confirmation or candle was None
+            c_str = ""
+            if candle:
+                c_str = f" (Candle: O={candle.get('open')}, H={candle.get('high')}, L={candle.get('low')}, C={candle.get('close')})"
+            else:
+                c_str = " (Candle data unavailable)"
+            comment_msg = f"Cancelled - Look-back candle confirmation failed{c_str} | {reason}"
+            
+            trade = {
+                "size_multiplier":     size_multiplier,
+                "trade_id":            f"TRADE-{ticker}-{side}-{now.strftime('%y%m%d%H%M%S')}",
+                "ticker":              ticker,
+                "side":                side,
+                "quantity":            0,
+                "entry_price":         entry_price,
+                "exit_price":          entry_price,
+                "stop_loss_pct":       0.50,
+                "take_profit_pct":     1.00,
+                "peak_profit_pct":     0.0,
+                "peak_price":          entry_price,
+                "timestamp":           now.isoformat(),
+                "exit_time":           (now + timedelta(hours=1)).isoformat(),
+                "status":              "CANCELLED",
+                "comment":             comment_msg,
+                "margin_used":         0.0,
+                "buy_brokerage":       0.0,
+                "final_profit_pct":    0.0,
+                
+                "strategy_id":         strategy_id,
+                "one_hour_prob":       one_hour_prob,
+                "tech_score":          float(conviction) if conviction is not None else None,
+                "nlp_sentiment":       float(nlp_sentiment) if nlp_sentiment is not None else None,
+                "tv_sentiment":        str(tv_sentiment) if tv_sentiment is not None else None,
+                "long_score":          float(long_score) if long_score is not None else None,
+                "short_score":         float(short_score) if short_score is not None else None,
+                "score_15m":           float(score_15m) if score_15m is not None else None,
+                "score_30m":           float(score_30m) if score_30m is not None else None,
+                "score_1d":            float(score_1d) if score_1d is not None else None,
+                "is_ensemble":         is_ensemble,
+                "net_pnl_amt":         0.0,
+            }
+            
+            print(f"[IMMEDIATE CANCEL] {ticker} ({side}) - Look-back candle check failed{c_str}.")
+            
         self.risk_manager.update_upstox_stats(self.active_shadow_trades)
         log_trade(trade)
 
@@ -1186,124 +1252,7 @@ class VanguardOrchestrator:
                         now = datetime.now()
                         pnl = ((price - trade["entry_price"]) / trade["entry_price"] * 100) if trade["side"] == "LONG" else ((trade["entry_price"] - price) / trade["entry_price"] * 100)
 
-                        if trade["status"] == "PENDING_ENTRY":
-                            # 1. Check Expiry
-                            if TradeStateManager.check_pending_entry_expiry(trade, now):
-                                print(f"[PENDING -> CANCELLED] {trade['ticker']} expired.")
-                                trade["status"] = "CANCELLED"
-                                trade["comment"] = "Cancelled - Confirmation window expired."
-                                with self.lock:
-                                    self.risk_manager.realized_charges -= config.BROKERAGE_PER_ORDER
-                                    self.risk_manager.used_margin -= trade.get("margin_used", 0.0)
-                                log_trade(trade)
-                                self.risk_manager.update_upstox_stats(self.active_shadow_trades)
-                                continue
 
-                            # 2. Time Cutoff
-                            if now.strftime("%H:%M") >= "15:00":
-                                print(f"[PENDING -> CANCELLED] {trade['ticker']} confirmation aborted (Time cutoff: after 3:00 PM).")
-                                trade["status"] = "CANCELLED"
-                                trade["comment"] = "Cancelled - Aborted after 3:00 PM time cutoff."
-                                with self.lock:
-                                    self.risk_manager.realized_charges -= config.BROKERAGE_PER_ORDER
-                                    self.risk_manager.used_margin -= trade.get("margin_used", 0.0)
-                                log_trade(trade)
-                                self.risk_manager.update_upstox_stats(self.active_shadow_trades)
-                                continue
-
-                            # 3. Candle Confirmation check
-                            raw_since = trade.get("pending_since") or trade["timestamp"]
-                            pending_since = datetime.fromisoformat(raw_since)
-                            
-                            # Gate check: wait until the 15-minute boundary crosses before querying API
-                            if "next_check_boundary" not in trade:
-                                minute = pending_since.minute
-                                next_15 = ((minute // 15) + 1) * 15
-                                trade["next_check_boundary"] = (pending_since.replace(minute=0, second=0, microsecond=0) + timedelta(minutes=next_15)).isoformat()
-                            
-                            next_boundary = datetime.fromisoformat(trade["next_check_boundary"])
-                            
-                            if now < next_boundary:
-                                continue
-                                
-                            candle = self.get_last_completed_15min_candle(trade["ticker"])
-                            
-                            if candle is not None:
-                                candle_close_time = candle["timestamp"] + timedelta(minutes=15)
-                                if candle_close_time > pending_since:
-                                    is_confirmed = TradeStateManager.check_candle_confirmation(trade, candle)
-                                    if is_confirmed:
-                                        # Strict conviction gate
-                                        long_conv, short_conv, aligned = self._get_current_conviction(trade["ticker"], trade["side"])
-                                        conv_score = long_conv if trade["side"] == "LONG" else short_conv
-                                        orig_score = trade.get("tech_score", 0.0)
-                                        
-                                        is_conv_ok, reason_low = TradeStateManager.check_conviction_gate(conv_score, orig_score, self.risk_manager.min_conviction)
-                                        
-                                        if not aligned or not is_conv_ok:
-                                            block_reason = "XGBoost conviction flipped" if not aligned else f"conviction too low at entry ({reason_low})"
-                                            print(f"[PENDING -> CANCELLED] {trade['ticker']} confirmation blocked. {block_reason}.")
-                                            trade["status"] = "CANCELLED"
-                                            trade["comment"] = f"Cancelled - {block_reason}."
-                                            with self.lock:
-                                                self.risk_manager.realized_charges -= config.BROKERAGE_PER_ORDER
-                                                self.risk_manager.used_margin -= trade.get("margin_used", 0.0)
-                                            log_trade(trade)
-                                            self.risk_manager.update_upstox_stats(self.active_shadow_trades)
-                                            continue
-
-                                        # Execute entry order
-                                        entry_price = price
-                                        stop_loss_pct, take_profit_pct = self.compute_15min_atr(trade["ticker"])
-                                        base_qty = self.risk_manager.calculate_trade_quantity(entry_price, stop_loss_pct)
-                                        qty = max(1, int(base_qty * trade.get("size_multiplier", 1.0)))                                        
-                                        sl_mult = 1 - (stop_loss_pct / 100) if trade["side"] == "LONG" else 1 + (stop_loss_pct / 100)
-                                        sl_price = round(entry_price * sl_mult, 2)
-                                        
-                                        order_res = self.broker.place_order(trade["ticker"], trade["side"], quantity=qty, price=entry_price, stop_loss=sl_price)
-                                        order_id = order_res.get("order_id", "SANDBOX-SUCCESS")
-
-                                        print(f"[PENDING -> OPEN] Confirmed {trade['ticker']} at {entry_price} (Order: {order_id})")
-                                        trade["status"] = "OPEN"
-                                        trade["stop_loss_pct"] = stop_loss_pct
-                                        trade["take_profit_pct"] = take_profit_pct
-                                        trade["entry_price"] = entry_price
-                                        trade["peak_price"] = entry_price
-                                        trade["quantity"] = qty
-                                        trade["margin_used"] = (qty * entry_price) / config.MARGIN_MULTIPLIER
-                                        trade["timestamp"] = now.isoformat()
-                                        trade["exit_time"] = (now + timedelta(hours=1)).isoformat()
-                                        trade["comment"] = trade.get("comment", "").replace("PENDING-CANDLE-CONFIRMATION", order_id)
-                                        
-                                        log_trade(trade)
-                                        self.risk_manager.update_upstox_stats(self.active_shadow_trades)
-                                    else:
-                                        print(f"[PENDING -> EXTENDED] {trade['ticker']} 15m candle unconfirmed. Waiting for next candle.")
-                                        trade["next_check_boundary"] = (next_boundary + timedelta(minutes=15)).isoformat()
-                                        log_trade(trade)
-                                        continue
-
-                            # Timeout check
-                            if now - pending_since > timedelta(minutes=45) and trade["status"] == "PENDING_ENTRY":
-                                print(f"[PENDING -> CANCELLED] {trade['ticker']} confirmation timed out.")
-                                trade["status"] = "CANCELLED"
-                                trade["comment"] = "Cancelled - 15-min candle confirmation timed out."
-                                with self.lock:
-                                    self.risk_manager.realized_charges -= config.BROKERAGE_PER_ORDER
-                                    self.risk_manager.used_margin -= trade.get("margin_used", 0.0)
-                                log_trade(trade)
-                                self.risk_manager.update_upstox_stats(self.active_shadow_trades)
-
-                            if trade["status"] == "PENDING_ENTRY":
-                                trade["exit_price"] = price
-                                trade["final_profit_pct"] = round(pnl, 4)
-                                if trade["side"] == "LONG":
-                                    trade["peak_price"] = max(trade.get("peak_price", 0.0), price)
-                                else:
-                                    trade["peak_price"] = min(trade.get("peak_price", 99999999.0), price)
-                                trade["peak_profit_pct"] = max(trade.get("peak_profit_pct", 0.0), pnl)
-                                log_trade(trade)
-                                continue  # Only skip if it remains PENDING_ENTRY
 
 
                         # Peak Profit tracking
@@ -1359,7 +1308,15 @@ class VanguardOrchestrator:
                             long_conv, short_conv, aligned = self._get_current_conviction(trade["ticker"], trade["side"])
                             conv_score = long_conv if trade["side"] == "LONG" else short_conv
                             
-                            if aligned and conv_score > self.risk_manager.min_conviction:
+                            with self.lock:
+                                scores_df_curr = self.latest_full_scores
+                            is_strong = False
+                            if scores_df_curr is not None and not scores_df_curr.empty:
+                                conv_col = "Long_Conviction" if trade["side"] == "LONG" else "Short_Conviction"
+                                p95_val = scores_df_curr[conv_col].quantile(self.risk_manager.hold_percentile)
+                                is_strong = conv_score >= p95_val
+                                
+                            if aligned and is_strong:
                                 if self.ai_veto_manager.gemini_enabled:
                                     trade["extension_pending"] = True
                                     trade["extension_started"] = now.isoformat()
@@ -1510,8 +1467,7 @@ class VanguardOrchestrator:
                     self.short_eligible_tickers,
                     self._is_in_cooldown,
                     self._is_veto_cooldown,
-                    self.risk_manager.min_conviction,
-                    self.risk_manager.min_raw_score
+                    entry_top_k=self.risk_manager.entry_top_k
                 )
 
                 if not top_signals.empty:

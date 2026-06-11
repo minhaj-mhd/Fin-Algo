@@ -11,8 +11,8 @@ class RiskManager:
         self.day_start_capital = initial_capital
         self.used_margin = 0.0
         self.realized_charges = 0.0
-        self.min_conviction = 0.08
-        self.min_raw_score = 0.08
+        self.entry_top_k = getattr(config, "ENTRY_TOP_K", 5)
+        self.hold_percentile = getattr(config, "HOLD_PERCENTILE", 0.95)
         self.stats_file = config.STATS_FILE
         self._load_virtual_stats()
 

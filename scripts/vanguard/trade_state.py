@@ -26,16 +26,33 @@ class TradeStateManager:
         return False
 
     @staticmethod
-    def check_conviction_gate(conv_score, orig_score, min_conviction=0.08):
-        """Enforces strict conviction gates to prevent entering fading signals."""
-        if orig_score >= min_conviction:
-            if conv_score < 0.10:
-                return False, f"dropped from {orig_score:.4f} to {conv_score:.4f} (Required >= 0.10)"
-        else:
-            required = max(0.05, orig_score - 0.05)
-            if conv_score < (orig_score - 0.05) or conv_score < 0.05:
-                return False, f"faded from {orig_score:.4f} to {conv_score:.4f} (Required >= {required:.2f})"
-        return True, ""
+    def check_candle_direction(side, candle):
+        """Checks if the completed 15-min candle matches the direction on the spot.
+        For LONG: bullish (close > open) OR close is in the upper part of the range (>= 60% of total length from low).
+        For SHORT: bearish (close < open) OR close is in the lower part of the range (<= 40% of total length from low).
+        """
+        if candle is None:
+            return False
+        
+        o = candle.get("open")
+        h = candle.get("high")
+        l = candle.get("low")
+        c = candle.get("close")
+        
+        if o is None or h is None or l is None or c is None:
+            return False
+            
+        length = h - l
+        if length <= 1e-8:
+            return False
+            
+        pos = (c - l) / length
+        
+        if side == "LONG":
+            return (c > o) or (pos >= 0.60)
+        elif side == "SHORT":
+            return (c < o) or (pos <= 0.40)
+        return False
 
     @staticmethod
     def evaluate_open_trade_exit(trade, price, pnl, now):

@@ -10,7 +10,7 @@ from scripts.vanguard import config
 from scripts.terminal_utils import log
 
 class AIVetoManager:
-    def __init__(self, min_conviction=0.08):
+    def __init__(self, min_conviction=0.0):
         self.gemini_enabled = config.GEMINI_ENABLED_DEFAULT
         self.min_conviction = min_conviction
 

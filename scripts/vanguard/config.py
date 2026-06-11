@@ -48,9 +48,13 @@ DEFAULT_LONG_MODEL_NAME = "xgb_long_model.json"
 DEFAULT_SHORT_MODEL_NAME = "xgb_short_model.json"
 DEFAULT_MODEL_NAME = "v2_3_production_xgb"
 
-DAILY_MACRO_LONG_PATH = "models/daily_macro_v3/xgb_long_model.json"
-DAILY_MACRO_SHORT_PATH = "models/daily_macro_v3/xgb_short_model.json"
-DAILY_MACRO_META_PATH = "models/daily_macro_v3/metadata.json"
+DAILY_MACRO_LONG_PATH = "models/daily_macro_v2/xgb_long_model.json"
+DAILY_MACRO_SHORT_PATH = "models/daily_macro_v2/xgb_short_model.json"
+DAILY_MACRO_META_PATH = "models/daily_macro_v2/metadata.json"
+
+# --- Percentile Gating and Recalibration Constants (1H Trades) ---
+ENTRY_TOP_K = 5
+HOLD_PERCENTILE = 0.95
 
 # --- Gemini API Configuration ---
 GEMINI_ENABLED_DEFAULT = True
