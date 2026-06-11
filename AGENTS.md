@@ -98,6 +98,20 @@ Any AI agent operating in this repository must strictly adhere to the following 
 2. **Exploratory Tools**: Outputs from scripts in `scripts/analysis/` or other ad-hoc backtest scripts are for exploratory research only and hold **no verdict authority**. Only the Validation Gauntlet can issue grades or verdicts.
 3. **Registry Integrity**: Model stamps in registry/metadata files may only be written programmatically by `scripts/gauntlet/registry.py` (which calculates the secure SHA-256 stamp checksum). Manual updates or copy-pasting of stamps is prohibited.
 4. **Enforcement Controls**: `GAUNTLET_ENFORCEMENT` resides in `scripts/vanguard/config.py` and must strictly remain in `"warn"` mode. It can only be flipped to `"enforce"` after a successful and user-approved R8 re-baseline campaign.
+5. **Gauntlet runs are not free**: every run is recorded in the ledger and **deflates the t-thresholds for all future runs on that dataset family** (multiple-testing correction). Never launch batch sweeps across many models, or rerun a failed model "to see if it passes", without explicit user approval and a stated new hypothesis. One pre-registered run per hypothesis.
+
+---
+
+## ⚔️ Engineering Discipline (Hard-Learned Rules — each one cost us real damage)
+
+1. **Tests must never touch production state.** Always run tests under the sandbox (`GAUNTLET_ROOT`/tmp paths) and, before finishing, verify nothing under `data/`, `models/`, or the vault was mutated by the test run. *Incident (2026-06-10): the T8 regression test overwrote `v8_upstox_3y`'s production registry stamp with an ephemeral test run-id; an earlier suite polluted the production ledger with 6 test records.*
+2. **Halt-and-report steps are binding, not optional.** When a spec says "if X differs from expectation, halt and report the evidence", an unexplained discrepancy is a *finding* — stamping or continuing silently is a protocol violation. *Incident: R8 stamped v8-long FILTER_GRADE against the spec's DEAD expectation with no documented review; the evidence happened to support the verdict, but nobody knew that until a later audit re-derived it.*
+3. **Never weaken an assertion, tolerance, or threshold to make a build, test, or dataset pass.** If a real dataset fails a guard, that is the guard working. Stop and report.
+4. **Claims require artifacts.** Do not write "verified", "consistent", or "confirmed" in waivers, vault notes, or status summaries unless a script or run actually checked it — and cite it. Waiver text must state what was **NOT** verified. *Incident: a dataset waiver claimed labels were "verified consistent" when no code path had verified them.*
+5. **Windows file-encoding discipline.** PowerShell `Out-File`/`>>` defaults to UTF-16 and corrupts UTF-8 vault files. Always pass `-Encoding utf8`, or (better) use proper file-editing tools instead of shell redirection for any `.md`/`.json`/`.py` content. *Incident: a UTF-16 append destroyed the tail of `Daily Logs/2026-06-10.md`.*
+6. **Repo hygiene before `git add`.** Never stage build artifacts (`catboost_info/`, tree dumps, scratch outputs, `*.tmp`); check whether `.gitignore` needs a rule BEFORE running artifact-producing jobs. Generated files >1 MB need an explicit reason to be tracked.
+7. **Fill your conversation note for real.** A header-only note defeats the entire cross-session memory system. Log decisions, evidence, and `run_id`s as you go — the next agent (and any audit) depends on it.
+8. **Verify inherited claims before building on them.** Metrics, verdicts, or "completed" statuses written by a previous agent are inputs to check (cite the run_id, re-derive the number), not facts to assume.
 
 ---
 *Follow this protocol exactly. Doing so preserves complete intelligence, eliminates errors, and maintains our shared core memory.*

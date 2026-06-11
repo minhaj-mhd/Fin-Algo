@@ -28,6 +28,12 @@ This index is designed to link every major component of the system together, ena
 * **[[02. Model Suite/Model Inference Data Structure|Model Inference Data Structure]]**: Master specification for the feature vector used by `xgb_long_model` and `xgb_short_model` at inference time.
 * **[[02. Model Suite/V8 Microstructure Feature Comparison|V8 Microstructure Feature Comparison]]**: Performance analysis of microstructure features (IBS, Buy Pressure) and the removal of the leaky `Gap_Pct`.
 * **[[02. Model Suite/Advanced Tree Models Roadmap|Advanced Tree Models Roadmap]]**: The 5 advanced techniques (CatBoost, LightGBM, Custom Objectives, Monotonic Constraints, DART) to explore for combating structural fee erosion.
+* **[[02. Model Suite/Cross-Sectional Transformer Architecture Proposal|Cross-Sectional Transformer Proposal]]**: 📋 Research spec for the post-tree-era NN candidate — attention across the 172-ticker universe per timestamp, listwise ranking loss, staged execution plan (Stage-0 XGB falsification first) with pre-registered kill criteria. ⚠️ UNVERIFIED proposal, not built.
+* **[[02. Model Suite/Daily Gatekeeper V2 Rebuild Plan|Daily Gatekeeper V2 Rebuild Plan]]**: 🏛️ D0–D6 spec to replace the DEAD-stamped `daily_xgb`: macro/cross-asset feature blocks (VIX, breadth, overnight global, USDINR), 3-day label, point-in-time decision contract, Gauntlet Criteria v2 (magnitude FILTER alternative + cadence-aware window), then gatekeeper-uplift certification.
+* **[[02. Model Suite/Daily Gatekeeper V2 Rebuild and Certification Report|Daily Gatekeeper V2 Rebuild & Certification Report]]**: 🏛️ Final D0–D6 report detailing V2 (3-day label) model training, standalone certification, and out-of-sample gating uplift.
+* **[[02. Model Suite/Daily Gatekeeper V3 Rebuild and Certification Report|Daily Gatekeeper V3 Rebuild & Certification Report]]**: 🏛️ Final report detailing V3 (1-day label) model training, Gauntlet v2 certification, and downstream gating uplift results.
+* **[[02. Model Suite/Meta-Veto Rectification Plan MV2|Meta-Veto Rectification Plan MV2]]**: 🔁 Rebuild spec after the voided first attempt — coverage-rectified panel (G1: DEV ≥ 12 months), capacity ladder (logistic → shallow GBM → gated small NN, worst-of-3-seeds), mandatory M-DYN dynamic framework, 5 code-level guardrails, elevated re-certification bar (t ≥ 2.5, endpoint sealed at freeze).
+* **[[02. Model Suite/Meta-Veto Stacking Framework Plan|Meta-Veto Stacking Framework Plan]]**: 🧠 M0–M5 spec for the learned combination layer: candidate trade panel from existing preds.npz, orthogonality kill-gate, tiny stacking meta-model (logistic/depth-2) trained DEV-only behind a 2025-01-01 time firewall, single two-part certification run (uplift ≥+3bps t≥2 AND kept trades net-positive at 10bps binding cost), then live ML-veto stage ahead of the Gemini vetoes.
 
 ### 3. Trading Strategies & Friction
 
@@ -68,6 +74,7 @@ This index is designed to link every major component of the system together, ena
 * **[[08. Model Analysis/30-Minute Vanguard Model/Time of Day Conviction|30-Min Time of Day Conviction]]**: Heatmaps revealing 15:15 IST as the primary alpha window for Longs, 14:15 IST for Shorts.
 * **[[08. Model Analysis/30-Minute Vanguard Model/Dual Confirmation Architecture|30-Min Dual-Lock Architecture]]**: Why Dual-Lock adds minimal value for 30-min models (unlike 1-hour).
 * **[[08. Model Analysis/30-Minute Vanguard Model/Weekly Consistency & Regimes|30-Min Weekly Consistency]]**: Week-by-week stability analysis and inverse regime dependency discovery.
+* **[[08. Model Analysis/Dominance Variance Analysis|Dominance & Variance Analysis]]**: Decisive statistical evaluation of scan-level dominance, Shannon entropy, and cross-model agreement as sizing/volatility signals on certified predictions.
 
 ### 10. MCP Integrations
 
