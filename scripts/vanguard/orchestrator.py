@@ -341,7 +341,226 @@ class VanguardOrchestrator:
             df_aligned['Relative_Return']        = df_aligned['Return'] - df_aligned['Market_Mean_Return']
             df_aligned['Market_Mean_Volatility'] = df_aligned.groupby('Query_ID')['HL_Range'].transform('mean')
             df_aligned['Relative_Volatility']    = df_aligned['HL_Range'] / (df_aligned['Market_Mean_Volatility'] + 1e-8)
+
+            # --- Fetch and compute Breadth, Index, and Global Macro features for daily_macro_v3 ---
+            log("[DAILY-SCAN] Fetching indices and macro data from yfinance...")
+            macro_tickers = {
+                "Nifty50": "^NSEI",
+                "Nifty500": "NIFTY500.NS",
+                "VIX": "^INDIAVIX",
+                "SP500": "^GSPC",
+                "NASDAQ": "^IXIC",
+                "NIKKEI": "^N225",
+                "HSI": "^HSI",
+                "USDINR": "USDINR=X",
+                "BRENT": "BZ=F",
+                "GOLD": "GC=F",
+                "DXY": "DX-Y.NYB",
+                "US10Y": "^TNX"
+            }
+            sector_index_tickers = {
+                "NIFTY_BANK": "^NSEBANK",
+                "NIFTY_IT": "^CNXIT",
+                "NIFTY_PHARMA": "^CNXPHARMA",
+                "NIFTY_AUTO": "^CNXAUTO",
+                "NIFTY_METAL": "^CNXMETAL",
+                "NIFTY_FMCG": "^CNXFMCG",
+                "NIFTY_ENERGY": "^CNXENERGY",
+                "NIFTY_REALTY": "^CNXREALTY"
+            }
+            all_download_tickers = {**macro_tickers, **sector_index_tickers}
             
+            try:
+                macro_data = yf.download(
+                    list(all_download_tickers.values()),
+                    period="1y",
+                    interval="1d",
+                    progress=False,
+                    auto_adjust=True,
+                    timeout=20
+                )
+                
+                downloaded_dfs = {}
+                if isinstance(macro_data.columns, pd.MultiIndex):
+                    for key, ticker in all_download_tickers.items():
+                        try:
+                            df_t = macro_data.xs(ticker, level=1, axis=1).dropna()
+                            downloaded_dfs[key] = df_t
+                        except Exception:
+                            downloaded_dfs[key] = pd.DataFrame()
+                else:
+                    downloaded_dfs = {k: pd.DataFrame() for k in all_download_tickers}
+                    
+                # Safe-strip timezone and sort
+                for k in downloaded_dfs:
+                    if not downloaded_dfs[k].empty:
+                        df = downloaded_dfs[k]
+                        if df.index.tz is not None:
+                            df.index = df.index.tz_localize(None)
+                        df = df[~df.index.duplicated(keep='last')].sort_index()
+                        downloaded_dfs[k] = df
+                        
+                # 1. Compute Index Context Features
+                n50 = downloaded_dfs["Nifty50"]
+                if not n50.empty:
+                    n50_close = n50["Close"]
+                    n50_sma_20 = n50_close.rolling(20).mean()
+                    n50_sma_50 = n50_close.rolling(50).mean()
+                    n50_sma_200 = n50_close.rolling(200).mean()
+                    
+                    n50["Nifty50_Dist_SMA_20"] = (n50_close - n50_sma_20) / n50_close
+                    n50["Nifty50_Dist_SMA_50"] = (n50_close - n50_sma_50) / n50_close
+                    n50["Nifty50_Dist_SMA_200"] = (n50_close - n50_sma_200) / n50_close
+                    n50["Nifty50_Return_5D"] = n50_close.pct_change(5)
+                    n50["Nifty50_Return_20D"] = n50_close.pct_change(20)
+                    
+                n500 = downloaded_dfs["Nifty500"]
+                if not n500.empty:
+                    n500_close = n500["Close"]
+                    n500["Nifty500_Return_5D"] = n500_close.pct_change(5)
+                    n500["Nifty500_Return_20D"] = n500_close.pct_change(20)
+                    
+                vix_df = downloaded_dfs["VIX"]
+                if not vix_df.empty:
+                    vix_close = vix_df["Close"]
+                    vix_df["VIX_Level"] = vix_close
+                    vix_df["VIX_Change_5D"] = vix_close - vix_close.shift(5)
+                    vix_df["VIX_Percentile_1Y"] = vix_close.rolling(250).rank(pct=True)
+                    
+                # 2. Compute Global Macro Features
+                for name in ["SP500", "NASDAQ", "NIKKEI", "HSI", "USDINR", "BRENT", "GOLD", "DXY", "US10Y"]:
+                    df_glob = downloaded_dfs[name]
+                    if not df_glob.empty:
+                        close = df_glob["Close"]
+                        if name == "US10Y":
+                            df_glob[f'{name}_Change_5D'] = close - close.shift(5)
+                        else:
+                            df_glob[f'{name}_Change_5D'] = close.pct_change(5)
+                        if name in ["SP500", "NASDAQ", "NIKKEI", "HSI"]:
+                            df_glob[f'{name}_Return_1D'] = close.pct_change(1)
+                            
+                # Join to macro_features_df indexed by recent_dates
+                macro_features_df = pd.DataFrame(index=recent_dates)
+                macro_features_df.index.name = 'DateTime'
+                
+                def join_macro_cols(df_src, cols):
+                    nonlocal macro_features_df
+                    if not df_src.empty:
+                        # Align to recent_dates
+                        df_aligned_src = df_src[cols].reindex(recent_dates).ffill().fillna(0)
+                        macro_features_df = macro_features_df.join(df_aligned_src, how='left')
+                    else:
+                        for c in cols:
+                            macro_features_df[c] = 0.0
+
+                join_macro_cols(n50, ['Nifty50_Dist_SMA_20', 'Nifty50_Dist_SMA_50', 'Nifty50_Dist_SMA_200', 'Nifty50_Return_5D', 'Nifty50_Return_20D'])
+                join_macro_cols(n500, ['Nifty500_Return_5D', 'Nifty500_Return_20D'])
+                join_macro_cols(vix_df, ['VIX_Level', 'VIX_Change_5D', 'VIX_Percentile_1Y'])
+                
+                for name in ["SP500", "NASDAQ", "NIKKEI", "HSI"]:
+                    join_macro_cols(downloaded_dfs[name], [f'{name}_Return_1D', f'{name}_Change_5D'])
+                for name in ["USDINR", "BRENT", "GOLD", "DXY", "US10Y"]:
+                    join_macro_cols(downloaded_dfs[name], [f'{name}_Change_5D'])
+                    
+                # 3. Compute Sector Relative Strength Features
+                sector_returns_5d = {}
+                sector_returns_20d = {}
+                for name in sector_index_tickers.keys():
+                    df_sec = downloaded_dfs[name]
+                    if not df_sec.empty:
+                        sector_returns_5d[name] = df_sec["Close"].pct_change(5)
+                        sector_returns_20d[name] = df_sec["Close"].pct_change(20)
+                    else:
+                        sector_returns_5d[name] = pd.Series(0.0, index=recent_dates)
+                        sector_returns_20d[name] = pd.Series(0.0, index=recent_dates)
+                        
+                df_n500 = downloaded_dfs["Nifty500"]
+                if not df_n500.empty:
+                    sector_returns_5d["NIFTY_500"] = df_n500["Close"].pct_change(5)
+                    sector_returns_20d["NIFTY_500"] = df_n500["Close"].pct_change(20)
+                else:
+                    sector_returns_5d["NIFTY_500"] = pd.Series(0.0, index=recent_dates)
+                    sector_returns_20d["NIFTY_500"] = pd.Series(0.0, index=recent_dates)
+                    
+                aligned_sector_5d = {}
+                aligned_sector_20d = {}
+                for name in list(sector_index_tickers.keys()) + ["NIFTY_500"]:
+                    aligned_sector_5d[name] = sector_returns_5d[name].reindex(recent_dates).ffill().fillna(0)
+                    aligned_sector_20d[name] = sector_returns_20d[name].reindex(recent_dates).ffill().fillna(0)
+                    
+                from scripts.sector_map import SECTOR_MAP
+                SECTOR_TO_INDEX = {
+                    "BANK": "NIFTY_BANK", "IT": "NIFTY_IT", "PHARMA": "NIFTY_PHARMA",
+                    "AUTO": "NIFTY_AUTO", "METAL": "NIFTY_METAL", "ENERGY": "NIFTY_ENERGY",
+                    "FMCG": "NIFTY_FMCG", "REALTY": "NIFTY_REALTY", "FINANCE": "NIFTY_BANK",
+                    "CEMENT": "NIFTY_500", "INFRA": "NIFTY_500", "CHEMICAL": "NIFTY_500",
+                    "CONSUMER": "NIFTY_500", "TELECOM": "NIFTY_500", "DEFENCE": "NIFTY_500",
+                    "MISC": "NIFTY_500"
+                }
+                
+                sector_strength_5d_list = []
+                sector_strength_20d_list = []
+                for idx, row in df_aligned.iterrows():
+                    ticker = row['Ticker']
+                    dt = row['DateTime']
+                    sector = SECTOR_MAP.get(ticker, "MISC")
+                    sector_idx = SECTOR_TO_INDEX.get(sector, "NIFTY_500")
+                    
+                    sec_ret_5d = aligned_sector_5d[sector_idx].get(dt, 0.0)
+                    sec_ret_20d = aligned_sector_20d[sector_idx].get(dt, 0.0)
+                    
+                    sector_strength_5d_list.append(row['Return_5D'] - sec_ret_5d)
+                    sector_strength_20d_list.append(row['Return_20D'] - sec_ret_20d)
+                    
+                df_aligned['Sector_Relative_Strength_5D'] = sector_strength_5d_list
+                df_aligned['Sector_Relative_Strength_20D'] = sector_strength_20d_list
+                
+                # Merge macro features
+                df_aligned = df_aligned.merge(macro_features_df.reset_index(), on='DateTime', how='left')
+                
+            except Exception as macro_err:
+                log(f"[DAILY-SCAN] Error fetching or computing macro features: {macro_err}. Filling with zeros.")
+                for col in ['Nifty50_Dist_SMA_20', 'Nifty50_Dist_SMA_50', 'Nifty50_Dist_SMA_200', 'Nifty50_Return_5D', 'Nifty50_Return_20D',
+                            'Nifty500_Return_5D', 'Nifty500_Return_20D', 'VIX_Level', 'VIX_Change_5D', 'VIX_Percentile_1Y',
+                            'SP500_Return_1D', 'SP500_Change_5D', 'NASDAQ_Return_1D', 'NASDAQ_Change_5D', 'NIKKEI_Return_1D',
+                            'NIKKEI_Change_5D', 'HSI_Return_1D', 'HSI_Change_5D', 'USDINR_Change_5D', 'BRENT_Change_5D',
+                            'GOLD_Change_5D', 'DXY_Change_5D', 'US10Y_Change_5D', 'Sector_Relative_Strength_5D', 'Sector_Relative_Strength_20D']:
+                    df_aligned[col] = 0.0
+                    
+            # 4. Compute Breadth Features (Local)
+            try:
+                breadth_AD_Ratio = {}
+                breadth_Pct_Above_SMA_50 = {}
+                breadth_Pct_Above_SMA_200 = {}
+                breadth_Pct_Near_52W_High = {}
+                breadth_Return_Dispersion = {}
+                
+                for dt, group in df_aligned.groupby('DateTime'):
+                    advances = (group['Return'] > 0).sum()
+                    declines = (group['Return'] < 0).sum()
+                    ad_ratio = advances / (declines + 1e-8)
+                    
+                    pct_above_50 = (group['Dist_SMA_50'] > 0).mean()
+                    pct_above_200 = (group['Dist_SMA_200'] > 0).mean()
+                    pct_near_52w = (group['Dist_52W_High'] > -0.05).mean()
+                    dispersion = group['Return'].std()
+                    
+                    breadth_AD_Ratio[dt] = ad_ratio
+                    breadth_Pct_Above_SMA_50[dt] = pct_above_50
+                    breadth_Pct_Above_SMA_200[dt] = pct_above_200
+                    breadth_Pct_Near_52W_High[dt] = pct_near_52w
+                    breadth_Return_Dispersion[dt] = dispersion
+                    
+                df_aligned['Breadth_AD_Ratio'] = df_aligned['DateTime'].map(breadth_AD_Ratio)
+                df_aligned['Breadth_Pct_Above_SMA_50'] = df_aligned['DateTime'].map(breadth_Pct_Above_SMA_50)
+                df_aligned['Breadth_Pct_Above_SMA_200'] = df_aligned['DateTime'].map(breadth_Pct_Above_SMA_200)
+                df_aligned['Breadth_Pct_Near_52W_High'] = df_aligned['DateTime'].map(breadth_Pct_Near_52W_High)
+                df_aligned['Breadth_Return_Dispersion'] = df_aligned['DateTime'].map(breadth_Return_Dispersion)
+                
+            except Exception as breadth_err:
+                log(f"[DAILY-SCAN] Error calculating local breadth features: {breadth_err}. Filling with zeros.")
+                for col in ['Breadth_AD_Ratio', 'Breadth_Pct_Above_SMA_50', 'Breadth_Pct_Above_SMA_200', 'Breadth_Pct_Near_52W_High', 'Breadth_Return_Dispersion']:
+                    df_aligned[col] = 0.0
 
             df_aligned[self.model_manager.daily_feature_cols] = df_aligned[self.model_manager.daily_feature_cols].fillna(0)
             df_aligned = df_aligned.sort_values(['Ticker', 'DateTime']).reset_index(drop=True)
@@ -712,7 +931,8 @@ class VanguardOrchestrator:
             except Exception:
                 return None
 
-        is_legacy = not any(str(self.model_manager.active_model_name).startswith(p) for p in ["v6", "v7", "v8", "v9"])
+        non_legacy_prefixes = ["v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19"]
+        is_legacy = not any(str(self.model_manager.active_model_name).startswith(p) for p in non_legacy_prefixes)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             future_to_ticker = {
