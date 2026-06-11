@@ -1,0 +1,221 @@
+{
+  "n_folds": 9,
+  "oos_rows": 320931,
+  "test_span": "2023-07..2026-06",
+  "periods": {
+    "full_2023-07+": {
+      "rows": 320931,
+      "configs": {
+        "V10_alone": {
+          "6bps": {
+            "long": {
+              "n": 5601,
+              "raw_bps": 2.6,
+              "net_bps": -3.4,
+              "raw_win": 0.5162,
+              "t_stat": -4.41
+            },
+            "short": {
+              "n": 5601,
+              "raw_bps": 3.5,
+              "net_bps": -2.5,
+              "raw_win": 0.5488,
+              "t_stat": -2.04
+            }
+          },
+          "10bps": {
+            "long": {
+              "n": 5601,
+              "raw_bps": 2.6,
+              "net_bps": -7.4,
+              "raw_win": 0.5162,
+              "t_stat": -9.63
+            },
+            "short": {
+              "n": 5601,
+              "raw_bps": 3.5,
+              "net_bps": -6.5,
+              "raw_win": 0.5488,
+              "t_stat": -5.24
+            }
+          }
+        },
+        "hybrid_symmetric": {
+          "6bps": {
+            "long": {
+              "n": 1838,
+              "raw_bps": 4.8,
+              "net_bps": -1.2,
+              "raw_win": 0.5316,
+              "t_stat": -0.82
+            },
+            "short": {
+              "n": 2121,
+              "raw_bps": 4.4,
+              "net_bps": -1.6,
+              "raw_win": 0.5441,
+              "t_stat": -0.82
+            }
+          },
+          "10bps": {
+            "long": {
+              "n": 1838,
+              "raw_bps": 4.8,
+              "net_bps": -5.2,
+              "raw_win": 0.5316,
+              "t_stat": -3.52
+            },
+            "short": {
+              "n": 2121,
+              "raw_bps": 4.4,
+              "net_bps": -5.6,
+              "raw_win": 0.5441,
+              "t_stat": -2.84
+            }
+          }
+        },
+        "asymmetric": {
+          "6bps": {
+            "long": {
+              "n": 1838,
+              "raw_bps": 4.8,
+              "net_bps": -1.2,
+              "raw_win": 0.5316,
+              "t_stat": -0.82
+            },
+            "short": {
+              "n": 5601,
+              "raw_bps": 3.5,
+              "net_bps": -2.5,
+              "raw_win": 0.5488,
+              "t_stat": -2.04
+            }
+          },
+          "10bps": {
+            "long": {
+              "n": 1838,
+              "raw_bps": 4.8,
+              "net_bps": -5.2,
+              "raw_win": 0.5316,
+              "t_stat": -3.52
+            },
+            "short": {
+              "n": 5601,
+              "raw_bps": 3.5,
+              "net_bps": -6.5,
+              "raw_win": 0.5488,
+              "t_stat": -5.24
+            }
+          }
+        }
+      }
+    },
+    "common_OOS_2025-07+": {
+      "rows": 104902,
+      "configs": {
+        "V10_alone": {
+          "6bps": {
+            "long": {
+              "n": 1830,
+              "raw_bps": 0.9,
+              "net_bps": -5.1,
+              "raw_win": 0.5016,
+              "t_stat": -3.92
+            },
+            "short": {
+              "n": 1830,
+              "raw_bps": 1.9,
+              "net_bps": -4.1,
+              "raw_win": 0.5443,
+              "t_stat": -2.0
+            }
+          },
+          "10bps": {
+            "long": {
+              "n": 1830,
+              "raw_bps": 0.9,
+              "net_bps": -9.1,
+              "raw_win": 0.5016,
+              "t_stat": -7.0
+            },
+            "short": {
+              "n": 1830,
+              "raw_bps": 1.9,
+              "net_bps": -8.1,
+              "raw_win": 0.5443,
+              "t_stat": -3.94
+            }
+          }
+        },
+        "hybrid_symmetric": {
+          "6bps": {
+            "long": {
+              "n": 488,
+              "raw_bps": 3.2,
+              "net_bps": -2.8,
+              "raw_win": 0.5,
+              "t_stat": -1.0
+            },
+            "short": {
+              "n": 684,
+              "raw_bps": 1.1,
+              "net_bps": -4.9,
+              "raw_win": 0.519,
+              "t_stat": -1.65
+            }
+          },
+          "10bps": {
+            "long": {
+              "n": 488,
+              "raw_bps": 3.2,
+              "net_bps": -6.8,
+              "raw_win": 0.5,
+              "t_stat": -2.43
+            },
+            "short": {
+              "n": 684,
+              "raw_bps": 1.1,
+              "net_bps": -8.9,
+              "raw_win": 0.519,
+              "t_stat": -3.01
+            }
+          }
+        },
+        "asymmetric": {
+          "6bps": {
+            "long": {
+              "n": 488,
+              "raw_bps": 3.2,
+              "net_bps": -2.8,
+              "raw_win": 0.5,
+              "t_stat": -1.0
+            },
+            "short": {
+              "n": 1830,
+              "raw_bps": 1.9,
+              "net_bps": -4.1,
+              "raw_win": 0.5443,
+              "t_stat": -2.0
+            }
+          },
+          "10bps": {
+            "long": {
+              "n": 488,
+              "raw_bps": 3.2,
+              "net_bps": -6.8,
+              "raw_win": 0.5,
+              "t_stat": -2.43
+            },
+            "short": {
+              "n": 1830,
+              "raw_bps": 1.9,
+              "net_bps": -8.1,
+              "raw_win": 0.5443,
+              "t_stat": -3.94
+            }
+          }
+        }
+      }
+    }
+  }
+}

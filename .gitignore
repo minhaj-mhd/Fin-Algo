@@ -2,19 +2,34 @@ env/
 venv/
 *.pyc
 __pycache__/
+.ipynb_checkpoints/
+.pytest_cache/
 data/ranking_data_full.csv
 ranking_data_full.csv
 .env
 *.db
+*.sqlite
 data/*.db
 data/latest_scores.json
+upstox_stats.json
 
-# Large datasets, logs, and caches
+# Logs
+*.log
+data/vanguard_system.log
+
+# Large datasets and caches
 data/*.csv
 data/historical/
 data/raw_upstox_cache*/
 data/raw_upstox_daily_cache/
-data/vanguard_system.log
 
 # Temporary files
 scratch/
+
+# Root-level research notebooks
+/*.ipynb
+
+# Gauntlet cache and predictions
+data/gauntlet/_cache/
+data/gauntlet/*/preds.npz
+

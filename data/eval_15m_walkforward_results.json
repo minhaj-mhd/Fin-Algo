@@ -1,0 +1,72 @@
+{
+  "model": "15m_pairwise_walkforward",
+  "data": "data/ranking_data_upstox_15min_3y_clean.csv",
+  "cost_bps": 10,
+  "top_k": 5,
+  "trained_at": "2026-06-08T17:39:24.339094",
+  "summary": {
+    "avg_long_net_bps": -7.132,
+    "avg_short_net_bps": -12.854,
+    "avg_long_hit_rate": 0.3535,
+    "avg_long_wr_vs_med": 0.5683,
+    "avg_long_spearman": 0.0586,
+    "profitable_folds": 0,
+    "total_folds": 6
+  },
+  "folds": [
+    {
+      "fold": 1,
+      "long_net_bps": -7.85,
+      "long_hit_rate": 0.3649,
+      "long_wr_vs_med": 0.5647,
+      "long_rho": 0.0613,
+      "short_net_bps": -13.14,
+      "n_queries": 1032
+    },
+    {
+      "fold": 2,
+      "long_net_bps": -7.74,
+      "long_hit_rate": 0.372,
+      "long_wr_vs_med": 0.5465,
+      "long_rho": 0.053,
+      "short_net_bps": -14.73,
+      "n_queries": 792
+    },
+    {
+      "fold": 3,
+      "long_net_bps": -6.65,
+      "long_hit_rate": 0.3476,
+      "long_wr_vs_med": 0.576,
+      "long_rho": 0.0685,
+      "short_net_bps": -12.23,
+      "n_queries": 1008
+    },
+    {
+      "fold": 4,
+      "long_net_bps": -7.28,
+      "long_hit_rate": 0.3139,
+      "long_wr_vs_med": 0.5765,
+      "long_rho": 0.0658,
+      "short_net_bps": -13.35,
+      "n_queries": 1011
+    },
+    {
+      "fold": 5,
+      "long_net_bps": -6.81,
+      "long_hit_rate": 0.3611,
+      "long_wr_vs_med": 0.5706,
+      "long_rho": 0.0503,
+      "short_net_bps": -11.98,
+      "n_queries": 864
+    },
+    {
+      "fold": 6,
+      "long_net_bps": -6.47,
+      "long_hit_rate": 0.3616,
+      "long_wr_vs_med": 0.5754,
+      "long_rho": 0.0525,
+      "short_net_bps": -11.68,
+      "n_queries": 552
+    }
+  ]
+}

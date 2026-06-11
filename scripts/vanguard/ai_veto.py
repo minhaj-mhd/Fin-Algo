@@ -10,12 +10,13 @@ from scripts.vanguard import config
 from scripts.terminal_utils import log
 
 class AIVetoManager:
-    def __init__(self, min_conviction=config.MIN_CONVICTION):
+    def __init__(self, min_conviction=0.08):
         self.gemini_enabled = config.GEMINI_ENABLED_DEFAULT
         self.min_conviction = min_conviction
 
         # Rotation State
-        self.s1_model_tiers = config.GEMINI_MODEL_TIERS
+        self.s1_model_tiers = getattr(config, "GEMINI_S1_MODEL_TIERS", config.GEMINI_MODEL_TIERS)
+        self.s2_model_tiers = getattr(config, "GEMINI_S2_MODEL_TIERS", config.GEMINI_MODEL_TIERS)
         self.s1_active_tier_idx = 0
         self.s1_active_key_idx = 0
 
@@ -92,6 +93,16 @@ class AIVetoManager:
         if not text:
             return {}
         text = text.strip()
+
+        # Support robust plain-text block parsing for Lite models
+        if "[VETO_DECISION]" in text or "[FINAL_SENTIMENT]" in text or "[NEWS_FOUND]" in text:
+            extracted = {}
+            matches = re.finditer(r'\[([A-Z_]+)\]\s*(.*?)(?=\s*\[[A-Z_]+\]|$)', text, re.DOTALL)
+            for m in matches:
+                extracted[m.group(1).lower()] = m.group(2).strip()
+            if extracted and any(k in extracted for k in ("veto_decision", "final_sentiment", "chain_of_thought")):
+                log(f"[BLOCK-RECOVERY] Extracted {len(extracted)} keys via robust block parsing.")
+                return extracted
 
         fence_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
         if fence_match:
@@ -455,24 +466,22 @@ RULE 4 — NO NEWS = PASS:
 ════════════════════════════════════════════════════════════════
 STEP 3 — FINAL OUTPUT
 ════════════════════════════════════════════════════════════════
-Output STRICT JSON only — absolutely no markdown, no extra text, no commentary:
-{{
-  "news_found": "Brief description of Bucket A and B news, or 'No material catalyst found'",
-  "chain_of_thought": "does the news CONFIRM, CONTRADICT, or is NEUTRAL to the {side} technical signal?",
-  "structural_bias": "BULLISH|BEARISH|NEUTRAL",
-  "veto_decision": "TRUE|FALSE",
-  "veto_rule_triggered": "RULE 1|RULE 2|RULE 3|RULE 4|NONE",
-  "final_sentiment": "STRONG BULLISH|BULLISH|NEUTRAL|BEARISH|STRONG BEARISH",
-  "support_resistance_risk": "HIGH|MEDIUM|LOW",
-  "probability": "XX%",
-  "risk_factor": "the one most likely reason this trade fails"
-}}
+Output your response strictly in the following plain-text format (Do NOT use JSON or markdown):
+[NEWS_FOUND] Brief description of Bucket A and B news, or 'No material catalyst found'
+[CHAIN_OF_THOUGHT] does the news CONFIRM, CONTRADICT, or is NEUTRAL to the technical signal?
+[STRUCTURAL_BIAS] BULLISH | BEARISH | NEUTRAL
+[VETO_DECISION] TRUE | FALSE
+[VETO_RULE_TRIGGERED] RULE 1 | RULE 2 | RULE 3 | RULE 4 | NONE
+[FINAL_SENTIMENT] STRONG BULLISH | BULLISH | NEUTRAL | BEARISH | STRONG BEARISH
+[SUPPORT_RESISTANCE_RISK] HIGH | MEDIUM | LOW
+[PROBABILITY] XX%
+[RISK_FACTOR] the one most likely reason this trade fails
 """
 
         stage2_success = False
         sent2, final_reason, prob2 = "SYSTEM_ERROR", "[L2-FAILED] Layer 2 search audit failed.", "N/A"
         
-        for model_name in self.s1_model_tiers:
+        for model_name in self.s2_model_tiers:
             try:
                 log(f"[S2] Attempting {model_name} via rotator for {ticker}...")
                 def run_s2(client):
@@ -490,6 +499,7 @@ Output STRICT JSON only — absolutely no markdown, no extra text, no commentary
 
                 if not data2 or not any(k in data2 for k in ("veto_decision", "final_sentiment", "chain_of_thought")):
                     log(f"[L2-EMPTY] Stage 2 returned empty/unparseable JSON for {ticker} (using {model_name}).")
+                    log(f"[L2-DEBUG] Raw output snippet: {resp2_text[:300]}...")
                     continue
 
                 news_found = data2.get("news_found", "N/A")

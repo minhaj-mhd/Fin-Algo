@@ -18,7 +18,8 @@ rotator = GeminiRotator()
 # Global broker instance for intelligence (uses Analytics token)
 broker = UpstoxSandboxBroker()
 
-DEFAULT_MODEL = "gemini-2.5-flash"
+# Gemini Configuration
+DEFAULT_MODEL = "gemini-3.5-flash"
 
 import re
 

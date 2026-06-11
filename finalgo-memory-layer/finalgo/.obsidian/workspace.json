@@ -41,12 +41,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "01. Core Architecture/Validation Gauntlet Remediation Plan.md",
+                "file": "tasks.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Validation Gauntlet Remediation Plan"
+              "title": "tasks"
             }
           }
         ],
@@ -214,6 +214,9 @@
   },
   "active": "08024666b22b56ac",
   "lastOpenFiles": [
+    "06. Context & Logs/Conversations/Conv-2026-06-10-Signal-Layer-Rectification-Plan.md.tmp.24984.45d026a49f06",
+    "to remove.md",
+    "01. Core Architecture/Validation Gauntlet Remediation Plan.md",
     "06. Context & Logs/Conversations/Conv-2026-06-10-Validation-Gauntlet-Remediation-Resumed.md",
     "06. Context & Logs/Conversations/Conv-2026-06-10-Validation-Gauntlet-Remediation-Execution.md",
     "06. Context & Logs/Conversations/Conv-2026-06-10-Signal-Layer-Rectification-Plan.md",
@@ -223,7 +226,6 @@
     "06. Context & Logs/Conversations/Conv-2026-06-10-Signal-Layer-Rectification-Plan.md.tmp.24984.acc3837b000a",
     "06. Context & Logs/Current Context.md.tmp.24984.29d0eaa39fb0",
     "Welcome.md.tmp.24984.ef5032c2623e",
-    "01. Core Architecture/Validation Gauntlet Remediation Plan.md",
     "01. Core Architecture/Validation Gauntlet Architecture.md",
     "01. Core Architecture/Vanguard System Features.md",
     "06. Context & Logs/Conversations/Conv-2026-06-10-Validation-Gauntlet-Completion.md",
@@ -248,8 +250,6 @@
     "06. Context & Logs/Conversations/Conv-2026-06-09-V10-V18-Performance-Query.md",
     "06. Context & Logs/Conversations/Conv-2026-06-09-Holiday-Trading-Check.md",
     "08. Model Analysis/1-Hour Vanguard Model/V10_V18_Independent_Findings.md",
-    "02. Model Suite/Model Performance & Statistics.md",
-    "06. Context & Logs/Conversations/Conv-2026-06-09-Jupyter-MCP-Clean-Start.md",
     "08. Model Analysis/1-Hour Vanguard Model/assets/1Hour_Short_importance_gain.png",
     "08. Model Analysis/1-Hour Vanguard Model/assets/1Hour_Long_importance_weight.png",
     "08. Model Analysis/1-Hour Vanguard Model/assets/1Hour_Long_importance_gain.png",

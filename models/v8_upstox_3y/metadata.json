@@ -115,7 +115,7 @@
   },
   "trained_at": "2026-05-28T19:34:00.481988",
   "gauntlet": {
-    "run_id": "run_t8_regression",
+    "run_id": "20260610T092549Z-5f7d069f",
     "verdict": {
       "long": "FILTER_GRADE",
       "short": "FILTER_GRADE"
@@ -125,7 +125,7 @@
     "config_hash": "5f7d069f151d620562bd44c2ee291f125e0fadbe523c09aac8b91b655e77ce2f",
     "git_commit": "65acdc6424858d96bd1832310254c1c78a5d16ac",
     "evaluated_at": "2026-06-10",
-    "checksum": "3f401fa9048b5420a16ab3abc7afb6901df6f0f75bcbdf6b4c262948d6d23fdb",
+    "checksum": "c178b17dbfbd185db804ca0ac62eb381505e1498679e58c9c8c735b898f5ef07",
     "pct_unverifiable": 0.0003685035094033045,
     "unverified_label_waiver_reason": "Pre-drop 14:15 target bars omitted from 3y training file but verified consistent."
   }

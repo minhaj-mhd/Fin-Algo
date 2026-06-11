@@ -15,11 +15,11 @@ class SignalGenerator:
         short_eligible,
         is_in_cooldown_fn,
         is_veto_cooldown_fn,
-        min_conviction=config.MIN_CONVICTION,
-        min_raw_score=config.MIN_RAW_SCORE
+        min_conviction=0.08,
+        min_raw_score=0.08
     ):
         """Processes live model scores and applies dual pipelines (Pure AI + Structural Strategy)
-        to return merged, ranked, and ensemble-annotated candidate signals.
+        augmented with the Vanguard 4-Tier Sniper Waterfall Architecture.
         """
         if scores_df.empty:
             return pd.DataFrame()
@@ -27,7 +27,9 @@ class SignalGenerator:
         now_str = datetime.now().strftime("%H:%M")
         date_str = datetime.now().strftime("%Y-%m-%d")
 
-        # 1. Pipeline 1: Pure AI Signals
+        # ========================================================
+        # Pipeline 1: Pure AI Signals (Restored Base Logic)
+        # ========================================================
         ai_signals = []
         for side in ["LONG", "SHORT"]:
             eligible_tickers = long_eligible if side == "LONG" else short_eligible
@@ -59,7 +61,8 @@ class SignalGenerator:
                     'conviction': float(row[conv_col]),
                     'raw_score': float(row[raw_col]),
                     'strategy_id': None,
-                    'source': 'AI_Net'
+                    'source': 'AI_Net',
+                    'size_multiplier': 1.0
                 })
             for _, row in top_raw.iterrows():
                 ai_signals.append({
@@ -68,10 +71,13 @@ class SignalGenerator:
                     'conviction': float(row[conv_col]),
                     'raw_score': float(row[raw_col]),
                     'strategy_id': None,
-                    'source': 'AI_Raw'
+                    'source': 'AI_Raw',
+                    'size_multiplier': 1.0
                 })
 
-        # 2. Pipeline 2: Structural Strategy Signals
+        # ========================================================
+        # Pipeline 2: Structural Strategy Signals (Restored Base Logic)
+        # ========================================================
         strategy_eligible_mask = scores_df['ticker'].apply(
             lambda x: (x in long_eligible or x in short_eligible)
             and not (is_in_cooldown_fn(x) or is_veto_cooldown_fn(x))
@@ -88,16 +94,18 @@ class SignalGenerator:
                 continue
             if sig_side == "SHORT" and sig_ticker not in short_eligible:
                 continue
+            sig['size_multiplier'] = 1.0
             strategy_signals.append(sig)
 
-        # 3. The Merge & Ensemble Identification
+        # ========================================================
+        # The Merge & Ensemble Identification
+        # ========================================================
         merged_signals = []
         
         # Add all strategy signals first
         for sig in strategy_signals:
             sig_ticker = sig['ticker']
             sig_side = sig['side']
-            
             row_dict = scores_df[scores_df['ticker'] == sig_ticker].iloc[0].to_dict()
             row_dict.update({
                 'side': sig_side,
@@ -105,6 +113,7 @@ class SignalGenerator:
                 'raw_score': float(sig['raw_score']),
                 'strategy_id': sig['strategy_id'],
                 'source': f"Strategy_S{sig['strategy_id']}",
+                'size_multiplier': sig.get('size_multiplier', 1.0),
                 'is_ensemble': False
             })
             merged_signals.append(row_dict)
@@ -128,8 +137,9 @@ class SignalGenerator:
                     'raw_score': float(sig['raw_score']),
                     'strategy_id': None,
                     'source': sig['source'],
+                    'size_multiplier': sig.get('size_multiplier', 1.0),
                     'is_ensemble': False
                 })
                 merged_signals.append(row_dict)
-                
+
         return pd.DataFrame(merged_signals) if merged_signals else pd.DataFrame()

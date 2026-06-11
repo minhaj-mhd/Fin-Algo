@@ -19,6 +19,14 @@ The Obsidian vault is organized into six highly structured categories:
 
 ---
 
+## 🛠️ MCP Tool Utilization
+
+When working in this repository, you have access to specific MCP (Model Context Protocol) tools. You **MUST** prioritize using these tools for their respective domains to ensure standardized operations:
+- **SQLite Tasks**: Use the `sqlite` server tools (`read_query`, `write_query`, `list_tables`, `describe_table`, `create_table`, `append_insight`) for any direct database queries and manipulations rather than writing custom Python scripts to interact with SQLite.
+- **Jupyter Notebook Tasks**: Use the `jupyter` server tools (`query_notebook`, `modify_notebook_cells`, `execute_notebook_code`, `setup_notebook`) when reading, writing, or running cells in Jupyter Notebooks.
+
+---
+
 ## 🔄 The 4-Phase Agent Continuity Protocol
 
 You MUST execute your work in four distinct phases:
@@ -82,4 +90,15 @@ Before concluding your conversation or concluding your turn, you **MUST** save t
 5. **Archive Conversation**: After a successful commit, append the compacted conversation summary into the current day's Daily Log file (e.g., `Daily Logs/YYYY-MM-DD.md`) and delete the original conversation file from the `Conversations/` directory. This completely wipes the active context clean and prevents clutter.
 
 ---
+
+## 🛡️ Model Metric Discipline
+
+Any AI agent operating in this repository must strictly adhere to the following evaluation and metric rules:
+1. **Gauntlet Citations Mandatory**: Any model performance metric written to the vault, the model registry, or the README **MUST** cite a valid Gauntlet `run_id`. Any metrics mentioned without a citation must be clearly labeled `⚠️ UNVERIFIED`.
+2. **Exploratory Tools**: Outputs from scripts in `scripts/analysis/` or other ad-hoc backtest scripts are for exploratory research only and hold **no verdict authority**. Only the Validation Gauntlet can issue grades or verdicts.
+3. **Registry Integrity**: Model stamps in registry/metadata files may only be written programmatically by `scripts/gauntlet/registry.py` (which calculates the secure SHA-256 stamp checksum). Manual updates or copy-pasting of stamps is prohibited.
+4. **Enforcement Controls**: `GAUNTLET_ENFORCEMENT` resides in `scripts/vanguard/config.py` and must strictly remain in `"warn"` mode. It can only be flipped to `"enforce"` after a successful and user-approved R8 re-baseline campaign.
+
+---
 *Follow this protocol exactly. Doing so preserves complete intelligence, eliminates errors, and maintains our shared core memory.*
+

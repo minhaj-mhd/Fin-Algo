@@ -46,6 +46,14 @@ def test_calculate_conviction_scores_concurrency(mock_dependencies, mocker):
     
     # Mock save_latest_scores so it doesn't write to disk
     mocker.patch("scripts.vanguard.orchestrator.save_latest_scores")
+
+    # Mock only the 0.3s rate-limit sleep inside the orchestrator
+    original_sleep = time.sleep
+    def filtered_sleep(seconds):
+        if seconds == 0.3:
+            return
+        original_sleep(seconds)
+    mocker.patch("time.sleep", side_effect=filtered_sleep)
     
     # 20 tickers
     test_tickers = [f"TICKER_{i}" for i in range(20)]

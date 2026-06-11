@@ -1,0 +1,15 @@
+{
+  "holdout_test_span": "2025-07 -> 2026-06",
+  "n_test_queries": 1083,
+  "long_rho_OOS": 0.019078678976438872,
+  "short_rho_OOS": 0.014148118173647776,
+  "long_prec@1": 0.5401662049861495,
+  "long_prec@3": 0.5306248076331179,
+  "long_prec@5": 0.532409972299169,
+  "short_prec@3": 0.5373961218836565,
+  "avg_top3_long_return_RAW_pct": 0.02715204094045819,
+  "avg_market_mean_return_pct": 0.003925381414335316,
+  "avg_top3_long_DEMEANED_pct": 0.023226659526122864,
+  "demeaned_edge_bps": 2.3226659526122866,
+  "net_after_10bps_cost_bps": -7.677334047387713
+}

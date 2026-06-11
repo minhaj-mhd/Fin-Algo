@@ -1,1 +1,33 @@
-{"current_index": 1}
+{
+    "current_index": 1,
+    "stats": {
+        "AIzaSyC0...Vkdo": {
+            "success": 22,
+            "fail": 97
+        },
+        "AIzaSyAV...Luu4": {
+            "success": 24,
+            "fail": 94
+        },
+        "AQ.Ab8RN...h2_A": {
+            "success": 11,
+            "fail": 74
+        },
+        "AIzaSyBG...zUGU": {
+            "success": 19,
+            "fail": 102
+        },
+        "AIzaSyAO...Imsg": {
+            "success": 29,
+            "fail": 89
+        },
+        "AQ.Ab8RN...rXDA": {
+            "success": 26,
+            "fail": 90
+        },
+        "AQ.Ab8RN...akBA": {
+            "success": 18,
+            "fail": 76
+        }
+    }
+}

@@ -72,6 +72,34 @@ class ModelManager:
             else:
                 raise FileNotFoundError(f"Metadata file not found: {resolved_meta}")
 
+            # Validation Gauntlet Verification Guard
+            try:
+                from scripts.gauntlet.registry import verify_model_stamp
+                model_dir = os.path.dirname(long_model_path)
+                verification = verify_model_stamp(model_dir)
+                
+                if not verification["valid"]:
+                    msg = f"[GAUNTLET] WARNING: Model '{self.active_model_name}' failed stamp verification: {verification['reason']}"
+                    log(msg)
+                    if config.GAUNTLET_ENFORCEMENT == "enforce":
+                        log("[GAUNTLET] CRITICAL: Hard enforcement enabled. Refusing to load model. Exiting.")
+                        sys.exit(1)
+                else:
+                    verdict = verification["verdict"]
+                    log(f"[GAUNTLET] OK: Model verified. Verdicts: Long={verdict['long']}, Short={verdict['short']}")
+                    for side in ["long", "short"]:
+                        grade = verdict[side]
+                        if grade == "DEAD":
+                            log(f"[GAUNTLET] WARNING: {side.upper()} side is DEAD according to gauntlet stamp.")
+                            if config.GAUNTLET_ENFORCEMENT == "enforce":
+                                log(f"[GAUNTLET] CRITICAL: {side.upper()} side is DEAD. Enforcement enabled. Exiting.")
+                                sys.exit(1)
+            except Exception as guard_err:
+                log(f"[GAUNTLET] WARNING: Failed to execute gauntlet guard verification: {guard_err}")
+                if config.GAUNTLET_ENFORCEMENT == "enforce":
+                    log("[GAUNTLET] CRITICAL: Enforcement enabled but guard crashed. Exiting.")
+                    sys.exit(1)
+
         except Exception as e:
             log(f"[ERROR] Critical ML Model Load Error: {e}")
             sys.exit(1)
@@ -107,15 +135,15 @@ class ModelManager:
             
             # 15m
             self.tf_15m_long = xgb.Booster()
-            self.tf_15m_long.load_model("models/v1_15min/xgb_long_model.json")
+            self.tf_15m_long.load_model("models/v3_15min_clean/xgb_long_model.json")
             self.tf_15m_long.set_param({'device': 'cuda'})
             self.tf_15m_short = xgb.Booster()
-            self.tf_15m_short.load_model("models/v1_15min/xgb_short_model.json")
+            self.tf_15m_short.load_model("models/v3_15min_clean/xgb_short_model.json")
             self.tf_15m_short.set_param({'device': 'cuda'})
-            with open("models/v1_15min/metadata.json", "r") as f:
+            with open("models/v3_15min_clean/metadata.json", "r") as f:
                 self.tf_15m_features = json.load(f)["features"]
-            if os.path.exists("models/v1_15min/scaler.pkl"):
-                with open("models/v1_15min/scaler.pkl", "rb") as f:
+            if os.path.exists("models/v3_15min_clean/scaler.pkl"):
+                with open("models/v3_15min_clean/scaler.pkl", "rb") as f:
                     self.tf_15m_scaler = pickle.load(f)
             else:
                 self.tf_15m_scaler = None

@@ -1,5 +1,5 @@
 {
-  "active_model": "v8_upstox_3y",
+  "active_model": "v10_native_1h",
   "models": {
     "v1_yfinance_ranker": {
       "description": "Original 2-year yfinance model. 54 features. Spearman rho ~0.032.",
@@ -49,7 +49,7 @@
       "long_test_spearman": 0.082,
       "short_test_spearman": 0.085,
       "trained_at": "2026-05-17T00:33:08.491188",
-      "notes": "Regime-conditioned ranker. No scaler — XGBoost trees are scale-invariant."
+      "notes": "Regime-conditioned ranker. No scaler \u00e2\u20ac\u201d XGBoost trees are scale-invariant."
     },
     "v6_feature_fixed": {
       "description": "V6 with fixed CCI (MAD), Vortex (True Range w gaps), Ultimate Oscillator.",
@@ -83,7 +83,7 @@
       "meta": "models/v8_upstox_3y/metadata.json",
       "type": "ranker",
       "long_test_spearman": 0.0461,
-      "short_test_spearman": 0.0490,
+      "short_test_spearman": 0.049,
       "trained_at": "2026-05-28T14:04:01",
       "notes": "Added microstructure features (IBS, Buy_Pressure, Return_Accel, Lower_Shadow, etc.). Huge performance boost."
     },
@@ -110,6 +110,78 @@
       "short_test_spearman": 0.0433,
       "trained_at": "2026-05-29",
       "notes": "Trained on 1y of 30-min resampled Upstox data. Long P@3=57.1%, Short P@3=54.9%."
+    },
+    "v2_15min_3y": {
+      "description": "V2_15min: Standalone 15-minute XGBoost ranking model on 3 years of data. 86 features.",
+      "long_model": "models/v2_15min_3y/xgb_long_model.json",
+      "short_model": "models/v2_15min_3y/xgb_short_model.json",
+      "scaler": "models/v2_15min_3y/scaler.pkl",
+      "meta": "models/v2_15min_3y/metadata.json",
+      "type": "ranker_15min",
+      "long_test_spearman": 0.0608,
+      "short_test_spearman": 0.061,
+      "trained_at": "2026-06-06",
+      "notes": "Trained on 3y of 15-min Upstox data (native 1m resampled). Long P@3=58.0%, Short P@3=57.0%."
+    },
+    "v3_15min_clean": {
+      "description": "V3_15min CLEAN: 15-min ranker on rebuilt aligned data (1-min source, IST 09:15-anchored, session-masked forward returns). 86 features.",
+      "long_model": "models/v3_15min_clean/xgb_long_model.json",
+      "short_model": "models/v3_15min_clean/xgb_short_model.json",
+      "scaler": "models/v3_15min_clean/scaler.pkl",
+      "meta": "models/v3_15min_clean/metadata.json",
+      "type": "ranker_15min",
+      "long_test_spearman": 0.0586,
+      "short_test_spearman": 0.0593,
+      "trained_at": "2026-06-07",
+      "notes": "Rebuilt from data/ranking_data_upstox_15min_3y_clean.csv. No overnight leak. WF L-WR@3=58.0%, S-WR@3=57.2%. Ranking quality matches v2 (15m grid was always clean). SERVE-CONSISTENT with live (15m bins immune to UTC/IST offset)."
+    },
+    "v9_clean_1h": {
+      "description": "V9 CLEAN 1h: 1-hour ranker on rebuilt aligned data (1-min source, IST 09:15-anchored, session-masked, 5 intraday signals/day). 86 features.",
+      "long_model": "models/v9_clean_1h/xgb_long_model.json",
+      "short_model": "models/v9_clean_1h/xgb_short_model.json",
+      "scaler": "models/v9_clean_1h/scaler.pkl",
+      "meta": "models/v9_clean_1h/metadata.json",
+      "type": "ranker",
+      "long_test_spearman": 0.0204,
+      "short_test_spearman": 0.0245,
+      "trained_at": "2026-06-07",
+      "notes": "Rebuilt from data/ranking_data_upstox_1h_3y_clean.csv. WF L-WR@3=52.8%, S-WR@3=52.0%. Rho ~half of v8 (overnight contamination removed). NOT production-deployable until live broker 1h resample is unified to match (currently 30min->1h IST :00 grid != this 09:15-anchored grid). RESEARCH/backtest only."
+    },
+    "v10_native_1h": {
+      "description": "V10 NATIVE 1h: trained on Upstox V3 native hourly candles (HistoryV3Api hours/1). 86 features. Production-faithful — no resampling.",
+      "long_model": "models/v10_native_1h/xgb_long_model.json",
+      "short_model": "models/v10_native_1h/xgb_short_model.json",
+      "scaler": "models/v10_native_1h/scaler.pkl",
+      "meta": "models/v10_native_1h/metadata.json",
+      "type": "ranker",
+      "long_test_spearman": 0.0261,
+      "short_test_spearman": 0.0245,
+      "trained_at": "2026-06-07",
+      "notes": "Native Upstox V3 hourly candles (09:15-anchored, 5 intraday signals/day, session-masked). 928k rows, 54 months (2022-2026). WF L-WR@3=52.4%, S-WR@3=53.6%. IC ~28% > 15min->1h resample (v9) but ~half of 15m model. IC decaying over time (2026 fold Long Rho 0.012). PRODUCTION-CORRECT 1h: live inference can fetch identical V3 candles for zero train/serve skew. Collector: scripts/collectors/collect_upstox_1h_v3.py. Data: data/ranking_data_upstox_1h_v3_3y.csv."
+    },
+    "daily_macro_v2": {
+      "description": "Daily Macro Gatekeeper V2: Trained on 10 years of daily data with macro, breadth, and global features.",
+      "long_model": "models/daily_macro_v2/xgb_long_model.json",
+      "short_model": "models/daily_macro_v2/xgb_short_model.json",
+      "scaler": "models/daily_macro_v2/scaler.pkl",
+      "meta": "models/daily_macro_v2/metadata.json",
+      "type": "daily_gatekeeper",
+      "long_test_spearman": 0.0295,
+      "short_test_spearman": 0.0350,
+      "trained_at": "2026-06-10",
+      "notes": "Criteria v2 certified. Long: TRIGGER_GRADE, Short: FILTER_GRADE."
+    },
+    "daily_macro_v3": {
+      "description": "Daily Macro Gatekeeper V3: Trained on 10 years of daily data with 1-day forward return target (Label_1D).",
+      "long_model": "models/daily_macro_v3/xgb_long_model.json",
+      "short_model": "models/daily_macro_v3/xgb_short_model.json",
+      "scaler": "models/daily_macro_v3/scaler.pkl",
+      "meta": "models/daily_macro_v3/metadata.json",
+      "type": "daily_gatekeeper",
+      "long_test_spearman": 0.0207,
+      "short_test_spearman": 0.0290,
+      "trained_at": "2026-06-10",
+      "notes": "Certified under Gauntlet v2. Long: DEAD, Short: FILTER_GRADE."
     }
   }
 }

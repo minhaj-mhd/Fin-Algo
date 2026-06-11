@@ -1,0 +1,27 @@
+{
+  "period": "Jan-May 2026",
+  "cost_bps": 10,
+  "results_part_b": {
+    "tier_A": {
+      "trades": 19,
+      "win_rate": 0.5789473684210527,
+      "avg_net_bps": 45.93238069537053,
+      "total_return_pct": 8.727152332120403,
+      "max_drawdown_pct": -4.014652128317557
+    },
+    "tier_B": {
+      "trades": 104,
+      "win_rate": 0.5480769230769231,
+      "avg_net_bps": 16.575229051778336,
+      "total_return_pct": 17.23823821384947,
+      "max_drawdown_pct": -7.251065269658548
+    },
+    "tier_D": {
+      "trades": 20,
+      "win_rate": 0.6,
+      "avg_net_bps": 10.580408226055777,
+      "total_return_pct": 2.1160816452111555,
+      "max_drawdown_pct": -1.5790551395540764
+    }
+  }
+}

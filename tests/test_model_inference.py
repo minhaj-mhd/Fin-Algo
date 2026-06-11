@@ -34,9 +34,8 @@ def test_score_universe_zscore_exclusion(mocker):
     
     assert not result_df.empty
     
-    # Verify the non-excluded feature WAS z-scored.
-    # Mean of [10, 20] is 15. Std is 7.071. Z-scores are -0.707 and 0.707.
-    assert result_df["Standard_Feature"].iloc[0] != 10.0
+    # Verify the non-excluded feature WAS NOT z-scored (since Z-scoring is disabled in production).
+    assert result_df["Standard_Feature"].iloc[0] == 10.0
     
     # Verify the EXCLUDED features were untouched
     assert (result_df["Market_Mean_Return"] == orig_market_mean).all()

@@ -26,7 +26,7 @@ class TradeStateManager:
         return False
 
     @staticmethod
-    def check_conviction_gate(conv_score, orig_score, min_conviction=config.MIN_CONVICTION):
+    def check_conviction_gate(conv_score, orig_score, min_conviction=0.08):
         """Enforces strict conviction gates to prevent entering fading signals."""
         if orig_score >= min_conviction:
             if conv_score < 0.10:
