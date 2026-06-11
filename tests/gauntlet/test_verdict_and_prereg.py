@@ -265,3 +265,30 @@ def test_r4_ledger_started_counted(tmp_path):
                 started_count += 1
                 
     assert started_count == 1
+
+def test_verdict_magnitude_filter_skill():
+    config = GauntletConfig(filter_min_recent_z=2.0)
+    
+    # WR is 50% (equivalent to baseline, so z_stat is 0.0)
+    # But recent_uplift_t is 2.5 (significant magnitude edge)
+    recent_raw_win = 0.50
+    baseline_wr = 0.50
+    recent_n = 500
+    
+    grade = evaluate_verdict(
+        pooled_net_bps=-1.0,
+        pooled_t=0.0,
+        recent_net_bps=-1.0,
+        recent_raw_wr=recent_raw_win,
+        recent_n=recent_n,
+        baseline_wr=baseline_wr,
+        fold_rhos=[0.05, 0.06] * 3,
+        decay_slope=0.0,
+        decay_p_val=1.0,
+        decay_slope_perf=0.0,
+        decay_p_val_perf=1.0,
+        config=config,
+        recent_uplift_t=2.5
+    )
+    # Under Criteria v2, this should be FILTER_GRADE because recent_uplift_t >= 2.0
+    assert grade == "FILTER_GRADE"

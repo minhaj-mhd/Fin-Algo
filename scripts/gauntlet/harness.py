@@ -84,6 +84,10 @@ class XGBRankerAdapter:
         if "seed" not in run_params and "random_state" not in run_params:
             run_params["seed"] = seed
             
+        # Ensure ndcg_exp_gain is False to support ranking more than 31 items
+        if "ndcg_exp_gain" not in run_params:
+            run_params["ndcg_exp_gain"] = False
+            
         model = xgb.train(
             run_params, dtrain,
             num_boost_round=num_boost_round,

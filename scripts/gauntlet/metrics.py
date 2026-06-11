@@ -136,3 +136,50 @@ def compute_decay_diagnostics(fold_values: List[float]) -> Dict[str, float]:
         "slope": float(slope),
         "p_value": float(p_val)
     }
+
+def calculate_uplift_t_stat(
+    preds: np.ndarray,
+    y: np.ndarray,
+    qids: np.ndarray,
+    times: np.ndarray,
+    K: int,
+    invert: bool = False
+) -> float:
+    """
+    Computes the t-statistic of the top-K trades' raw returns against
+    the cross-sectional mean returns of their respective query groups.
+    """
+    # 1. Compute query group means
+    query_means = {}
+    for qid in np.unique(qids):
+        m = qids == qid
+        if m.sum() > 0:
+            query_means[qid] = np.mean(y[m])
+
+    # 2. Get the top-K trades
+    unique_qids = np.unique(qids)
+    uplifts = []
+    
+    for qid in unique_qids:
+        m = qids == qid
+        if m.sum() < max(3, K):
+            continue
+        
+        preds_q = preds[m]
+        y_q = y[m]
+        
+        top_idx = np.argsort(preds_q)[-K:]
+        
+        for idx in top_idx:
+            # Raw return of this trade (adjusted for side)
+            ret = -y_q[idx] if invert else y_q[idx]
+            # Group mean (also adjusted for side)
+            grp_mean = -query_means[qid] if invert else query_means[qid]
+            uplifts.append(ret - grp_mean)
+            
+    if len(uplifts) > 1 and np.std(uplifts) > 0:
+        t_stat = float(ttest_1samp(uplifts, 0.0).statistic)
+    else:
+        t_stat = 0.0
+        
+    return t_stat

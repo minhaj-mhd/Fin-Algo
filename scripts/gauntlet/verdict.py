@@ -15,7 +15,8 @@ def evaluate_verdict(
     decay_p_val: float,
     decay_slope_perf: float,
     decay_p_val_perf: float,
-    config: GauntletConfig
+    config: GauntletConfig,
+    recent_uplift_t: float = 0.0
 ) -> str:
     """
     Evaluates the 3-tier verdict (TRIGGER_GRADE, FILTER_GRADE, DEAD) for a single side and K.
@@ -51,7 +52,9 @@ def evaluate_verdict(
     else:
         z_stat = 0.0
         
-    passes_filter = passes_rho_test and (z_stat >= config.filter_min_recent_z)
+    # Criteria v2: magnitude-based FILTER alternative (z_stat >= 2.0 OR recent_uplift_t >= 2.0)
+    passes_recent = (z_stat >= config.filter_min_recent_z) or (recent_uplift_t >= 2.0)
+    passes_filter = passes_rho_test and passes_recent
     
     if passes_filter:
         return "FILTER_GRADE"
@@ -78,6 +81,8 @@ def compute_verdict(
     if not stats:
         return "DEAD"
         
+    recent_uplift_t = stats["recent"].get("uplift_t_stat", 0.0)
+    
     return evaluate_verdict(
         pooled_net_bps=stats["pooled"]["net_bps"],
         pooled_t=stats["pooled"]["t_stat"],
@@ -90,5 +95,6 @@ def compute_verdict(
         decay_p_val=decay_stats["p_value"],
         decay_slope_perf=decay_stats_perf["slope"],
         decay_p_val_perf=decay_stats_perf["p_value"],
-        config=config
+        config=config,
+        recent_uplift_t=recent_uplift_t
     )

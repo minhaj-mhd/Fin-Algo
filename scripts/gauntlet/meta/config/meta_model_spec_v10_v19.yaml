@@ -1,0 +1,62 @@
+# MV_V10_V19 Meta-Model Specification
+# -----------------------------------
+version: mv_v10_v19
+candidate_dir: models/meta_veto_v10_v19
+dev_ledger: data/gauntlet/meta/mv_v10_v19/dev_ledger.jsonl
+
+primary_endpoint: v10_native_1h_long
+
+# --- DEV Walk-Forward ---
+dev_wf:
+  min_train_months: 6      # minimum calendar months in each train fold
+  test_months: 1           # each fold tests exactly 1 month
+  embargo_days: 3          # purge window between train and test
+
+# --- Theta Calibration ---
+theta_calibration:
+  grid_start: 0.10
+  grid_end: 0.90
+  grid_step: 0.01
+  keep_floor: 0.25         # veto keeping < 25% trades is too aggressive
+  keep_ceiling: 0.90       # G2: veto keeping > 90% is a no-op — reject candidate
+
+# --- Capacity Ladder (G4/G5 enforced by dev_run_v10_v19.py) ---
+capacity_ladder:
+  - rung: 1
+    class: logistic
+    param_grid:
+      C: [0.03, 0.1, 0.3]
+    ascent_gate: null      # always runs; mandatory baseline
+
+  - rung: 2
+    class: gbm_shallow
+    param_grid:
+      max_depth: [2, 3]
+      n_estimators: [100, 200]
+      learning_rate: [0.05]
+    ascent_gate:
+      requires_rung: 1     # G4: GBM only starts after logistic is logged
+      beat_by_bps: null    # no margin required for GBM to run (only for NN)
+
+  - rung: 3
+    class: mlp_small
+    param_grid:
+      hidden_layer_sizes: [[16], [32], [16, 16], [32, 32]]
+      alpha: [0.001, 0.01, 0.1]
+    early_stopping: true
+    n_seeds: 3             # G5: must report worst-of-3
+    ascent_gate:
+      requires_rung: 2           # G4: GBM must be logged first
+      gbm_beat_logistic_by_bps: 0.5   # G4: GBM must beat logistic by >= 0.5 bps
+
+# --- Certification Thresholds ---
+certification:
+  cost_bps: 10.0            # binding statutory cost
+  uplift_min_bps: 3.0       # kept vs vetoed uplift
+  uplift_min_t: 2.5         # elevated from 2.0
+  abs_min_t: 2.5            # kept-net > 0 absolute t-stat
+
+# --- M1 Orthogonality Kill-Gate ---
+m1_orthogonality:
+  min_incremental_ic: 0.005   # at least one qualifying feature must exceed this
+  excluded_from_gate: [own_score, own_z, own_pct, v10_native_1h_score, v10_native_1h_z, v10_native_1h_pct, side_is_long]

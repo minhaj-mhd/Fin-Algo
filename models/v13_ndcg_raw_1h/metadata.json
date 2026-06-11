@@ -224,7 +224,7 @@
   "params": {
     "objective": "rank:ndcg",
     "eval_metric": "ndcg@5",
-    "ndcg_exp_gain": true,
+    "ndcg_exp_gain": false,
     "eta": 0.03,
     "max_depth": 5,
     "subsample": 0.8,
@@ -247,5 +247,20 @@
     "v11_spearman": 0.0231,
     "v12_lambdamart_net_bps": -8.2,
     "v12_spearman": -0.0067
+  },
+  "gauntlet": {
+    "run_id": "20260610T185246Z-d795438c",
+    "verdict": {
+      "long": "DEAD",
+      "short": "FILTER_GRADE"
+    },
+    "binding_cost_bps": 10.0,
+    "dataset_sha256": "b10b37fcbee368ceb8b43b35888df1d5f72736ec9786b6d681e8b9d43bc8e296",
+    "config_hash": "d795438cb3ad6951b662ad24b9c247152a330c251ad4c1b0f1d70cb05937843e",
+    "git_commit": "58fac2f405685eee1d91900277a11555efd997e9",
+    "evaluated_at": "2026-06-10",
+    "checksum": "e4f570a977fcc4b78e101811df305eed323bad19c268f83fa5fe4d0ddb994f30",
+    "pct_unverifiable": 0.0003685035094033045,
+    "unverified_label_waiver_reason": "Pre-drop 14:15 target bars omitted from 3y training file but verified consistent."
   }
 }

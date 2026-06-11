@@ -1,0 +1,24 @@
+# MV_V10_V19 Panel Specification
+# ------------------------------
+version: mv_v10_v19
+panel_output_dir: data/gauntlet/meta/mv_v10_v19
+dev_vault_split: "2025-01-01"
+
+trade_sources:
+  - family_id: v10_native_1h
+    model_name: v10_native_1h
+    dataset: data/ranking_data_upstox_1h_v3_3y.csv
+    return_col: Next_Hour_Return
+    timeframe: 1h
+
+context_sources:
+  - family_id: daily_macro_v2
+    model_name: daily_macro_v2
+    dataset: data/ranking_data_daily_macro_v2.csv
+    role: context
+    extra_cols: [Nifty50_Dist_SMA_200, VIX_Level, VIX_Percentile_1Y]
+
+  - family_id: daily_macro_v3
+    model_name: daily_macro_v3
+    dataset: data/ranking_data_daily_macro_v3.csv
+    role: context

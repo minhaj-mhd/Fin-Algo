@@ -1,0 +1,41 @@
+# MV2 Panel Specification
+# -----------------------
+# Controls which model families contribute rows and context to the meta panel.
+# Swapping the 1H source = change family_id + model_name + dataset only.
+
+version: mv2
+panel_output_dir: data/gauntlet/meta/mv2
+dev_vault_split: "2025-01-01"
+
+trade_sources:
+  # Primary intraday trade generators (rows in the panel)
+  - family_id: v8_upstox_3y
+    model_name: v8_upstox_3y
+    dataset: data/ranking_data_upstox_1h_v3_3y.csv
+    return_col: Next_Hour_Return
+    timeframe: 1h
+    live_adapter: "scripts/vanguard/signal_generation.py::get_v8_live_score"
+
+  - family_id: v2_15min_3y
+    model_name: v2_15min_3y
+    dataset: data/ranking_data_upstox_15min_3y_clean.csv
+    return_col: Next_15Min_Return
+    timeframe: 15m
+    live_adapter: "scripts/vanguard/signal_generation.py::get_v2_live_score"
+
+context_sources:
+  # Daily macro context — NaN-tolerant, not trade generators
+  - family_id: daily_macro_v2
+    model_name: daily_macro_v2
+    dataset: data/ranking_data_daily_macro_v2.csv
+    role: context
+    extra_cols: [Nifty50_Dist_SMA_200, VIX_Level, VIX_Percentile_1Y]
+
+  - family_id: daily_macro_v3
+    model_name: daily_macro_v3
+    dataset: data/ranking_data_daily_macro_v3.csv
+    role: context
+
+# Sibling sources deliberately excluded per MV2-R0 spec:
+# v10_depth4_1h and v11_utility_1h are family-correlated with v8 own-score
+# and caused the 1-month DEV overlap collapse in the void first build.

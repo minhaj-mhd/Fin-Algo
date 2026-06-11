@@ -265,5 +265,20 @@
     "avg_long_spearman": 0.0261,
     "long_prec@5": 0.5324,
     "holdout_long_net_bps": -7.677
+  },
+  "gauntlet": {
+    "run_id": "20260610T184210Z-d795438c",
+    "verdict": {
+      "long": "FILTER_GRADE",
+      "short": "FILTER_GRADE"
+    },
+    "binding_cost_bps": 10.0,
+    "dataset_sha256": "b10b37fcbee368ceb8b43b35888df1d5f72736ec9786b6d681e8b9d43bc8e296",
+    "config_hash": "d795438cb3ad6951b662ad24b9c247152a330c251ad4c1b0f1d70cb05937843e",
+    "git_commit": "58fac2f405685eee1d91900277a11555efd997e9",
+    "evaluated_at": "2026-06-10",
+    "checksum": "80aedd9e80003c99088d3c592c7eb08e6afdf89c1e845eeecb99dfed8a9816c8",
+    "pct_unverifiable": 0.0003685035094033045,
+    "unverified_label_waiver_reason": "Pre-drop 14:15 target bars omitted from 3y training file but verified consistent."
   }
 }

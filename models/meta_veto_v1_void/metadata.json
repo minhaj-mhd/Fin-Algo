@@ -1,0 +1,21 @@
+{
+  "model_type": "logistic",
+  "features": [
+    "hour",
+    "day_of_week",
+    "sibling_d4_pct",
+    "sibling_v11_pct",
+    "cross_tf_pct",
+    "daily_v2_pct",
+    "daily_v2_sent",
+    "daily_v3_pct",
+    "daily_v3_sent",
+    "macro_gate"
+  ],
+  "theta": 0.32999999999999985,
+  "dev_oof_keep_pct": 0.9710743801652892,
+  "dev_oof_net_return_bps": -7.721760919392307,
+  "panel_sha256": "50bb09e208096acc65e17858a58ad3dce182717f4fd460b4924eee9dd6adb7ea",
+  "model_sha256": "88c9c23f39a8951314c3bb07ef92f57396d02cae177846b83211e4ec45e7bf34",
+  "timestamp": "2026-06-10T21:30:17.572576"
+}

@@ -52,6 +52,30 @@ REGISTERED_DATASETS = {
         label_may_cross_session=True,
         raw_close_col="Close",
         unverified_label_waiver_reason="Daily close-to-close returns have no intraday target bars."
+    ),
+    "daily_macro_v2": DatasetSpec(
+        path="data/ranking_data_daily_macro_v2.csv",
+        label_col="Label_3D",
+        bar_minutes=1440,
+        bar_label_side="left",
+        label_horizon_bars=3,
+        label_may_cross_session=True,
+        raw_close_col="Close",
+        feature_pipeline=None,
+        prefix_invariance_waiver_reason="Daily macro dataset contains cross-asset and global features that cannot be computed per-ticker in isolation.",
+        unverified_label_waiver_reason="Daily close-to-close returns have no intraday target bars."
+    ),
+    "daily_macro_v3": DatasetSpec(
+        path="data/ranking_data_daily_macro_v3.csv",
+        label_col="Label_1D",
+        bar_minutes=1440,
+        bar_label_side="left",
+        label_horizon_bars=1,
+        label_may_cross_session=True,
+        raw_close_col="Close",
+        feature_pipeline=None,
+        prefix_invariance_waiver_reason="Daily macro dataset contains cross-asset and global features that cannot be computed per-ticker in isolation.",
+        unverified_label_waiver_reason="Daily close-to-close returns have no intraday target bars."
     )
 }
 
@@ -227,7 +251,7 @@ def run_gauntlet(
     harness_res = run_harness(df, dataset_spec, model_spec, config)
     
     # 5. Metrics & Costs & Verdict (Stage 4 & 5)
-    from .metrics import compute_query_spearman, compute_topk_returns, calculate_trade_stats, query_bootstrap_ci, compute_decay_diagnostics
+    from .metrics import compute_query_spearman, compute_topk_returns, calculate_trade_stats, query_bootstrap_ci, compute_decay_diagnostics, calculate_uplift_t_stat
 
     
     # Get number of prior runs from central ledger
@@ -254,15 +278,17 @@ def run_gauntlet(
     tod_results = {}
     verdicts = {}
     
-    # Determine recent window (exact 12 months)
+    # Determine recent window (cadence-aware: 12mo for intraday <= 60m, 24mo for daily >= 1440m)
+    recent_window_months = 24 if dataset_spec.bar_minutes >= 1440 else config.recent_window_months
     unique_ym = sorted(list(set(harness_res["ym"])))
-    recent_months = unique_ym[-config.recent_window_months:]
+    recent_months = unique_ym[-recent_window_months:]
     recent_mask = np.isin(harness_res["ym"], recent_months)
     full_mask = np.ones(len(harness_res["idx"]), dtype=bool)
     
+    recent_key = f"recent_{recent_window_months}mo"
     periods = {
         "full_OOS": full_mask,
-        "recent_12mo": recent_mask
+        recent_key: recent_mask
     }
     
     # Stage 5 entry: Verify config pre-registration hash matches
@@ -364,10 +390,22 @@ def run_gauntlet(
                     invert=invert
                 )
                 rec_stats = calculate_trade_stats(rec_rets, cost_val)
+                
+                # Compute magnitude-based recent uplift t-stat
+                uplift_t = calculate_uplift_t_stat(
+                    recent_preds,
+                    recent_y,
+                    recent_q,
+                    recent_time,
+                    K=k_val,
+                    invert=invert
+                )
+                rec_stats["uplift_t_stat"] = uplift_t
+                
                 if cost == config.binding_cost_bps:
                     verdict_stats_recent = rec_stats
                     
-                topk_results["recent_12mo"]["K"][k_val][f"{cost}bps"][side] = rec_stats
+                topk_results[recent_key]["K"][k_val][f"{cost}bps"][side] = rec_stats
                 
             results_per_k_side[side][k_val] = {
                 "pooled": verdict_stats_pooled,
@@ -375,7 +413,7 @@ def run_gauntlet(
             }
             
         from .verdict import compute_verdict
-        baseline_wr = baselines["recent_12mo"][side]
+        baseline_wr = baselines[recent_key][side]
         verdicts[side] = compute_verdict(
             side=side,
             results_per_k=results_per_k_side[side],
@@ -478,6 +516,8 @@ def main():
     run_parser.add_argument("--model", type=str, required=True, help="Name of model directory inside models/")
     run_parser.add_argument("--dataset", type=str, required=True, help="Pre-registered dataset name or path to CSV")
     run_parser.add_argument("--dry-run", action="store_true")
+    run_parser.add_argument("--step-months", type=int, default=4, help="Step months for walk-forward")
+    run_parser.add_argument("--test-horizon-months", type=int, default=2, help="Test horizon months for walk-forward")
     
     # Selftest Parser
     selftest_parser = subparsers.add_parser("selftest")
@@ -501,7 +541,10 @@ def main():
             
         model_dir = os.path.join("models", args.model)
         model_spec = load_model_spec(args.model, model_dir)
-        config = GauntletConfig()
+        config = GauntletConfig(
+            step_months=args.step_months,
+            test_horizon_months=args.test_horizon_months
+        )
         
         config_hash = get_canonical_hash(config)
         print(f"Pre-registering config... Hash: {config_hash}")

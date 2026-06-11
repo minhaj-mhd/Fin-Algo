@@ -143,7 +143,11 @@ def audit_dataset(df: pd.DataFrame, spec: DatasetSpec, features: List[str]) -> d
     close_col = spec.raw_close_col or "Close"
     assert close_col in df_sorted.columns, f"Close price column '{close_col}' not found for label audit"
     
-    df_sorted['target_dt'] = df_sorted[spec.datetime_col] + pd.to_timedelta(spec.label_horizon_bars * spec.bar_minutes, unit='m')
+    if spec.bar_minutes >= 1440:
+        # For daily/macro datasets, shift by trading days instead of calendar timedelta
+        df_sorted['target_dt'] = df_sorted.groupby(spec.ticker_col)[spec.datetime_col].shift(-spec.label_horizon_bars)
+    else:
+        df_sorted['target_dt'] = df_sorted[spec.datetime_col] + pd.to_timedelta(spec.label_horizon_bars * spec.bar_minutes, unit='m')
     df_sorted['next_row_dt'] = df_sorted.groupby(spec.ticker_col)[spec.datetime_col].shift(-1)
     
     # Merge to get target Close price
@@ -153,6 +157,8 @@ def audit_dataset(df: pd.DataFrame, spec: DatasetSpec, features: List[str]) -> d
     df_sorted = pd.merge(df_sorted, df_close, on=[spec.ticker_col, 'target_dt'], how='left')
     
     is_intra = df_sorted['target_close'].notna()
+    if spec.bar_minutes >= 1440:
+        is_intra = pd.Series(False, index=df_sorted.index)
     same_date = (df_sorted[spec.datetime_col].dt.date == df_sorted['next_row_dt'].dt.date).fillna(False)
     
     df_sorted['row_type'] = 'BOUNDARY'
