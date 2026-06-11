@@ -43,6 +43,29 @@ REGISTERED_DATASETS = {
         raw_close_col="Close",
         unverified_label_waiver_reason="15m older intraday parquet source files not available in raw history directory."
     ),
+    "30min_1y": DatasetSpec(
+        path="data/ranking_data_upstox_30min_1y.csv",
+        label_col="Next_30Min_Return",
+        bar_minutes=30,
+        bar_label_side="left",
+        label_horizon_bars=1,
+        label_may_cross_session=False,
+        raw_close_col="Close",
+        feature_pipeline=None,
+        prefix_invariance_waiver_reason="No feature pipeline script available for 30min.",
+        unverified_label_waiver_reason="30m older intraday parquet source files not available in raw history directory."
+    ),
+    "30min_v3_3y": DatasetSpec(
+        path="data/ranking_data_upstox_30min_v3_3y.csv",
+        label_col="Next_30Min_Return",
+        bar_minutes=30,
+        bar_label_side="left",
+        label_horizon_bars=1,
+        label_may_cross_session=False,
+        raw_close_col="Close",
+        feature_pipeline="ranking_v3",
+        unverified_label_waiver_reason="0.02% of bars miss a target bar in the native Upstox historical data; deemed acceptable."
+    ),
     "daily_5y": DatasetSpec(
         path="data/ranking_data_upstox_daily_5y.csv",
         label_col="Next_Day_Return",
