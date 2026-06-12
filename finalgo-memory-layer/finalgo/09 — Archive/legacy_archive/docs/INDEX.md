@@ -1,3 +1,10 @@
+---
+title: "Complete Index: Inverted vs Non-Inverted XGBoost Analysis"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # Complete Index: Inverted vs Non-Inverted XGBoost Analysis
 
 ## Quick Navigation

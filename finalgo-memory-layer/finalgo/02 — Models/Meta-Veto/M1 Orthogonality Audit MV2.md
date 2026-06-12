@@ -1,3 +1,11 @@
+---
+title: "M1 Orthogonality Kill-Gate Report (MV2)"
+type: report
+status: active
+model: "Meta-Veto"
+updated: 2026-06-12
+tags: []
+---
 # M1 Orthogonality Kill-Gate Report (MV2)
 
 > [!NOTE]

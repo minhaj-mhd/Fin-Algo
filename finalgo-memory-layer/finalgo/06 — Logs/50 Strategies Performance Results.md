@@ -1,3 +1,10 @@
+---
+title: "50-Strategy Regime-Aware Backtest Results"
+type: report
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 50-Strategy Regime-Aware Backtest Results
 
 **Test Period:** May 2026

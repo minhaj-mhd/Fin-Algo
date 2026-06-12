@@ -1,3 +1,11 @@
+---
+title: "Conversation Context: Gauntlet Test V10-V19 Models with step_months=2"
+type: log
+status: concluded
+verdict: FILTER_GRADE
+updated: 2026-06-12
+tags: []
+---
 # 💬 Conversation Context: Gauntlet Test V10-V19 Models with step_months=2
 
 ## 📌 Metadata

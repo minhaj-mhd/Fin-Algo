@@ -1,3 +1,10 @@
+---
+title: "Market Friction & Slippage (The Cost Drag Analysis)"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # ⚠️ Market Friction & Slippage (The Cost Drag Analysis)
 
 In retail and institutional trading, **transaction costs and market friction are the ultimate strategy killers**. During the Vanguard engine development, we performed a deep friction sweep, shifting our round-trip costs from a lenient **0.03%** to a realistic **0.06%** (which accounts for NSE brokerage, STT, stamp duty, Exchange transaction charges, GST, SEBI turnover fees, and bid-ask slippage).

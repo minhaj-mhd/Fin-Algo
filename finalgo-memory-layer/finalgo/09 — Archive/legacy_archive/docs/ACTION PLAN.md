@@ -1,3 +1,10 @@
+---
+title: "MODEL IMPROVEMENT ACTION PLAN"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # MODEL IMPROVEMENT ACTION PLAN
 
 ## PHASE 1: IMMEDIATE FIXES (Do Today)

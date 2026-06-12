@@ -1,3 +1,10 @@
+---
+title: "Outdated Vanguard V1 Specification (Archive)"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # 🗃️ Outdated Vanguard V1 Specification (Archive)
 
 > [!WARNING]

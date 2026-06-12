@@ -1,3 +1,11 @@
+---
+title: "The Dual-Confirmation Architecture"
+type: spec
+status: active
+model: "1H"
+updated: 2026-06-12
+tags: []
+---
 # The Dual-Confirmation Architecture
 
 **Date:** June 4, 2026

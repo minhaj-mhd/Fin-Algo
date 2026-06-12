@@ -1,3 +1,10 @@
+---
+title: "Multi-Timeframe Architecture (Actual V2.3 Specifications)"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # ⏱️ Multi-Timeframe Architecture (Actual V2.3 Specifications)
 
 To maintain absolute entry precision and avoid trading against the macroeconomic tide, the **Vanguard V2.3** engine utilizes a multi-timeframe filtering pipeline. However, rather than executing a complex four-model real-time confluence lookup on every candle (which induces latency and standard-error accumulation), the system splits multi-timeframe alignment into **offline macro gatekeeping** and **active hourly ranking**.

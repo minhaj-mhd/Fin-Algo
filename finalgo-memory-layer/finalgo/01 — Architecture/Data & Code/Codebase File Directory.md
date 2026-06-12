@@ -1,3 +1,10 @@
+---
+title: "Codebase File Directory"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 📂 Codebase File Directory
 
 The Vanguard system consists of a structured suite of Python scripts, backtesters, database models, dashboards, and configurations. Below is a comprehensive index mapping files in our project workspace by their purpose.

@@ -1,3 +1,10 @@
+---
+title: "Walk-Forward Validation Report: Veto Override Clustering"
+type: report
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Walk-Forward Validation Report: Veto Override Clustering
 
 This report presents a rigorous **rolling walk-forward backtest** of the veto override clustering strategy. 

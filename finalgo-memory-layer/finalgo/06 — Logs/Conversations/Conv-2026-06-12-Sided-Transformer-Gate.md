@@ -1,3 +1,11 @@
+---
+title: "Conversation Context: Side-Specialist Transformer + Cost-Aware Veto Gate"
+type: log
+status: concluded
+verdict: DEAD
+updated: 2026-06-12
+tags: []
+---
 # 💬 Conversation Context: Side-Specialist Transformer + Cost-Aware Veto Gate
 
 ## 📌 Metadata

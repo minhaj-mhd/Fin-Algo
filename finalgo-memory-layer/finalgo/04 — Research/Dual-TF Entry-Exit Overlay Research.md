@@ -1,3 +1,11 @@
+---
+title: "Dual-TF Entry/Exit Overlay Research (2026-06-11)"
+type: reference
+status: active
+verdict: FILTER_GRADE
+updated: 2026-06-12
+tags: []
+---
 # 🔬 Dual-TF Entry/Exit Overlay Research (2026-06-11)
 
 > [!warning] Verdict authority

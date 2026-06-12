@@ -1,3 +1,11 @@
+---
+title: "Cross-Sectional Transformer (CST) — Architecture Proposal & Research Spec"
+type: spec
+status: active
+model: "Transformer"
+updated: 2026-06-12
+tags: []
+---
 # Cross-Sectional Transformer (CST) — Architecture Proposal & Research Spec
 
 **Date:** 2026-06-10

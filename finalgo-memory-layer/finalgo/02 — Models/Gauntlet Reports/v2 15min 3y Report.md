@@ -1,3 +1,12 @@
+---
+title: "Validation Gauntlet Report: `v2_15min_3y"
+type: report
+status: active
+model: "Gauntlet Reports"
+verdict: FILTER_GRADE
+updated: 2026-06-12
+tags: []
+---
 # 🛡️ Validation Gauntlet Report: `v2_15min_3y`
 
 ## 📌 Metadata

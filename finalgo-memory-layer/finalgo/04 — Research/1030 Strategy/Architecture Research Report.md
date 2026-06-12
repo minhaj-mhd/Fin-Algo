@@ -1,3 +1,10 @@
+---
+title: "Intraday Stock Trading: AI Architecture Research Report"
+type: spec
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Intraday Stock Trading: AI Architecture Research Report
 
 ## 1. Problem Formulation

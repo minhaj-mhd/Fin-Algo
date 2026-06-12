@@ -1,3 +1,12 @@
+---
+title: "Validation Gauntlet Report: `v18_random_forest_1h"
+type: report
+status: active
+model: "Gauntlet Reports"
+verdict: DEAD
+updated: 2026-06-12
+tags: []
+---
 # 🛡️ Validation Gauntlet Report: `v18_random_forest_1h`
 
 ## 📌 Metadata

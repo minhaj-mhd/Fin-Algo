@@ -1,3 +1,10 @@
+---
+title: "Validation Gauntlet — Architecture & Implementation Plan"
+type: spec
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 🛡️ Validation Gauntlet — Architecture & Implementation Plan
 
 > **Status**: 📐 SPEC APPROVED FOR BUILD — not yet implemented

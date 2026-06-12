@@ -1,3 +1,10 @@
+---
+title: "10:30 AM Momentum Prediction System — Implementation Plan (V2)"
+type: spec
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 10:30 AM Momentum Prediction System — Implementation Plan (V2)
 
 > [!IMPORTANT]

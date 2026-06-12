@@ -1,3 +1,10 @@
+---
+title: "Dominance & Variance Channel Analysis Report"
+type: report
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 📊 Dominance & Variance Channel Analysis Report
 
 We have executed a comprehensive statistical evaluation on the certified walk-forward predictions (`preds.npz` files) for both the **1-Hour Model Champion** (`v8_upstox_3y` / `v10_native_1h`) and the **Daily Macro Gatekeeper** (`daily_macro_v3`). 

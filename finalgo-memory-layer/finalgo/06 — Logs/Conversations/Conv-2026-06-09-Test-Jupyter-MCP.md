@@ -1,3 +1,10 @@
+---
+title: "Conversation Context: Test Jupyter MCP Connection"
+type: log
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 💬 Conversation Context: Test Jupyter MCP Connection
 
 ## 📌 Metadata

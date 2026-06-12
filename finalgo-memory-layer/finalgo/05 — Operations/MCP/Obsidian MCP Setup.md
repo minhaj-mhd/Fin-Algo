@@ -1,3 +1,10 @@
+---
+title: "Obsidian MCP Integration"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Obsidian MCP Integration
 
 **Status**: Active Setup  

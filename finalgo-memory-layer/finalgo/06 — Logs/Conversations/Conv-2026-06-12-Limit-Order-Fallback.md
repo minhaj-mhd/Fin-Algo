@@ -1,3 +1,10 @@
+---
+title: "Conversation Context: Limit Order Fallback Logic"
+type: log
+status: concluded
+updated: 2026-06-12
+tags: []
+---
 # 💬 Conversation Context: Limit Order Fallback Logic
 
 ## 📌 Metadata

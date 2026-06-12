@@ -1,3 +1,12 @@
+---
+title: "Validation Gauntlet Report: `v9_clean_1h"
+type: report
+status: active
+model: "Gauntlet Reports"
+verdict: FILTER_GRADE
+updated: 2026-06-12
+tags: []
+---
 # 🛡️ Validation Gauntlet Report: `v9_clean_1h`
 
 ## 📌 Metadata

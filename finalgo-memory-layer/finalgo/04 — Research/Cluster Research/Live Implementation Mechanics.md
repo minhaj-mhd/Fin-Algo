@@ -1,3 +1,10 @@
+---
+title: "Live Implementation Mechanics: Veto Override Engine"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Live Implementation Mechanics: Veto Override Engine
 
 ## The Strategy

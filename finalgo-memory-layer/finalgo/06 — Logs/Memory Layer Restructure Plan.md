@@ -1,3 +1,10 @@
+---
+title: "Memory Layer Restructure Plan (handoff spec for executing agents)"
+type: spec
+status: superseded
+updated: 2026-06-12
+tags: []
+---
 # 🗂️ Memory Layer Restructure Plan (handoff spec for executing agents)
 
 > **Status:** 🟢 Plan ready for execution · **Author:** Claude (2026-06-12) · **Type:** spec

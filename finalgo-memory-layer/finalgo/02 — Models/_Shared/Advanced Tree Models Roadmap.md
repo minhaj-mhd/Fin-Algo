@@ -1,3 +1,10 @@
+---
+title: "Advanced Tree Models Roadmap"
+type: spec
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Advanced Tree Models Roadmap
 
 Having pushed standard XGBoost models (using `reg:squarederror`, `binary:logistic`, and `rank:ndcg`) to their limits by tuning structural hyperparameters (e.g., restricting `max_depth` to regularize noise), we have identified five advanced techniques within the tree-based algorithmic family. These avenues represent the next frontier for combating the high noise-to-signal ratio inherent in intraday financial data and structural fee erosion.

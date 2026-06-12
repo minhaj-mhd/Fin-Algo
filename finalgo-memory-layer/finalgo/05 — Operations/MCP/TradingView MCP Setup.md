@@ -1,3 +1,10 @@
+---
+title: "TradingView MCP Setup"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # TradingView MCP Setup
 
 This document outlines the setup and connection procedures for integrating the **TradingView MCP** (`tradesdontlie/tradingview-mcp`) with our AI agent workspace. This MCP leverages the Chrome DevTools Protocol (CDP) to interface directly with the TradingView Desktop application, allowing the agent to read live chart data, indicators, and control the UI.

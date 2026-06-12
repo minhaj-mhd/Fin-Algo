@@ -1,3 +1,12 @@
+---
+title: "Validation Gauntlet Report: `v13_ndcg_raw_1h"
+type: report
+status: active
+model: "Gauntlet Reports"
+verdict: DEAD
+updated: 2026-06-12
+tags: []
+---
 # 🛡️ Validation Gauntlet Report: `v13_ndcg_raw_1h`
 
 ## 📌 Metadata

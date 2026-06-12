@@ -1,3 +1,10 @@
+---
+title: "Research: V18 Hybrid Veto Scalability & Portfolio Simulation"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 🧠 Research: V18 Hybrid Veto Scalability & Portfolio Simulation
 
 ## 📌 Background

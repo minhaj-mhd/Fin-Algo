@@ -1,3 +1,10 @@
+---
+title: "Vanguard Dashboard UI: Strategy Integration"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Vanguard Dashboard UI: Strategy Integration
 
 ## Overview

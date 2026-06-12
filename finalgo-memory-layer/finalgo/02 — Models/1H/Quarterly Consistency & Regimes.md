@@ -1,3 +1,11 @@
+---
+title: "Quarterly Consistency & Macro Regimes"
+type: reference
+status: active
+model: "1H"
+updated: 2026-06-12
+tags: []
+---
 # Quarterly Consistency & Macro Regimes
 
 This document analyzes the stability of the 1-Hour Vanguard Model's edge across time by slicing the 12-month Out-of-Sample period (May 2025 to May 2026) into rolling quarterly chunks.

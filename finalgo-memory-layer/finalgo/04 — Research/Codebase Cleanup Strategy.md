@@ -1,3 +1,10 @@
+---
+title: "Codebase & Documentation Cleanup Strategy"
+type: reference
+status: superseded
+updated: 2026-06-12
+tags: []
+---
 # 🧹 Codebase & Documentation Cleanup Strategy
 ## Vanguard V2.3 Alignment
 

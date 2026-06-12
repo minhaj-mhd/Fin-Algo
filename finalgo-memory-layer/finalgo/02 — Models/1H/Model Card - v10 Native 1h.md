@@ -1,3 +1,11 @@
+---
+title: "Model Card — v10_native_1h"
+type: reference
+status: active
+model: "1H"
+updated: 2026-06-12
+tags: []
+---
 # Model Card — v10_native_1h
 
 **Date:** June 7, 2026

@@ -1,3 +1,10 @@
+---
+title: "Out-of-Sample Validation Report: Veto Override Clustering"
+type: report
+status: concluded
+updated: 2026-06-12
+tags: []
+---
 # Out-of-Sample Validation Report: Veto Override Clustering
 
 This report summarizes the performance of the veto override clustering strategy evaluated under a strict chronological train/test split. 

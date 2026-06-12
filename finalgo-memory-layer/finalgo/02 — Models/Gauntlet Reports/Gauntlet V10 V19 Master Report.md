@@ -1,3 +1,12 @@
+---
+title: "Validation Gauntlet Master Evaluation Report (v10 to v19)"
+type: report
+status: active
+model: "Gauntlet Reports"
+verdict: FILTER_GRADE
+updated: 2026-06-12
+tags: []
+---
 # 📊 Validation Gauntlet Master Evaluation Report (v10 to v19)
 **Generated At**: 11-06-2026 10:27
 This master report compiles the full, detailed walk-forward evaluation outputs for all models evaluated in the latest decontaminated batch run under `step_months=2` parameters.

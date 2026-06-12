@@ -1,3 +1,10 @@
+---
+title: "Upstox Get Brokerage API Integration Plan"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # Upstox Get Brokerage API Integration Plan
 
 This document serves as a reminder for the future integration of the Upstox `Get Brokerage API` (`/v2/charges/brokerage`).

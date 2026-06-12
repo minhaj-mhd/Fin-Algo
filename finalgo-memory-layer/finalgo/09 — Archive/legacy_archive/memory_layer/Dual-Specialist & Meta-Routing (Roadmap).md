@@ -1,3 +1,10 @@
+---
+title: "Dual-Specialist & Meta-Routing (Proposed Architectural Roadmap)"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # 🧠 Dual-Specialist & Meta-Routing (Proposed Architectural Roadmap)
 
 > [!NOTE]

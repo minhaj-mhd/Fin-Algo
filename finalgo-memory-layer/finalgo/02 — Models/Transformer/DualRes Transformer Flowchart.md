@@ -1,3 +1,11 @@
+---
+title: "DualRes Cross-Sectional Transformer — In-Depth Architecture Flowchart"
+type: reference
+status: active
+model: "Transformer"
+updated: 2026-06-12
+tags: []
+---
 # 🗺️ DualRes Cross-Sectional Transformer — In-Depth Architecture Flowchart
 
 > Companion to [[02 — Models/Transformer/DualRes Cross-Sectional Transformer Architecture|Architecture summary]] ·

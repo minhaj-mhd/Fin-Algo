@@ -1,3 +1,11 @@
+---
+title: "Live Trading Configuration & Tradability Verdict"
+type: reference
+status: active
+model: "1H"
+updated: 2026-06-12
+tags: []
+---
 # Live Trading Configuration & Tradability Verdict
 
 **Date:** June 7, 2026  

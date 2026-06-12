@@ -1,3 +1,10 @@
+---
+title: "Upstox Fees & Statutory Taxes Research (2024-2025)"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Upstox Fees & Statutory Taxes Research (2024-2025)
 **Project**: Vanguard Trading Engine
 **Segment**: Equity Intraday (NSE)

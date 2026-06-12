@@ -1,3 +1,10 @@
+---
+title: "QUICK REFERENCE: Inverted vs Non-Inverted XGBoost"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # QUICK REFERENCE: Inverted vs Non-Inverted XGBoost
 
 ## The Bottom Line

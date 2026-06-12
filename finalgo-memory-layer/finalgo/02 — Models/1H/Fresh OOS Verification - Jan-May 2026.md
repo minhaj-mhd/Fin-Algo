@@ -1,3 +1,11 @@
+---
+title: "Fresh OOS Verification: Sniper Strategy — Jan–May 2026"
+type: report
+status: active
+model: "1H"
+updated: 2026-06-12
+tags: []
+---
 # Fresh OOS Verification: Sniper Strategy — Jan–May 2026
 
 **Date:** June 7, 2026  

@@ -1,3 +1,11 @@
+---
+title: "Clean Re-Analysis & OOS Validation (Native Data, Holdout-Verified)"
+type: report
+status: active
+model: "15m"
+updated: 2026-06-12
+tags: []
+---
 # Clean Re-Analysis & OOS Validation (Native Data, Holdout-Verified)
 
 **Date:** June 7, 2026

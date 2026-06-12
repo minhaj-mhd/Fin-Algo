@@ -1,3 +1,11 @@
+---
+title: "Meta-Veto Orthogonality & Information Audit Report"
+type: report
+status: active
+model: "Meta-Veto"
+updated: 2026-06-12
+tags: []
+---
 # 🧠 Meta-Veto Orthogonality & Information Audit Report
 
 - **Status**: 🟢 PASSED (Proceed to M2)

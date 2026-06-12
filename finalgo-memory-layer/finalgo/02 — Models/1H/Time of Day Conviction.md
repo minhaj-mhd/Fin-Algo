@@ -1,3 +1,11 @@
+---
+title: "Time of Day vs. Conviction Score"
+type: reference
+status: active
+model: "1H"
+updated: 2026-06-12
+tags: []
+---
 # Time of Day vs. Conviction Score
 
 This document explores how the `xgb_long_model`'s conviction scores interact with the time of day, answering the question: *Are high conviction scores equally reliable at all hours?*

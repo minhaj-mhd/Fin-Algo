@@ -1,3 +1,10 @@
+---
+title: "Validation Gauntlet — Remediation Plan (R1–R8)"
+type: spec
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 🔧 Validation Gauntlet — Remediation Plan (R1–R8)
 
 > **Status**: 📐 SPEC APPROVED FOR BUILD — disperse to implementing agents

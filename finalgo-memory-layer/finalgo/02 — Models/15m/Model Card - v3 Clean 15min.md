@@ -1,3 +1,11 @@
+---
+title: "Model Card — v3_15min_clean"
+type: reference
+status: active
+model: "15m"
+updated: 2026-06-12
+tags: []
+---
 # Model Card — v3_15min_clean
 
 **Date:** June 7, 2026

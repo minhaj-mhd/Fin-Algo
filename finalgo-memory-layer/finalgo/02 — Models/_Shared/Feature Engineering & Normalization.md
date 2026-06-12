@@ -1,3 +1,10 @@
+---
+title: "Vanguard Feature Engineering & Normalization Strategy"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Vanguard Feature Engineering & Normalization Strategy
 
 This document outlines the specialized feature engineering pipeline used to prepare market data for the Vanguard XGBoost Ranking Model. 

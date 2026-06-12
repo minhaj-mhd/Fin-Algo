@@ -1,3 +1,11 @@
+---
+title: "Gating Uplift Certification Report: `v16_binary_breakout_1h"
+type: reference
+status: dead
+model: "Gauntlet Reports"
+updated: 2026-06-12
+tags: []
+---
 # 🛡️ Gating Uplift Certification Report: `v16_binary_breakout_1h`
 
 ## 📌 Metadata

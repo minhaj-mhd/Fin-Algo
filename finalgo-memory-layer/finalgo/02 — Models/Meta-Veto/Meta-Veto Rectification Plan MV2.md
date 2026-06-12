@@ -1,3 +1,11 @@
+---
+title: "Meta-Veto Rectification Plan MV2 — Rebuild, Capacity Ladder & Re-Certification"
+type: spec
+status: active
+model: "Meta-Veto"
+updated: 2026-06-12
+tags: []
+---
 # 🔁 Meta-Veto Rectification Plan MV2 — Rebuild, Capacity Ladder & Re-Certification
 
 > **Status**: 📐 SPEC APPROVED FOR BUILD — disperse to implementing agents

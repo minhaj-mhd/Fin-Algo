@@ -1,3 +1,11 @@
+---
+title: "TBM 1-Hour Ensemble — Full Research Results"
+type: report
+status: dead
+verdict: KILLED
+updated: 2026-06-12
+tags: []
+---
 # TBM 1-Hour Ensemble — Full Research Results
 
 **Date:** 2026-06-09  

@@ -1,3 +1,10 @@
+---
+title: "Timezone & Overfitting Audits (Dec 5, 2024)"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # 🛡️ Timezone & Overfitting Audits (Dec 5, 2024)
 
 ### The Timezone Offset Bug

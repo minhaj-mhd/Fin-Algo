@@ -1,3 +1,10 @@
+---
+title: "Conversation Context: Shoonya API Historical Data Test"
+type: log
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 💬 Conversation Context: Shoonya API Historical Data Test
 
 ## 📌 Metadata

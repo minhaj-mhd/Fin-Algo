@@ -1,3 +1,10 @@
+---
+title: "Conversation Context: v18 Directional Random Forest"
+type: log
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 💬 Conversation Context: v18 Directional Random Forest
 
 ## 📌 Metadata

@@ -1,3 +1,10 @@
+---
+title: "Unsupervised Clustering Analysis of Vetoed Trades (Robust Version)"
+type: report
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Unsupervised Clustering Analysis of Vetoed Trades (Robust Version)
 
 ## Methodology

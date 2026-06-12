@@ -1,3 +1,10 @@
+---
+title: "Conversation Context: Dual-TF Entry/Exit Overlay Research"
+type: log
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 💬 Conversation Context: Dual-TF Entry/Exit Overlay Research
 
 ## 📌 Metadata

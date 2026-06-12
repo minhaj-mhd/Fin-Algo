@@ -1,3 +1,12 @@
+---
+title: "Validation Gauntlet Report: `daily_macro_v3"
+type: report
+status: active
+model: "Gauntlet Reports"
+verdict: DEAD
+updated: 2026-06-12
+tags: []
+---
 # 🛡️ Validation Gauntlet Report: `daily_macro_v3`
 
 ## 📌 Metadata

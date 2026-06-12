@@ -1,3 +1,11 @@
+---
+title: "daily_macro_v3 Gating Sweep Report (v10 to v19)"
+type: report
+status: active
+model: "Gauntlet Reports"
+updated: 2026-06-12
+tags: []
+---
 # 📊 daily_macro_v3 Gating Sweep Report (v10 to v19)
 
 > [!CAUTION] **MULTIPLICITY WARNING — the two "PASSED" cells are NOT certified (audit annotation, Claude, 2026-06-10).**

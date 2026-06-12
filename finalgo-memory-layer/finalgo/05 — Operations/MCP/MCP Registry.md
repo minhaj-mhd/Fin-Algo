@@ -1,3 +1,10 @@
+---
+title: "MCP Servers Registry"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # MCP Servers Registry
 
 This folder tracks the research, configuration, and integration status of Model Context Protocol (MCP) servers connected to the Vanguard AI agent. 

@@ -1,3 +1,11 @@
+---
+title: "Complete Edge Catalog: v2_15min_3y Walk-Forward & OOS Analysis"
+type: report
+status: active
+model: "15m"
+updated: 2026-06-12
+tags: []
+---
 # Complete Edge Catalog: v2_15min_3y Walk-Forward & OOS Analysis
 
 **Date:** June 7, 2026

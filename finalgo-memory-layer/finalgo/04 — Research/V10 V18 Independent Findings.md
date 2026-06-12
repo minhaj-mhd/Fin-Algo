@@ -1,3 +1,10 @@
+---
+title: "V10 + V18 — Independent Findings (Claude, OOS 2025-07 → 2026-06)"
+type: report
+status: active
+updated: 2026-06-12
+tags: []
+---
 # V10 + V18 — Independent Findings (Claude, OOS 2025-07 → 2026-06)
 
 > Independent re-evaluation built from raw data + saved model artifacts, **not** a re-run of the

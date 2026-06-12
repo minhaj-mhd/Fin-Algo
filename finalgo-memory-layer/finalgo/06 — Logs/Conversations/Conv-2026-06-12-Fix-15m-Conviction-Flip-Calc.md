@@ -1,3 +1,11 @@
+---
+title: "Conversation Context: Fix 15-min Conviction-Flip Exit Calculation"
+type: log
+status: active
+verdict: sub-cost
+updated: 2026-06-12
+tags: []
+---
 # 💬 Conversation Context: Fix 15-min Conviction-Flip Exit Calculation
 
 ## 📌 Metadata

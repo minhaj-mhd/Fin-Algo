@@ -1,3 +1,10 @@
+---
+title: "Vanguard v8 Model Comparison: Baseline vs Microstructure Features"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # Vanguard v8 Model Comparison: Baseline vs Microstructure Features
 
 **Date:** May 28, 2026  

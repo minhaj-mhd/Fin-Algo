@@ -1,3 +1,10 @@
+---
+title: "Early-Stage Gatekeeper Feature Definitions"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Early-Stage Gatekeeper Feature Definitions
 
 These four features make up the "Early-Stage Gatekeeper" profile of a trade. Before the system runs the heavy, multi-timeframe XGBoost models (15m, 30m, and daily convictions), it evaluates a ticker on these baseline metrics. 

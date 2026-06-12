@@ -1,3 +1,12 @@
+---
+title: "Pre-Registration: Dual Side-Specialized Ranking Transformers"
+type: spec
+status: dead
+model: "Transformer"
+verdict: DEAD
+updated: 2026-06-12
+tags: []
+---
 # 🧪 Pre-Registration: Dual Side-Specialized Ranking Transformers
 
 > ⚠️ EXPLORATORY pre-registration. No Gauntlet verdict authority. Date: 2026-06-12.

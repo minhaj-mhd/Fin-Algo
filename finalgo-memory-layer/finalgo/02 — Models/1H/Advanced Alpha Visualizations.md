@@ -1,3 +1,11 @@
+---
+title: "Advanced Alpha Visualizations (1-Hour Core Model)"
+type: reference
+status: active
+model: "1H"
+updated: 2026-06-12
+tags: []
+---
 # Advanced Alpha Visualizations (1-Hour Core Model)
 
 This document contains advanced Machine Learning visualizations used for alpha discovery and model evaluation of the **1-Hour Vanguard Core Ranking Model (`v8_upstox_3y`)**. 

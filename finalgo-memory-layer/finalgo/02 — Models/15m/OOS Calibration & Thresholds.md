@@ -1,3 +1,11 @@
+---
+title: "OOS Calibration & Thresholds: v2_15min_3y"
+type: report
+status: active
+model: "15m"
+updated: 2026-06-12
+tags: []
+---
 # OOS Calibration & Thresholds: v2_15min_3y
 
 **Date:** June 7, 2026

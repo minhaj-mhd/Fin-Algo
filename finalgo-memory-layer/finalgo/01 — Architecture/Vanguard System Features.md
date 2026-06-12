@@ -1,3 +1,10 @@
+---
+title: "Vanguard Trading System — Feature & Architecture Release"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Vanguard Trading System — Feature & Architecture Release
 **Date Marked:** May 27, 2026 | **System Version:** Vanguard v2.5 Hardened | **Active Model:** `v8_upstox_3y`
 

@@ -1,3 +1,10 @@
+---
+title: "Database Architecture (SQLite Schema & Analytics)"
+type: spec
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 💾 Database Architecture (SQLite Schema & Analytics)
 
 To maintain absolute financial transparency and auditability, the Vanguard Engine logs every event, trade modification, AI audit, and capital adjustment into a local SQLite database located at `data/vanguard_trades.db`. 

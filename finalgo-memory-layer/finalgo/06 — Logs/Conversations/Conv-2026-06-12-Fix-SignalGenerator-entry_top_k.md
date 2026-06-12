@@ -1,3 +1,10 @@
+---
+title: "Conversation Context: Fix SignalGenerator TypeError entry_top_k"
+type: log
+status: concluded
+updated: 2026-06-12
+tags: []
+---
 # 💬 Conversation Context: Fix SignalGenerator TypeError entry_top_k
 
 ## 📌 Metadata

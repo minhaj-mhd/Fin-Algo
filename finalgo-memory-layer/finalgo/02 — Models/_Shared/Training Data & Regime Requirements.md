@@ -1,3 +1,10 @@
+---
+title: "Training Data & Regime Requirements"
+type: reference
+status: dead
+updated: 2026-06-12
+tags: []
+---
 # Training Data & Regime Requirements
 
 **Date:** June 4, 2026  

@@ -1,3 +1,12 @@
+---
+title: "Validation Gauntlet Report: `v10_depth4_1h"
+type: report
+status: active
+model: "Gauntlet Reports"
+verdict: FILTER_GRADE
+updated: 2026-06-12
+tags: []
+---
 # 🛡️ Validation Gauntlet Report: `v10_depth4_1h`
 
 ## 📌 Metadata

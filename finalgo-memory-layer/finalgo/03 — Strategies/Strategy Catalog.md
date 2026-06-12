@@ -1,3 +1,10 @@
+---
+title: "Strategy Catalog & Execution Pipelines"
+type: report
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 📈 Strategy Catalog & Execution Pipelines
 
 The Vanguard engine supports dual execution pipelines: **Pipeline 1 (Pure AI Signals)** and **Pipeline 2 (Structural Strategies S1-S50)**. While strategies specify standard backtested exit anchors, the active production engine (V2.3) overrides standard risk boundaries at entry with **Dynamic Volatility-Adjusted ATR Brackets** (Stop Loss and Take Profit calculated in real time).

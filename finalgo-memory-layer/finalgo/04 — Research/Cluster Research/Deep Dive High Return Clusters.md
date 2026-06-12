@@ -1,3 +1,10 @@
+---
+title: "Deep Dive: High Return Trades Clustering"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Deep Dive: High Return Trades Clustering
 
 ## Methodology

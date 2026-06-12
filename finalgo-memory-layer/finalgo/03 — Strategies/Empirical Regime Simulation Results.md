@@ -1,3 +1,10 @@
+---
+title: "Empirical Regime Simulation Results"
+type: report
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 🧪 Empirical Regime Simulation Results
 
 This document permanently logs the results of our **Dual-Pass Comparative Simulator**, which was executed on May 2026 to mathematically determine whether each strategy in our catalog should act as a `TREND` strategy (gated by the Daily Macro model) or a `REVERSAL` strategy (ungated, bypassing the Daily Macro model).

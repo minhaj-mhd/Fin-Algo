@@ -1,3 +1,10 @@
+---
+title: "Quality Metrics Summary"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # Quality Metrics Summary
 
 ## Current Model Performance

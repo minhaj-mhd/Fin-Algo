@@ -1,3 +1,11 @@
+---
+title: "Dual-Timeframe Strategy & Full Research Journey"
+type: reference
+status: superseded
+model: "15m"
+updated: 2026-06-12
+tags: []
+---
 # Dual-Timeframe Strategy & Full Research Journey
 
 **Date:** June 7, 2026

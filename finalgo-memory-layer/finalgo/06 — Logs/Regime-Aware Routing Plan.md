@@ -1,3 +1,10 @@
+---
+title: "Regime-Aware Routing Plan (Conditional Gatekeeping)"
+type: spec
+status: concluded
+updated: 2026-06-12
+tags: []
+---
 # 🚦 Regime-Aware Routing Plan (Conditional Gatekeeping)
 
 This document tracks our active architectural plan to modify how the **Daily Macro Gatekeeper** interacts with our execution engine and backtester.

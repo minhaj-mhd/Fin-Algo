@@ -1,3 +1,11 @@
+---
+title: "Comprehensive Empirical Analysis of Model Thresholds & Execution Architecture"
+type: report
+status: active
+model: "30m"
+updated: 2026-06-12
+tags: []
+---
 # Comprehensive Empirical Analysis of Model Thresholds & Execution Architecture
 
 **Date:** June 4, 2026

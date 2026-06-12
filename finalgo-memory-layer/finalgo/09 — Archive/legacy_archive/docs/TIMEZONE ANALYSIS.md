@@ -1,3 +1,10 @@
+---
+title: "Timezone Analysis: UTC vs IST Handling"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # Timezone Analysis: UTC vs IST Handling
 
 ## Executive Summary

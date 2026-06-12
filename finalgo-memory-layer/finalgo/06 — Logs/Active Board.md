@@ -1,3 +1,11 @@
+---
+title: "Current Context"
+type: reference
+status: dead
+verdict: DEAD
+updated: 2026-06-12
+tags: []
+---
 # Current Context
 
 This document tracks the active development topics, current focus, and immediate next steps for the Vanguard V2.3 project.

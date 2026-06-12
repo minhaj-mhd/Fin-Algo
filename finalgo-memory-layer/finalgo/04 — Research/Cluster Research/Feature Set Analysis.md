@@ -1,3 +1,10 @@
+---
+title: "Vanguard Trades Database Schema & Feature Set Analysis"
+type: report
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Vanguard Trades Database Schema & Feature Set Analysis
 
 **Total Trades in Database:** 1466

@@ -1,3 +1,10 @@
+---
+title: "AI Veto & Gemini Audit (Live LLM Validation)"
+type: report
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 🛡️ AI Veto & Gemini Audit (Live LLM Validation)
 
 A defining capability of the Vanguard V2.3 engine is its **Hierarchical Dual-Stage AI Auditing & Veto Layer**. When a numeric signal is generated, the engine executes a real-time logical and fundamental validation sweep. Implemented in `scripts/vanguard/ai_veto.py`, this layer acts as an automated Chief Risk Officer (CRO), validating confluence patterns and shielding our capital from technical traps.

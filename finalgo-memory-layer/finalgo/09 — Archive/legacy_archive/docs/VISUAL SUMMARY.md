@@ -1,3 +1,10 @@
+---
+title: "VISUAL SUMMARY: Why We Use Inverted XGBoost"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # VISUAL SUMMARY: Why We Use Inverted XGBoost
 
 ## The One Question You Need Answered

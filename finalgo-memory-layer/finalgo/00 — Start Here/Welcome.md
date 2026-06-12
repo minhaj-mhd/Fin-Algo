@@ -1,3 +1,10 @@
+---
+title: "Welcome to the Vanguard Brain (Obsidian Memory Layer)"
+type: moc
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Welcome to the Vanguard Brain (Obsidian Memory Layer)
 
 Welcome to the **Vanguard V2.0 Memory Layer**. This vault serves as our shared core memory, capturing the architectural blueprint, strategic intelligence, model configurations, and execution loops of the **Vanguard High-Precision Intraday Trading Engine**.

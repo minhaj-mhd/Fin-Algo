@@ -1,3 +1,11 @@
+---
+title: "Time of Day vs. Conviction Score (30-Minute Model)"
+type: reference
+status: active
+model: "30m"
+updated: 2026-06-12
+tags: []
+---
 # Time of Day vs. Conviction Score (30-Minute Model)
 
 This document explores how the 30-minute models' conviction scores interact with the time of day, revealing the structural alpha windows.

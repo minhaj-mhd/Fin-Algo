@@ -1,3 +1,10 @@
+---
+title: "Vanguard Model — Inference-Time Data Structure"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # Vanguard Model — Inference-Time Data Structure
 
 > **Models:** `xgb_long_model.json` & `xgb_short_model.json`  

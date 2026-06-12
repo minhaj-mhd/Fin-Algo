@@ -1,3 +1,10 @@
+---
+title: "Vanguard V1 Baseline & XGBoost Inversion Logic (Dec 2024)"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # 📈 Vanguard V1 Baseline & XGBoost Inversion Logic (Dec 2024)
 
 ### The System Concept

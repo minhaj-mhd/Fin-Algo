@@ -1,3 +1,11 @@
+---
+title: "Conversation Context: Sophisticated Cross-Sectional + Temporal Transformer"
+type: log
+status: active
+verdict: DEAD
+updated: 2026-06-12
+tags: []
+---
 # 💬 Conversation Context: Sophisticated Cross-Sectional + Temporal Transformer
 
 ## 📌 Metadata

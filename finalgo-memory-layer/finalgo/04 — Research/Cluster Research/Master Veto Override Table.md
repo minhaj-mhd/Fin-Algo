@@ -1,3 +1,10 @@
+---
+title: "Master Veto Override: Cluster Sweet Spots"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Master Veto Override: Cluster Sweet Spots
 
 This table represents the culmination of the hierarchical sub-clustering analysis. It maps the exact "sweet spots" (the mathematical centroids and their optimal distance boundaries) that successfully isolate historical winners from market noise. 

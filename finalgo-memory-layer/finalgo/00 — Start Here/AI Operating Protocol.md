@@ -1,3 +1,10 @@
+---
+title: "AI Agent Operating Protocol & Shared Memory Guide"
+type: reference
+status: superseded
+updated: 2026-06-12
+tags: []
+---
 # 🤖 AI Agent Operating Protocol & Shared Memory Guide
 
 Welcome! If you are an AI coding agent (Gemini, Claude, etc.) pair-programming with the user on this repository, **you are required to read, understand, and strictly adhere to this operating protocol**. 

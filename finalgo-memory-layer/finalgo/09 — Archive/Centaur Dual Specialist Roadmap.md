@@ -1,3 +1,10 @@
+---
+title: "Centaur Dual-Specialist & ADX Meta-Routing Roadmap (May 27, 2026)"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # 🏗️ Centaur Dual-Specialist & ADX Meta-Routing Roadmap (May 27, 2026)
 
 ### The Proposal

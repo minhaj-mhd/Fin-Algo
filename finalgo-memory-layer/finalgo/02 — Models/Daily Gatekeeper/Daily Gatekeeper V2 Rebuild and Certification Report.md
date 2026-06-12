@@ -1,3 +1,12 @@
+---
+title: "Daily Gatekeeper V2 — Rebuild & Certification Report (D0–D6)"
+type: report
+status: concluded
+model: "Daily Gatekeeper"
+verdict: FILTER_GRADE
+updated: 2026-06-12
+tags: []
+---
 # 🏛️ Daily Gatekeeper V2 — Rebuild & Certification Report (D0–D6)
 
 > **Status**: 🔴 CONCLUDED — Gating Certification FAILED (V2 & V3 Gating Rejected)

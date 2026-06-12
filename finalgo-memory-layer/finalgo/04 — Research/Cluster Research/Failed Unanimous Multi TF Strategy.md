@@ -1,3 +1,10 @@
+---
+title: "Failed Approach: Unanimous Multi-Timeframe Conviction Strategy"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Failed Approach: Unanimous Multi-Timeframe Conviction Strategy
 
 ## Concept

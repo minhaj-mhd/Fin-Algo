@@ -1,3 +1,12 @@
+---
+title: "Daily Gatekeeper V2 — Rebuild & Certification Plan (D0–D6)"
+type: spec
+status: active
+model: "Daily Gatekeeper"
+verdict: DEAD
+updated: 2026-06-12
+tags: []
+---
 # 🏛️ Daily Gatekeeper V2 — Rebuild & Certification Plan (D0–D6)
 
 > **Status**: 📐 SPEC APPROVED FOR BUILD — disperse to implementing agents

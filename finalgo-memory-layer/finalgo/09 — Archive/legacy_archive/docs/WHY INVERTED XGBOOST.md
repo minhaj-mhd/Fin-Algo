@@ -1,3 +1,10 @@
+---
+title: "WHY WE USE INVERTED XGBoost: Complete Explanation"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # WHY WE USE INVERTED XGBoost: Complete Explanation
 
 ## Quick Answer

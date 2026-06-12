@@ -1,3 +1,11 @@
+---
+title: "Meta-Veto Stacking Framework — Engineering & Certification Plan (M0–M5)"
+type: spec
+status: active
+model: "Meta-Veto"
+updated: 2026-06-12
+tags: []
+---
 # 🧠 Meta-Veto Stacking Framework — Engineering & Certification Plan (M0–M5)
 
 > **Status**: 📐 SPEC APPROVED FOR BUILD — disperse to implementing agents

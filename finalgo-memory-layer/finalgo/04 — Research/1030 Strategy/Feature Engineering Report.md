@@ -1,3 +1,10 @@
+---
+title: "Feature Engineering for 10:30 AM Intraday Trading Model (Indian Stock Market)"
+type: report
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Feature Engineering for 10:30 AM Intraday Trading Model (Indian Stock Market)
 
 I have completed the research on feature engineering for an intraday trading model targeting the Indian stock market, specifically focused on entering trades after the initial volatility subsides at 10:30 AM IST. 

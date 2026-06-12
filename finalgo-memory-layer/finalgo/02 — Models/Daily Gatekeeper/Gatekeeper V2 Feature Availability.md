@@ -1,3 +1,11 @@
+---
+title: "Gatekeeper V2 Feature Availability & Point-in-Time Contract"
+type: reference
+status: active
+model: "Daily Gatekeeper"
+updated: 2026-06-12
+tags: []
+---
 # 🏛️ Gatekeeper V2 Feature Availability & Point-in-Time Contract
 
 To ensure that the Daily Gatekeeper V2 model (`daily_macro_v2`) is completely free of lookahead bias, we establish a strict **Decision-Time Contract** governing when data is considered finalized and available.

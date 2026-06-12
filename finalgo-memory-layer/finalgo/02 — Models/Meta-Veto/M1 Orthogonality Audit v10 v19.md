@@ -1,3 +1,11 @@
+---
+title: "M1 Orthogonality Audit: v10-v19 Stacking Panel"
+type: report
+status: active
+model: "Meta-Veto"
+updated: 2026-06-12
+tags: []
+---
 # 📊 M1 Orthogonality Audit: v10-v19 Stacking Panel
 
 - **Date**: 2026-06-11 10:13:53

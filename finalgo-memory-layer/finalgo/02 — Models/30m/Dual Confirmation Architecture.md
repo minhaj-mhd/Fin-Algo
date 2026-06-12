@@ -1,3 +1,11 @@
+---
+title: "The Dual-Confirmation Architecture (30-Minute Model)"
+type: spec
+status: active
+model: "30m"
+updated: 2026-06-12
+tags: []
+---
 # The Dual-Confirmation Architecture (30-Minute Model)
 
 **Date:** June 4, 2026

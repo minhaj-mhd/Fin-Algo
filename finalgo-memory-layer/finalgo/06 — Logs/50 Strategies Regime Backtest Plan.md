@@ -1,3 +1,10 @@
+---
+title: "50 Strategies Regime Backtest Plan"
+type: spec
+status: active
+updated: 2026-06-12
+tags: []
+---
 	# 50 Strategies Regime-Aware Backtest Plan (Gated vs Ungated)
 
 ## 1. Goal Description

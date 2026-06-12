@@ -1,3 +1,10 @@
+---
+title: "Vanguard Engine Refactor Roadmap"
+type: spec
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Vanguard Engine Refactor Roadmap
 ## Why and How to Split `vanguard_signal_engine.py`
 

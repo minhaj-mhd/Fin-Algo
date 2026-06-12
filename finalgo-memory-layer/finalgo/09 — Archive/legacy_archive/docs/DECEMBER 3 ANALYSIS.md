@@ -1,3 +1,10 @@
+---
+title: "December 3, 2025 - Complete Day Trading Analysis"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # December 3, 2025 - Complete Day Trading Analysis
 
 ## Executive Summary

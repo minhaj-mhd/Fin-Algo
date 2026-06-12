@@ -1,3 +1,11 @@
+---
+title: "DualRes Transformer — netPnL@10 Consolidated Report"
+type: report
+status: active
+model: "Transformer"
+updated: 2026-06-12
+tags: []
+---
 # 📊 DualRes Transformer — netPnL@10 Consolidated Report
 
 > Model: `artifacts/dualres_transformer_netpnl.pt` (cost-aware net-PnL objective, cost_bps=10, 509,569 params).

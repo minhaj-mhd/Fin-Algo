@@ -1,3 +1,10 @@
+---
+title: "Vanguard Model — Inference-Time Data Structure"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Vanguard Model — Inference-Time Data Structure
 
 > **Model Registry Default:** `v8_upstox_3y`

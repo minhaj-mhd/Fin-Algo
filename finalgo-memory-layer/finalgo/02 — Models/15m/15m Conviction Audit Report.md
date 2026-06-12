@@ -1,3 +1,11 @@
+---
+title: "15-Minute Conviction Score Audit"
+type: report
+status: active
+model: "15m"
+updated: 2026-06-12
+tags: []
+---
 # 15-Minute Conviction Score Audit
 
 ### COROMANDEL.NS | LONG | Status: OPEN

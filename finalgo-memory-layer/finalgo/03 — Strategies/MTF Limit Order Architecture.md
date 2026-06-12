@@ -1,3 +1,10 @@
+---
+title: "Multi-Timeframe (MTF) Support & Resistance Limit Order Architecture"
+type: spec
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Multi-Timeframe (MTF) Support & Resistance Limit Order Architecture
 
 This document aggregates the deep research findings on integrating conditional Limit Orders using Multi-Timeframe Support/Resistance levels into the Vanguard Live Trading System.

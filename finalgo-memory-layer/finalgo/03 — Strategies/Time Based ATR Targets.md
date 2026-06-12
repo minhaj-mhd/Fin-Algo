@@ -1,3 +1,10 @@
+---
+title: "Time-Based ATR Targeting (1-Hour Hold Constraints)"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Time-Based ATR Targeting (1-Hour Hold Constraints)
 
 **Concept:** Dynamic Stop Loss (SL) and Take Profit (TP) must be scaled to realistically match the holding period of the trade using the square root of time rule.

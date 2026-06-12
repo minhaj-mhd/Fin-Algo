@@ -1,3 +1,10 @@
+---
+title: "Journey to Vanguard v2.0: Specialized Multi-Model Ensemble"
+type: archive
+status: archived
+updated: 2026-06-12
+tags: []
+---
 # Journey to Vanguard v2.0: Specialized Multi-Model Ensemble
 **Date:** May 27, 2026 | **Version:** v2.0 Design Specification | **Target System:** Vanguard Centaur Engine
 

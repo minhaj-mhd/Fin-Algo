@@ -1,3 +1,10 @@
+---
+title: "tasks"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 ## 
 
 Look at the pattern across your own vault. v8's 0.046 Spearman → early-stopping-on-test leakage, real value ~0.025. TBM short's +5.18 bps → cost-sign bug, real value negative. Sniper's 68–76% WR → same-bar IBS lookahead, real value 55–60%. Hybrid depth-4's +7.82 bps → contradicted by the full walk-forward (−2.5 bps). The 15m "dual-TF edge" → overnight-return artifact.

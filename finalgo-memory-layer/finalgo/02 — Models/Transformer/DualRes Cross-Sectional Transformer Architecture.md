@@ -1,3 +1,11 @@
+---
+title: "Dual-Resolution Cross-Sectional Transformer — Architecture"
+type: spec
+status: active
+model: "Transformer"
+updated: 2026-06-12
+tags: []
+---
 # 🧠 Dual-Resolution Cross-Sectional Transformer — Architecture
 
 > **Status**: 🟢 In active development (2026-06-12) · ⚠️ UNVERIFIED (no Gauntlet run yet)

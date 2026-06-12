@@ -1,3 +1,10 @@
+---
+title: "Conversation Context: Print v10 Final Tree"
+type: log
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 💬 Conversation Context: Print v10 Final Tree
 
 ## 📌 Metadata

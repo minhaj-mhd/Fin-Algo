@@ -1,3 +1,10 @@
+---
+title: "Model Registry & File Structures"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 🗃️ Model Registry & File Structures
 
 The Vanguard engine maintains a highly structured, registry-controlled model management system under the `models/` directory. Centralized in `scripts/model_registry.py`, this system validates model files, registers new training runs, and manages dynamic switching of the active system configuration.

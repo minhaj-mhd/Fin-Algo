@@ -1,3 +1,10 @@
+---
+title: "V10 (XGBoost Ranking) vs V18 (Random Forest Classifier) - OOS 2026 Evaluation"
+type: report
+status: active
+updated: 2026-06-12
+tags: []
+---
 # V10 (XGBoost Ranking) vs V18 (Random Forest Classifier) - OOS 2026 Evaluation
 
 ## Overview

@@ -1,3 +1,11 @@
+---
+title: "Meta-Veto MV2 Certification Report"
+type: report
+status: dead
+model: "Meta-Veto"
+updated: 2026-06-12
+tags: []
+---
 # 🧠 Meta-Veto MV2 Certification Report
 
 > [!CAUTION] **AUDIT ANNOTATION (Claude, 2026-06-10): closure is PROVISIONAL — the DEV span is lookahead-contaminated by an unauthorized backfill.**

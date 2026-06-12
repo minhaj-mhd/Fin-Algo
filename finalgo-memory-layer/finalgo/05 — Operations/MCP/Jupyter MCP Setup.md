@@ -1,3 +1,10 @@
+---
+title: "Jupyter / Python Data Sandbox MCP Integration"
+type: reference
+status: active
+updated: 2026-06-12
+tags: []
+---
 # Jupyter / Python Data Sandbox MCP Integration
 
 **Status**: Active Setup  

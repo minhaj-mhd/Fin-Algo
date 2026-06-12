@@ -1,3 +1,11 @@
+---
+title: "Model Performance & Statistics"
+type: report
+status: dead
+verdict: DEAD
+updated: 2026-06-12
+tags: []
+---
 # 📊 Model Performance & Statistics
 
 This document serves as the absolute technical ledger for all machine learning models in the **Vanguard High-Precision Intraday Trading Engine**. It details their structural setups, training parameters, out-of-sample Spearman correlations, feature dimensions, and historical simulation performance.

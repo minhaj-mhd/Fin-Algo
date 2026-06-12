@@ -1,3 +1,10 @@
+---
+title: "Global System Architecture"
+type: spec
+status: active
+updated: 2026-06-12
+tags: []
+---
 # 🏛️ Global System Architecture
 
 The **Vanguard V2.3 High-Precision Trading Engine** is an industrial-hardened, low-friction intraday scanning and execution system optimized for the NSE (India) market. The system integrates advanced machine learning technical ranking models with a hierarchical dual-stage LLM-based sentiment and technical audit layer to achieve robust, high-win-rate intraday trading performance.

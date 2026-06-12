@@ -1,3 +1,11 @@
+---
+title: "TBM 1-Hour Ensemble — Finalized Implementation Plan"
+type: spec
+status: dead
+verdict: KILLED
+updated: 2026-06-12
+tags: []
+---
 # TBM 1-Hour Ensemble — Finalized Implementation Plan
 
 **Owner:** signal-generation (1h layer)  **Status:** EXECUTED — BOTH SIDES KILLED  **Date completed:** 2026-06-09

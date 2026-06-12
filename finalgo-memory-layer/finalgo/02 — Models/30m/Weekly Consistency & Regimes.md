@@ -1,3 +1,11 @@
+---
+title: "Weekly Consistency & Regime Analysis (30-Minute Model)"
+type: reference
+status: active
+model: "30m"
+updated: 2026-06-12
+tags: []
+---
 # Weekly Consistency & Regime Analysis (30-Minute Model)
 
 This document analyzes the stability of the 30-minute Vanguard Model's edge across the 1-month Out-of-Sample window (May 2026) by breaking it into weekly chunks.

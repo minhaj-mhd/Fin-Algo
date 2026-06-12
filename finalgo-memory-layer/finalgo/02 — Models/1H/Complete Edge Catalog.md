@@ -1,3 +1,11 @@
+---
+title: "Complete Edge Catalog: Exhaustive Dual-Model Parameter Exploration"
+type: report
+status: active
+model: "1H"
+updated: 2026-06-12
+tags: []
+---
 # Complete Edge Catalog: Exhaustive Dual-Model Parameter Exploration
 
 **Date:** June 4, 2026  
