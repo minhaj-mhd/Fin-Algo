@@ -112,3 +112,29 @@ not loss or architecture**. Per the pre-registered stop rule: recorded, **no kee
 through remains order-flow/microstructure data ([[project_cst_stage0_killed]], [[project_dualres_transformer_result]]).
 Reusable: `train.py --objective gate [--v10_restrict]`, `make_v10_pickmask.py`, `gate_veto_v10.py`,
 `artifacts/gate_veto_v10.json`.
+
+### Net win-rate verification (hit-rate ≠ edge)
+The v10-focused gate's short K1 picks (n=316) have raw directional WR **58%** (real on its own:
+z≈2.85 vs 50%), but the **after-cost** win-rate collapses as the fee bites:
+
+| K1 short, cost | raw WR | net WR | net bps (t) |
+|---|---|---|---|
+| @6 | 58% | 55% | +5.83 (1.21) |
+| @10 | 58% | **51%** | +1.83 (**0.38**) |
+| @20 | 58% | 44% | −8.17 (−1.69) |
+
+At the binding 10bps cost the 58% becomes a **51% coin flip** and the P&L is noise (t=0.38). The
+~7 points between raw and net are wins too small to clear the round-trip fee; the loss-side fat tail
+(short squeezes) dominates the mean. Same lesson as [[feedback_validate_cost_accounting]] and the TBM
+"56.5%" mirage — **judge net bps + t per side, never win-rate.**
+
+### Gemini-veto "rescue" — REJECTED (do not re-propose without a forward test)
+Proposed: stack the live Gemini S1/S2 veto on the gate to cut its losing shorts. Rejected:
+1. **No measured uplift** — Gemini is already layered on v8/v10 live, which remain net-negative.
+2. **It is the closed stacking line** — [[02. Model Suite/Meta-Veto Rectification Plan MV2|MV2]] permanently
+   closed price/volume/macro/sentiment stacking (best meta-model net −5 bps).
+3. **Unbacktestable** — the S2 layer uses Google Search grounding; querying *today* about a past date
+   leaks the future → any historical backtest is self-deception.
+Only honest path is a **forward/paper test**: run the gate live, log Gemini's decisions on the
+gate-kept shorts in real time, measure net-with vs net-without to t>2. See
+[[06. Context & Logs/Conversations/Conv-2026-06-12-Sided-Transformer-Gate|conversation log]].

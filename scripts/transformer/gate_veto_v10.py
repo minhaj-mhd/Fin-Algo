@@ -88,10 +88,11 @@ print(f"v10 OOS rows in gate window: {base.sum():,}\n")
 def tstat(r, cost):
     r = np.asarray(r, float)
     if len(r) == 0:
-        return dict(n=0, net=0.0, t=0.0, win=0.0)
+        return dict(n=0, net=0.0, t=0.0, win=0.0, netwin=0.0)
     net = r - cost
     t = float(ttest_1samp(net, 0).statistic) if len(r) > 1 and np.std(net) > 0 else 0.0
-    return dict(n=len(r), net=round(net.mean() * 1e4, 2), t=round(t, 2), win=round((r > 0).mean(), 3))
+    return dict(n=len(r), net=round(net.mean() * 1e4, 2), t=round(t, 2),
+                win=round((r > 0).mean(), 3), netwin=round((net > 0).mean(), 3))
 
 
 def run(K):
