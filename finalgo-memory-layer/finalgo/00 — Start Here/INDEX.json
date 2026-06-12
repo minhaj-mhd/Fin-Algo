@@ -1,9 +1,9 @@
 [
  {
   "path": "00 — Start Here/AI Operating Protocol.md",
-  "title": "AI Agent Operating Protocol & Shared Memory Guide",
+  "title": "AI Operating Protocol (pointer)",
   "type": "reference",
-  "status": "superseded",
+  "status": "active",
   "model": "",
   "verdict": "",
   "updated": "2026-06-12"
@@ -1153,11 +1153,20 @@
  },
  {
   "path": "06 — Logs/Active Board.md",
-  "title": "Current Context",
+  "title": "Active Board",
   "type": "reference",
   "status": "active",
   "model": "",
-  "verdict": "DEAD",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Completed Work Archive.md",
+  "title": "Completed Work Archive",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
   "updated": "2026-06-12"
  },
  {

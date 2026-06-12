@@ -4,10 +4,11 @@
 > by `scripts/memory/build_index.py` from each doc's front-matter — do not hand-edit.
 > Protocol: [[00 — Start Here/AI Operating Protocol|AI Operating Protocol]] · Dead ends: [[00 — Start Here/Dead-Ends Register|Dead-Ends Register]] · Machine index: `00 — Start Here/INDEX.json`
 
-**193 docs** across 8 sections.
+**194 docs** across 8 sections.
 
 ## 00 — Start Here  (1)
 → [[00 — Start Here/_MOC|Browse all 1]]
+- [[00 — Start Here/AI Operating Protocol|AI Operating Protocol (pointer)]] — 1. Read AGENTS.md(../../../AGENTS.md) (4-phase continuity protocol, metric discipline, eng
 
 ## 01 — Architecture  (9)
 → [[01 — Architecture/_MOC|Browse all 9]]
@@ -79,11 +80,11 @@
 - [[05 — Operations/MCP/TradingView MCP Setup|TradingView MCP Setup]] — This document outlines the setup and connection procedures for integrating the TradingView
 - [[05 — Operations/Upstox Brokerage API Plan|Upstox Get Brokerage API Integration Plan]] — This document serves as a reminder for the future integration of the Upstox Get Brokerage 
 
-## 06 — Logs  (35)
-→ [[06 — Logs/_MOC|Browse all 35]]
+## 06 — Logs  (36)
+→ [[06 — Logs/_MOC|Browse all 36]]
 - [[06 — Logs/50 Strategies Performance Results|50-Strategy Regime-Aware Backtest Results]] — Test Period: May 2026
 - [[06 — Logs/50 Strategies Regime Backtest Plan|50 Strategies Regime Backtest Plan]] — The objective is to evaluate all 50 trading strategies in the catalog using a Regime-Aware
-- [[06 — Logs/Active Board|Current Context]] — This document tracks the active development topics, current focus, and immediate next step
+- [[06 — Logs/Active Board|Active Board]] —  Memory layer restructure (IN PROGRESS) — vault reorganized into the 00–09 taxonomy with
 - [[06 — Logs/tasks|tasks]] — Look at the pattern across your own vault. v8's 0.046 Spearman → early-stopping-on-test le
 
 ## 09 — Archive  (32)

@@ -7,4 +7,4 @@
 
 | Doc | Type | Status | Verdict | Updated |
 |---|---|---|---|---|
-| [[00 — Start Here/AI Operating Protocol|AI Agent Operating Protocol & Shared Memory Guide]] | reference | 🟡 superseded |  | 2026-06-12 |
+| [[00 — Start Here/AI Operating Protocol|AI Operating Protocol (pointer)]] | reference | 🟢 active |  | 2026-06-12 |

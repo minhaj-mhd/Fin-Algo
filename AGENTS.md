@@ -81,13 +81,34 @@ During execution, you **MUST** maintain clean documentation in your active conve
 ### 💾 Phase 4: Teardown & Checkpoint (Save State)
 Before concluding your conversation or concluding your turn, you **MUST** save the session state:
 1. Mark all completed objectives in your conversation note and set the status to `🔴 Concluded` (or leave as `🟢 Active` if further follow-ups are expected).
-2. Update **[`06. Context & Logs/Current Context.md`](file:///c:/Users/loq/Desktop/Trading/finalgo/finalgo-memory-layer/finalgo/06. Context & Logs/Current Context.md)** to bubble up:
-   - **Active Focus**: Add a highly descriptive bullet summarizing the major structural upgrades.
+2. Update **`finalgo-memory-layer/finalgo/06 — Logs/Active Board.md`** to bubble up:
+   - **Current Focus**: keep it lean (≤ ~10 live items). Move anything `(COMPLETED)` into `06 — Logs/Completed Work Archive.md`.
    - **Next Steps**: Update the checklist with remaining tasks.
-   - **Links**: Reference your conversation file (e.g., `[[06. Context & Logs/Conversations/Conv-YYYY-MM-DD-Topic|Conversation Log]]`).
-3. Update **`Welcome.md`** if any new, permanent core documentation files were added during the session.
+   - **Links**: Reference your conversation file (e.g., `[[06 — Logs/Conversations/Conv-YYYY-MM-DD-Topic|Conversation Log]]`).
+3. **Do NOT hand-edit `Welcome.md`, any `_MOC.md`, `INDEX.json`, or `Dead-Ends Register.md`** — they are generated. Instead, ensure your new/changed docs have correct front-matter, then run `python scripts/memory/build_index.py`.
 4. **Git Commit Request**: Whenever an important task, structural upgrade, or major refactor is completed, you **MUST** proactively ask the user if they would like to commit the changes to Git.
-5. **Archive Conversation**: After a successful commit, append the compacted conversation summary into the current day's Daily Log file (e.g., `Daily Logs/YYYY-MM-DD.md`) and delete the original conversation file from the `Conversations/` directory. This completely wipes the active context clean and prevents clutter.
+5. **Archive Conversation**: After a successful commit, append the compacted conversation summary into the current day's Daily Log file (`06 — Logs/Daily Logs/YYYY-MM-DD.md`) and delete the original conversation file from `06 — Logs/Conversations/`.
+
+---
+
+## 🗂️ Memory Vault Hygiene (the `00–09` structure)
+
+The vault uses a fixed top-level taxonomy: `00 — Start Here`, `01 — Architecture`, `02 — Models`
+(per-model subfolders + `_Shared` + `Gauntlet Reports`), `03 — Strategies`, `04 — Research`,
+`05 — Operations`, `06 — Logs`, `09 — Archive`. Rules that keep it from rotting again:
+
+1. **Every doc has YAML front-matter**: `title`, `type` (spec|report|reference|research|log|archive|moc),
+   `status` (active|concluded|dead|superseded|archived|wip), `updated`; plus optional `model`, `verdict`,
+   `gauntlet_run_id`. A `verdict` without a `gauntlet_run_id` (or explicit `⚠️ UNVERIFIED`) is a violation.
+2. **One topic, one home.** Everything about a model lives under `02 — Models/<model>/`. Dead-end /
+   exploratory lines live in `04 — Research/` with a `status:` and a top-of-file verdict.
+3. **Indexes are generated, never hand-written.** After any add/move/status change, run
+   `python scripts/memory/build_index.py` (regenerates Welcome, all `_MOC.md`, `INDEX.json`, Dead-Ends Register).
+4. **Filenames**: Title Case With Spaces, except dated daily logs (`YYYY-MM-DD.md`) and `Conv-YYYY-MM-DD-Topic.md`.
+5. **The protocol has one source** — this file (`AGENTS.md`). The vault's `00 — Start Here/AI Operating Protocol.md`
+   is only a pointer; do not re-duplicate the protocol body there.
+6. **Never `git reset --hard` / destructive ops with untracked vault files present** — commit or stash first
+   (an untracked-file reset once destroyed 14 docs; they were recoverable from dangling blobs, but don't rely on it).
 
 ---
 

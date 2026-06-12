@@ -181,6 +181,8 @@
   },
   "active": "b1200661ab034e3b",
   "lastOpenFiles": [
+    "06 — Logs/Completed Work Archive.md",
+    "00 — Start Here/AI Operating Protocol.md.tmp.37072.aa3a95f4881e",
     "00 — Start Here/Dead-Ends Register.md",
     "00 — Start Here/INDEX.json",
     "09 — Archive/_MOC.md",
@@ -209,7 +211,6 @@
     "09 — Archive/legacy_archive/scripts/update_html.py",
     "09 — Archive/legacy_archive/scripts/train_daily_xgboost.py",
     "09 — Archive/legacy_archive/scripts/train_daily_transformer_v2.py",
-    "09 — Archive/legacy_archive/scripts/train_daily_transformer.py",
     "04 — Research/1030 Strategy/Implementation Plan.md",
     "04 — Research/1030 Strategy/Feature Engineering Report.md",
     "04 — Research/1030 Strategy/Architecture Research Report.md",
@@ -225,7 +226,6 @@
     "02 — Models/Gauntlet Reports/v3 Gating Uplift v18 Random Forest 1h.md",
     "02 — Models/Gauntlet Reports/v3 Gating Uplift v17 Random Forest 1h.md",
     "02 — Models/Gauntlet Reports/v3 Gating Uplift v16 Binary Breakout 1h.md",
-    "02 — Models/Gauntlet Reports/v3 Gating Uplift v15 Lambdamart Es 1h.md",
-    "02 — Models/Gauntlet Reports/v3 Gating Uplift v14 Lambdamart No Es 1h.md"
+    "02 — Models/Gauntlet Reports/v3 Gating Uplift v15 Lambdamart Es 1h.md"
   ]
 }
