@@ -794,7 +794,7 @@ class VanguardOrchestrator:
             try:
                 from scripts.upstox_broker import UpstoxSandboxBroker
                 temp_broker = UpstoxSandboxBroker()
-                hist_df = temp_broker.get_historical_data(ticker, interval="60minute", days=60, fallback=False)
+                hist_df = temp_broker.get_historical_data(ticker, interval="15minute", days=20, fallback=False)
                 if hist_df is not None and not hist_df.empty:
                     hist_df = hist_df.rename(columns={
                         "open": "Open", "high": "High", "low": "Low", 
@@ -802,9 +802,18 @@ class VanguardOrchestrator:
                     })
                     if "timestamp" in hist_df.columns:
                         hist_df.set_index("timestamp", inplace=True)
+                    
+                    df_30m = hist_df.resample('30min', origin='start_day').agg({
+                        'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'
+                    }).dropna()
+                    
+                    df_60m = hist_df.resample('1h', origin='start_day').agg({
+                        'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'
+                    }).dropna()
+
                     import time
                     time.sleep(0.3)
-                    return ticker, hist_df
+                    return ticker, {'15m': hist_df, '30m': df_30m, '60m': df_60m}
             except Exception:
                 pass
             return ticker, None
@@ -834,10 +843,10 @@ class VanguardOrchestrator:
                                 if ticker in batch_data.columns.get_level_values(1):
                                     df_ticker = batch_data.xs(ticker, axis=1, level=1).dropna()
                                     if not df_ticker.empty:
-                                        all_dfs[ticker] = df_ticker
+                                        all_dfs[ticker] = {'15m': pd.DataFrame(), '30m': pd.DataFrame(), '60m': df_ticker}
                             else:
                                 if not batch_data.empty:
-                                    all_dfs[ticker] = batch_data.dropna()
+                                    all_dfs[ticker] = {'15m': pd.DataFrame(), '30m': pd.DataFrame(), '60m': batch_data.dropna()}
                         except Exception:
                             pass
             except Exception as e_batch:
@@ -849,6 +858,7 @@ class VanguardOrchestrator:
             try:
                 df_curr = df_input.ffill().dropna()
                 if len(df_curr) < 25:
+                    print(f"[{ticker}] Not enough rows: {len(df_curr)}")
                     return None
 
                 df_curr = compute_features(df_curr, legacy=is_legacy_flag)
@@ -934,22 +944,43 @@ class VanguardOrchestrator:
         non_legacy_prefixes = ["v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19"]
         is_legacy = not any(str(self.model_manager.active_model_name).startswith(p) for p in non_legacy_prefixes)
 
+        all_15m_data = []
+        all_30m_data = []
+
+        def _compute_multi_tf(ticker, dfs_dict, daily_data_input, is_legacy_flag):
+            df_60m = dfs_dict.get('60m', pd.DataFrame())
+            df_15m = dfs_dict.get('15m', pd.DataFrame())
+            df_30m = dfs_dict.get('30m', pd.DataFrame())
+            
+            if df_60m.empty:
+                print(f"[{ticker}] 60m is empty")
+            res_60m = _compute_features_for_ticker(ticker, df_60m, daily_data_input, is_legacy_flag)
+            res_15m = _compute_features_for_ticker(ticker, df_15m, daily_data_input, is_legacy_flag)
+            res_30m = _compute_features_for_ticker(ticker, df_30m, daily_data_input, is_legacy_flag)
+            return {'60m': res_60m, '15m': res_15m, '30m': res_30m}
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             future_to_ticker = {
-                executor.submit(_compute_features_for_ticker, ticker, all_dfs[ticker], daily_data, is_legacy): ticker
+                executor.submit(_compute_multi_tf, ticker, all_dfs[ticker], daily_data, is_legacy): ticker
                 for ticker in tickers if ticker in all_dfs
             }
             for future in concurrent.futures.as_completed(future_to_ticker):
                 res = future.result()
-                if res is not None:
-                    all_latest_data.append(res)
-                    valid_tickers.append(res["ticker"])
+                if res['60m'] is not None:
+                    all_latest_data.append(res['60m'])
+                    valid_tickers.append(res['60m']["ticker"])
+                if res['15m'] is not None:
+                    all_15m_data.append(res['15m'])
+                if res['30m'] is not None:
+                    all_30m_data.append(res['30m'])
 
         if not all_latest_data:
             print("[WARN] No valid ticker data processed.")
             return pd.DataFrame()
 
         scores_df = pd.DataFrame(all_latest_data)
+        df_15m = pd.DataFrame(all_15m_data).set_index('ticker') if all_15m_data else pd.DataFrame()
+        df_30m = pd.DataFrame(all_30m_data).set_index('ticker') if all_30m_data else pd.DataFrame()
 
         for key, val in nifty_features.items():
             scores_df[key] = val
@@ -1008,6 +1039,15 @@ class VanguardOrchestrator:
         if scores_df.empty:
             return pd.DataFrame()
 
+        # Score lower timeframes independently
+        series_15m = self.model_manager.score_15m_universe(df_15m)
+        series_30m = self.model_manager.score_30m_universe(df_30m)
+        series_1d = self.model_manager.score_daily_universe(scores_df.set_index('ticker') if 'ticker' in scores_df.columns else scores_df) # Using 60m data for 1D proxy for now
+
+        scores_df['score_15m'] = scores_df['ticker'].map(series_15m)
+        scores_df['score_30m'] = scores_df['ticker'].map(series_30m)
+        scores_df['score_1d'] = scores_df['ticker'].map(series_1d)
+
         raw_display_aligned = raw_display.reset_index(drop=True)
         scores_df = scores_df.assign(
             dv_raw=raw_display_aligned["Dollar_Volume"],
@@ -1039,6 +1079,16 @@ class VanguardOrchestrator:
         if candle is not None:
             from scripts.vanguard.trade_state import TradeStateManager
             is_confirmed = TradeStateManager.check_candle_direction(side, candle)
+            
+            # 3. Check live forming candle to prevent buying into a massive immediate reversal
+            if is_confirmed:
+                live_df = self.broker.get_recent_candles(ticker, interval='1minute', count=2)
+                if live_df is not None and not live_df.empty:
+                    latest_live = live_df.iloc[-1].to_dict()
+                    live_confirmed = TradeStateManager.check_live_candle_not_reversing(side, latest_live)
+                    if not live_confirmed:
+                        is_confirmed = False
+                        log(f"[{ticker}] Entry vetoed! Live 1m candle reversing heavily against {side}.")
             
         if is_confirmed:
             # Entry confirmed on the spot!
@@ -1094,30 +1144,53 @@ class VanguardOrchestrator:
             print(f"[IMMEDIATE ENTRY] Confirmed {ticker} ({side}) at {entry_price} (Order: {order_id})")
         else:
             # Entry failed look-back confirmation or candle was None
-            c_str = ""
             if candle:
                 c_str = f" (Candle: O={candle.get('open')}, H={candle.get('high')}, L={candle.get('low')}, C={candle.get('close')})"
+                
+                # Limit Order 25% strength logic
+                high = candle.get('high')
+                low = candle.get('low')
+                if side == "LONG":
+                    limit_price = round(low + 0.25 * (high - low), 2)
+                else:
+                    limit_price = round(high - 0.25 * (high - low), 2)
+
+                comment_msg = f"PENDING_LIMIT at {limit_price} - Look-back candle failed{c_str} | {reason}"
+                status = "PENDING_LIMIT"
+                
+                # Calculate quantity for limit order, assuming limit_price as entry
+                stop_loss_pct, take_profit_pct = self.compute_15min_atr(ticker)
+                base_qty = self.risk_manager.calculate_trade_quantity(limit_price, stop_loss_pct)
+                qty = max(1, int(base_qty * size_multiplier))
+                
+                limit_expiry = (now + timedelta(minutes=15)).isoformat()
             else:
                 c_str = " (Candle data unavailable)"
-            comment_msg = f"Cancelled - Look-back candle confirmation failed{c_str} | {reason}"
-            
+                comment_msg = f"Cancelled - Look-back candle confirmation failed{c_str} | {reason}"
+                status = "CANCELLED"
+                limit_price = entry_price
+                limit_expiry = (now + timedelta(hours=1)).isoformat()
+                qty = 0
+                stop_loss_pct = 0.50
+                take_profit_pct = 1.00
+
             trade = {
                 "size_multiplier":     size_multiplier,
                 "trade_id":            f"TRADE-{ticker}-{side}-{now.strftime('%y%m%d%H%M%S')}",
                 "ticker":              ticker,
                 "side":                side,
-                "quantity":            0,
-                "entry_price":         entry_price,
-                "exit_price":          entry_price,
-                "stop_loss_pct":       0.50,
-                "take_profit_pct":     1.00,
+                "quantity":            qty,
+                "entry_price":         limit_price,
+                "exit_price":          limit_price,
+                "stop_loss_pct":       stop_loss_pct,
+                "take_profit_pct":     take_profit_pct,
                 "peak_profit_pct":     0.0,
-                "peak_price":          entry_price,
+                "peak_price":          limit_price,
                 "timestamp":           now.isoformat(),
-                "exit_time":           (now + timedelta(hours=1)).isoformat(),
-                "status":              "CANCELLED",
+                "exit_time":           limit_expiry if status == "PENDING_LIMIT" else (now + timedelta(hours=1)).isoformat(),
+                "status":              status,
                 "comment":             comment_msg,
-                "margin_used":         0.0,
+                "margin_used":         (qty * limit_price) / config.MARGIN_MULTIPLIER if status == "PENDING_LIMIT" else 0.0,
                 "buy_brokerage":       0.0,
                 "final_profit_pct":    0.0,
                 
@@ -1135,7 +1208,15 @@ class VanguardOrchestrator:
                 "net_pnl_amt":         0.0,
             }
             
-            print(f"[IMMEDIATE CANCEL] {ticker} ({side}) - Look-back candle check failed{c_str}.")
+            if status == "PENDING_LIMIT":
+                print(f"[PENDING LIMIT] {ticker} ({side}) at {limit_price} (Expiry: {limit_expiry})")
+            else:
+                print(f"[IMMEDIATE CANCEL] {ticker} ({side}) - Look-back candle check failed{c_str}.")
+            
+            with self.lock:
+                if status == "PENDING_LIMIT":
+                    self.active_shadow_trades.append(trade)
+                    self.risk_manager.used_margin += trade["margin_used"]
             
         self.risk_manager.update_upstox_stats(self.active_shadow_trades)
         log_trade(trade)
@@ -1212,6 +1293,30 @@ class VanguardOrchestrator:
                         pass
         return False
 
+    def _check_15m_top_10_percent(self, ticker, side):
+        with self.lock:
+            df = self.latest_full_scores
+        if df is None or df.empty or "score_15m" not in df.columns:
+            return False, 0.0, 0.0
+
+        row = df[df["ticker"] == ticker]
+        if row.empty:
+            return False, 0.0, 0.0
+
+        score_15m = float(row.iloc[0]["score_15m"])
+        valid_scores = df["score_15m"].dropna()
+        if valid_scores.empty:
+            return False, score_15m, 0.0
+
+        if side == "LONG":
+            threshold = valid_scores.quantile(0.90)
+            is_in_top_10 = score_15m >= threshold
+        else: # SHORT
+            threshold = valid_scores.quantile(0.10)
+            is_in_top_10 = score_15m <= threshold
+            
+        return is_in_top_10, score_15m, threshold
+
     def _get_current_conviction(self, ticker, side):
         with self.lock:
             df = self.latest_full_scores
@@ -1262,6 +1367,72 @@ class VanguardOrchestrator:
                             trade["peak_price"] = min(trade.get("peak_price", 99999999.0), price)
                         trade["peak_profit_pct"] = max(trade["peak_profit_pct"], pnl)
 
+                        # PENDING_LIMIT tracking
+                        if trade["status"] == "PENDING_LIMIT":
+                            trade["exit_price"] = price
+                            trade["final_profit_pct"] = round(pnl, 4)
+                            
+                            is_triggered = False
+                            if trade["side"] == "LONG" and price <= trade["entry_price"]:
+                                is_triggered = True
+                            elif trade["side"] == "SHORT" and price >= trade["entry_price"]:
+                                is_triggered = True
+                                
+                            if is_triggered:
+                                # Execute market order
+                                sl_mult = 1 - (trade["stop_loss_pct"] / 100) if trade["side"] == "LONG" else 1 + (trade["stop_loss_pct"] / 100)
+                                sl_price = round(price * sl_mult, 2)
+                                order_res = self.broker.place_order(trade["ticker"], trade["side"], quantity=trade["quantity"], price=price, stop_loss=sl_price)
+                                order_id = order_res.get("order_id", "SANDBOX-SUCCESS")
+                                
+                                trade["status"] = "OPEN"
+                                trade["entry_price"] = price
+                                trade["exit_price"] = price
+                                trade["peak_price"] = price
+                                trade["buy_brokerage"] = config.BROKERAGE_PER_ORDER
+                                trade["exit_time"] = (now + timedelta(hours=1)).isoformat()
+                                trade["comment"] = trade.get("comment", "") + f" | Limit filled at {price} ({order_id})"
+                                
+                                with self.lock:
+                                    self.risk_manager.realized_charges += config.BROKERAGE_PER_ORDER
+                                log_trade(trade)
+                                print(f"[LIMIT FILLED] {trade['ticker']} ({trade['side']}) at {price}")
+                                continue
+                            else:
+                                # Not triggered yet, check expiry
+                                if now >= datetime.fromisoformat(trade["exit_time"]):
+                                    # 15 minutes have passed, fetch newly formed candle
+                                    new_candle = self.get_last_completed_15min_candle(trade["ticker"])
+                                    if TradeStateManager.check_candle_direction(trade["side"], new_candle):
+                                        # Fills order at current market price!
+                                        sl_mult = 1 - (trade["stop_loss_pct"] / 100) if trade["side"] == "LONG" else 1 + (trade["stop_loss_pct"] / 100)
+                                        sl_price = round(price * sl_mult, 2)
+                                        order_res = self.broker.place_order(trade["ticker"], trade["side"], quantity=trade["quantity"], price=price, stop_loss=sl_price)
+                                        order_id = order_res.get("order_id", "SANDBOX-SUCCESS")
+                                        
+                                        trade["status"] = "OPEN"
+                                        trade["entry_price"] = price
+                                        trade["exit_price"] = price
+                                        trade["peak_price"] = price
+                                        trade["buy_brokerage"] = config.BROKERAGE_PER_ORDER
+                                        trade["exit_time"] = (now + timedelta(hours=1)).isoformat()
+                                        trade["comment"] = trade.get("comment", "") + f" | 15m wait confirmed new candle, filled at {price} ({order_id})"
+                                        
+                                        with self.lock:
+                                            self.risk_manager.realized_charges += config.BROKERAGE_PER_ORDER
+                                        log_trade(trade)
+                                        print(f"[LIMIT EXPIRED -> MARKET FILL] {trade['ticker']} ({trade['side']}) new candle confirmed, filled at {price}")
+                                    else:
+                                        # Cancel permanently
+                                        trade["status"] = "CANCELLED"
+                                        trade["comment"] = trade.get("comment", "") + " | 15m wait expired, new candle failed confirmation."
+                                        with self.lock:
+                                            self.risk_manager.used_margin -= trade.get("margin_used", 0.0)
+                                            trade["margin_used"] = 0.0
+                                        log_trade(trade)
+                                        print(f"[LIMIT EXPIRED -> CANCELLED] {trade['ticker']} ({trade['side']}) new candle failed confirmation.")
+                                continue
+
                         # Vetoed trade check EOD or 1H expiry
                         if trade["status"] == "VETOED":
                             trade["exit_price"] = price
@@ -1282,15 +1453,14 @@ class VanguardOrchestrator:
                         
                         if (last_flip_check is None or (now - last_flip_check).total_seconds() >= 900) and trade["status"] == "OPEN":
                             self._conviction_flip_checked[trade_id] = now
-                            long_conv, short_conv, aligned = self._get_current_conviction(trade["ticker"], trade["side"])
-                            conv_score = long_conv if trade["side"] == "LONG" else short_conv
+                            is_in_top_10, score_15m, threshold = self._check_15m_top_10_percent(trade["ticker"], trade["side"])
 
-                            if not aligned:
+                            if not is_in_top_10:
                                 is_conviction_flip = True
-                                flip_note = f" | Conviction Flip @ 15-min check (Long={long_conv:.3f} Short={short_conv:.3f})"
-                                print(f"[CONVICTION-FLIP] {trade['ticker']} {trade['side']} — XGBoost flipped. Closing.")
+                                flip_note = f" | Conviction Flip @ 15-min check (15m_score={score_15m:.3f}, top10%_threshold={threshold:.3f})"
+                                print(f"[CONVICTION-FLIP] {trade['ticker']} {trade['side']} — 15m Conviction dropped out of top 10%. Closing.")
                             else:
-                                print(f"[CONVICTION-OK] {trade['ticker']} {trade['side']} — XGBoost still aligned.")
+                                print(f"[CONVICTION-OK] {trade['ticker']} {trade['side']} — 15m Conviction in top 10%.")
 
                         # --- Time Expiry Extension Check ---
                         raw_time_expiry = now >= datetime.fromisoformat(trade["exit_time"])
@@ -1405,7 +1575,7 @@ class VanguardOrchestrator:
                 with self.lock:
                     self.active_shadow_trades = [
                         t for t in self.active_shadow_trades 
-                        if t["status"] in ["OPEN", "PENDING_ENTRY", "VETOED"]
+                        if t["status"] in ["OPEN", "PENDING_ENTRY", "PENDING_LIMIT", "VETOED"]
                     ]
 
             except Exception as e:
@@ -1517,6 +1687,12 @@ class VanguardOrchestrator:
                             # Veto cooldown
                             if self._is_veto_cooldown(ticker):
                                 log(f"[VETO-COOLDOWN] {side} {ticker} vetoed recently. Skipping.")
+                                continue
+
+                            # 15m Top 10% confirmation check
+                            is_in_top_10, score_15m, top_10_threshold = self._check_15m_top_10_percent(ticker, side)
+                            if not is_in_top_10:
+                                log(f"[15M-FILTER] {side} {ticker} 15m score ({score_15m:.3f}) not in top 10% (threshold: {top_10_threshold:.3f}). Skipping.")
                                 continue
 
                             # 4. Gemini AI Veto Audit (or Vanguard Bypass)

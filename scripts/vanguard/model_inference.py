@@ -230,89 +230,95 @@ class ModelManager:
                 Short_Rank=pd.Series(short_conviction).rank(ascending=False).values
             ).copy()
 
-            # Score 15-Min model
-            if hasattr(self, 'tf_15m_long') and self.tf_15m_long:
-                try:
-                    missing_15 = [c for c in self.tf_15m_features if c not in scores_df.columns]
-                    if missing_15:
-                        missing_df = pd.DataFrame(0.0, index=scores_df.index, columns=missing_15)
-                        scores_df = pd.concat([scores_df, missing_df], axis=1)
-                    X_15 = scores_df[self.tf_15m_features].values
-                    X_15_clean = np.nan_to_num(X_15)
-                    
-                    scaler_15m_fitted = (
-                        self.tf_15m_scaler is not None
-                        and hasattr(self.tf_15m_scaler, 'scale_')
-                        and self.tf_15m_scaler.scale_ is not None
-                    )
-                    if scaler_15m_fitted:
-                        X_15_final = self.tf_15m_scaler.transform(X_15_clean)
-                    else:
-                        X_15_final = X_15_clean
-                        
-                    d_15 = xgb.DMatrix(X_15_final, feature_names=self.tf_15m_features)
-                    l_15 = self.tf_15m_long.predict(d_15)
-                    s_15 = self.tf_15m_short.predict(d_15)
-                    scores_df["score_15m"] = (l_15 - np.mean(l_15)) - (s_15 - np.mean(s_15))
-                except Exception as e15:
-                    log(f"[WARN] 15m scoring failed: {e15}")
-
-            # Score 30-Min model
-            if hasattr(self, 'tf_30m_long') and self.tf_30m_long:
-                try:
-                    missing_30 = [c for c in self.tf_30m_features if c not in scores_df.columns]
-                    if missing_30:
-                        missing_df = pd.DataFrame(0.0, index=scores_df.index, columns=missing_30)
-                        scores_df = pd.concat([scores_df, missing_df], axis=1)
-                    X_30 = scores_df[self.tf_30m_features].values
-                    X_30_clean = np.nan_to_num(X_30)
-                    
-                    scaler_30m_fitted = (
-                        self.tf_30m_scaler is not None
-                        and hasattr(self.tf_30m_scaler, 'scale_')
-                        and self.tf_30m_scaler.scale_ is not None
-                    )
-                    if scaler_30m_fitted:
-                        X_30_final = self.tf_30m_scaler.transform(X_30_clean)
-                    else:
-                        X_30_final = X_30_clean
-                        
-                    d_30 = xgb.DMatrix(X_30_final, feature_names=self.tf_30m_features)
-                    l_30 = self.tf_30m_long.predict(d_30)
-                    s_30 = self.tf_30m_short.predict(d_30)
-                    scores_df["score_30m"] = (l_30 - np.mean(l_30)) - (s_30 - np.mean(s_30))
-                except Exception as e30:
-                    log(f"[WARN] 30m scoring failed: {e30}")
-
-            # Score Daily model
-            if hasattr(self, 'tf_daily_long') and self.tf_daily_long:
-                try:
-                    missing_d = [c for c in self.tf_daily_features if c not in scores_df.columns]
-                    if missing_d:
-                        missing_df = pd.DataFrame(0.0, index=scores_df.index, columns=missing_d)
-                        scores_df = pd.concat([scores_df, missing_df], axis=1)
-                    X_d = scores_df[self.tf_daily_features].values
-                    X_d_clean = np.nan_to_num(X_d)
-                    
-                    scaler_daily_fitted = (
-                        self.tf_daily_scaler is not None
-                        and hasattr(self.tf_daily_scaler, 'scale_')
-                        and self.tf_daily_scaler.scale_ is not None
-                    )
-                    if scaler_daily_fitted:
-                        X_d_final = self.tf_daily_scaler.transform(X_d_clean)
-                    else:
-                        X_d_final = X_d_clean
-                        
-                    d_d = xgb.DMatrix(X_d_final, feature_names=self.tf_daily_features)
-                    l_d = self.tf_daily_long.predict(d_d)
-                    s_d = self.tf_daily_short.predict(d_d)
-                    scores_df["score_1d"] = (l_d - np.mean(l_d)) - (s_d - np.mean(s_d))
-                except Exception as ed:
-                    log(f"[WARN] 1d scoring failed: {ed}")
-
             return scores_df
 
         except Exception as e:
             log(f"[ERROR] Prediction Error: {e}")
             return pd.DataFrame()
+
+    def score_15m_universe(self, df_15m):
+        """Scores the 15-minute universe dataframe."""
+        if not hasattr(self, 'tf_15m_long') or not self.tf_15m_long or df_15m.empty:
+            return pd.Series(dtype=float)
+        try:
+            missing = [c for c in self.tf_15m_features if c not in df_15m.columns]
+            if missing:
+                missing_df = pd.DataFrame(0.0, index=df_15m.index, columns=missing)
+                df_15m = pd.concat([df_15m, missing_df], axis=1)
+            
+            X_clean = np.nan_to_num(df_15m[self.tf_15m_features].values)
+            
+            if hasattr(self, 'tf_15m_scaler') and self.tf_15m_scaler is not None:
+                try:
+                    X_final = self.tf_15m_scaler.transform(X_clean)
+                except Exception as e:
+                    log(f"[WARN] 15m scaler failed: {e}")
+                    X_final = X_clean
+            else:
+                X_final = X_clean
+                
+            dmatrix = xgb.DMatrix(X_final, feature_names=self.tf_15m_features)
+            l = self.tf_15m_long.predict(dmatrix)
+            s = self.tf_15m_short.predict(dmatrix)
+            return pd.Series((l - np.mean(l)) - (s - np.mean(s)), index=df_15m.index)
+        except Exception as e:
+            log(f"[WARN] 15m scoring failed: {e}")
+            return pd.Series(dtype=float, index=df_15m.index)
+
+    def score_30m_universe(self, df_30m):
+        """Scores the 30-minute universe dataframe."""
+        if not hasattr(self, 'tf_30m_long') or not self.tf_30m_long or df_30m.empty:
+            return pd.Series(dtype=float)
+        try:
+            missing = [c for c in self.tf_30m_features if c not in df_30m.columns]
+            if missing:
+                missing_df = pd.DataFrame(0.0, index=df_30m.index, columns=missing)
+                df_30m = pd.concat([df_30m, missing_df], axis=1)
+            
+            X_clean = np.nan_to_num(df_30m[self.tf_30m_features].values)
+            
+            if hasattr(self, 'tf_30m_scaler') and self.tf_30m_scaler is not None:
+                try:
+                    X_final = self.tf_30m_scaler.transform(X_clean)
+                except Exception as e:
+                    log(f"[WARN] 30m scaler failed: {e}")
+                    X_final = X_clean
+            else:
+                X_final = X_clean
+                
+            dmatrix = xgb.DMatrix(X_final, feature_names=self.tf_30m_features)
+            l = self.tf_30m_long.predict(dmatrix)
+            s = self.tf_30m_short.predict(dmatrix)
+            return pd.Series((l - np.mean(l)) - (s - np.mean(s)), index=df_30m.index)
+        except Exception as e:
+            log(f"[WARN] 30m scoring failed: {e}")
+            return pd.Series(dtype=float, index=df_30m.index)
+
+    def score_daily_universe(self, df_1d):
+        """Scores the Daily universe dataframe."""
+        if not hasattr(self, 'tf_daily_long') or not self.tf_daily_long or df_1d.empty:
+            return pd.Series(dtype=float)
+        try:
+            missing = [c for c in self.tf_daily_features if c not in df_1d.columns]
+            if missing:
+                missing_df = pd.DataFrame(0.0, index=df_1d.index, columns=missing)
+                df_1d = pd.concat([df_1d, missing_df], axis=1)
+            
+            X_clean = np.nan_to_num(df_1d[self.tf_daily_features].values)
+            
+            if hasattr(self, 'tf_daily_scaler') and self.tf_daily_scaler is not None:
+                try:
+                    X_final = self.tf_daily_scaler.transform(X_clean)
+                except Exception as e:
+                    log(f"[WARN] 1d scaler failed: {e}")
+                    X_final = X_clean
+            else:
+                X_final = X_clean
+                
+            dmatrix = xgb.DMatrix(X_final, feature_names=self.tf_daily_features)
+            l = self.tf_daily_long.predict(dmatrix)
+            s = self.tf_daily_short.predict(dmatrix)
+            return pd.Series((l - np.mean(l)) - (s - np.mean(s)), index=df_1d.index)
+        except Exception as e:
+            log(f"[WARN] 1d scoring failed: {e}")
+            return pd.Series(dtype=float, index=df_1d.index)
