@@ -1,7 +1,7 @@
 ---
 title: "Cross-Sectional Transformer (CST) — Architecture Proposal & Research Spec"
 type: spec
-status: active
+status: dead
 model: "Transformer"
 updated: 2026-06-12
 tags: []

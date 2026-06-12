@@ -9,7 +9,7 @@
 |---|---|---|---|---|
 | [[06 — Logs/50 Strategies Performance Results|50-Strategy Regime-Aware Backtest Results]] | report | 🟢 active |  | 2026-06-12 |
 | [[06 — Logs/50 Strategies Regime Backtest Plan|50 Strategies Regime Backtest Plan]] | spec | 🟢 active |  | 2026-06-12 |
-| [[06 — Logs/Active Board|Current Context]] | reference | ❌ dead | DEAD | 2026-06-12 |
+| [[06 — Logs/Active Board|Current Context]] | reference | 🟢 active | DEAD | 2026-06-12 |
 
 ### Conversations
 

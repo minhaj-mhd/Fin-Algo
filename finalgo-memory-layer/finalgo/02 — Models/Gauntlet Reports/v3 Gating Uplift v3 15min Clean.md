@@ -1,7 +1,7 @@
 ---
 title: "Gating Uplift Certification Report: `v3_15min_clean"
 type: reference
-status: dead
+status: active
 model: "Gauntlet Reports"
 updated: 2026-06-12
 tags: []

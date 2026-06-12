@@ -1,7 +1,7 @@
 ---
 title: "Model Performance & Statistics"
 type: report
-status: dead
+status: active
 verdict: DEAD
 updated: 2026-06-12
 tags: []

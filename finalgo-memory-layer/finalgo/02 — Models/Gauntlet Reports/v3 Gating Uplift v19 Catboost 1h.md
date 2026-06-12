@@ -1,7 +1,7 @@
 ---
 title: "Gating Uplift Certification Report: `v19_catboost_1h"
 type: reference
-status: dead
+status: active
 model: "Gauntlet Reports"
 updated: 2026-06-12
 tags: []

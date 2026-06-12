@@ -1,7 +1,7 @@
 ---
 title: "Meta-Veto Stacking Framework — Engineering & Certification Plan (M0–M5)"
 type: spec
-status: active
+status: dead
 model: "Meta-Veto"
 updated: 2026-06-12
 tags: []

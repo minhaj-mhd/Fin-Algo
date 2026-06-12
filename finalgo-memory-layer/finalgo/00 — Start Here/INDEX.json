@@ -516,7 +516,7 @@
   "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v10 Native 1h.md",
   "title": "Gating Uplift Certification Report: `v10_native_1h",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "Gauntlet Reports",
   "verdict": "",
   "updated": "2026-06-12"
@@ -525,7 +525,7 @@
   "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v10 depth4 1h.md",
   "title": "Gating Uplift Certification Report: `v10_depth4_1h",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "Gauntlet Reports",
   "verdict": "",
   "updated": "2026-06-12"
@@ -534,7 +534,7 @@
   "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v11 Utility 1h.md",
   "title": "Gating Uplift Certification Report: `v11_utility_1h",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "Gauntlet Reports",
   "verdict": "",
   "updated": "2026-06-12"
@@ -543,7 +543,7 @@
   "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v12 Lambdamart 1h.md",
   "title": "Gating Uplift Certification Report: `v12_lambdamart_1h",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "Gauntlet Reports",
   "verdict": "",
   "updated": "2026-06-12"
@@ -552,7 +552,7 @@
   "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v13 Ndcg Raw 1h.md",
   "title": "Gating Uplift Certification Report: `v13_ndcg_raw_1h",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "Gauntlet Reports",
   "verdict": "",
   "updated": "2026-06-12"
@@ -561,7 +561,7 @@
   "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v14 Lambdamart No Es 1h.md",
   "title": "Gating Uplift Certification Report: `v14_lambdamart_no_es_1h",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "Gauntlet Reports",
   "verdict": "",
   "updated": "2026-06-12"
@@ -570,7 +570,7 @@
   "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v15 Lambdamart Es 1h.md",
   "title": "Gating Uplift Certification Report: `v15_lambdamart_es_1h",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "Gauntlet Reports",
   "verdict": "",
   "updated": "2026-06-12"
@@ -579,7 +579,7 @@
   "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v16 Binary Breakout 1h.md",
   "title": "Gating Uplift Certification Report: `v16_binary_breakout_1h",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "Gauntlet Reports",
   "verdict": "",
   "updated": "2026-06-12"
@@ -588,7 +588,7 @@
   "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v17 Random Forest 1h.md",
   "title": "Gating Uplift Certification Report: `v17_random_forest_1h",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "Gauntlet Reports",
   "verdict": "",
   "updated": "2026-06-12"
@@ -597,7 +597,7 @@
   "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v18 Random Forest 1h.md",
   "title": "Gating Uplift Certification Report: `v18_random_forest_1h",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "Gauntlet Reports",
   "verdict": "",
   "updated": "2026-06-12"
@@ -606,7 +606,7 @@
   "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v19 Catboost 1h.md",
   "title": "Gating Uplift Certification Report: `v19_catboost_1h",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "Gauntlet Reports",
   "verdict": "",
   "updated": "2026-06-12"
@@ -615,7 +615,7 @@
   "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v2 15min 3y.md",
   "title": "Gating Uplift Certification Report: `v2_15min_3y",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "Gauntlet Reports",
   "verdict": "",
   "updated": "2026-06-12"
@@ -624,7 +624,7 @@
   "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v3 15min Clean.md",
   "title": "Gating Uplift Certification Report: `v3_15min_clean",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "Gauntlet Reports",
   "verdict": "",
   "updated": "2026-06-12"
@@ -651,7 +651,7 @@
   "path": "02 — Models/Meta-Veto/Certification Report.md",
   "title": "Meta-Veto MV2 Certification Report",
   "type": "report",
-  "status": "dead",
+  "status": "active",
   "model": "Meta-Veto",
   "verdict": "",
   "updated": "2026-06-12"
@@ -678,7 +678,7 @@
   "path": "02 — Models/Meta-Veto/Meta-Veto Rectification Plan MV2.md",
   "title": "Meta-Veto Rectification Plan MV2 — Rebuild, Capacity Ladder & Re-Certification",
   "type": "spec",
-  "status": "active",
+  "status": "dead",
   "model": "Meta-Veto",
   "verdict": "",
   "updated": "2026-06-12"
@@ -687,7 +687,7 @@
   "path": "02 — Models/Meta-Veto/Meta-Veto Stacking Framework Plan.md",
   "title": "Meta-Veto Stacking Framework — Engineering & Certification Plan (M0–M5)",
   "type": "spec",
-  "status": "active",
+  "status": "dead",
   "model": "Meta-Veto",
   "verdict": "",
   "updated": "2026-06-12"
@@ -705,7 +705,7 @@
   "path": "02 — Models/Transformer/Cross-Sectional Transformer Architecture Proposal.md",
   "title": "Cross-Sectional Transformer (CST) — Architecture Proposal & Research Spec",
   "type": "spec",
-  "status": "active",
+  "status": "dead",
   "model": "Transformer",
   "verdict": "",
   "updated": "2026-06-12"
@@ -732,7 +732,7 @@
   "path": "02 — Models/Transformer/DualRes Transformer netPnL10 Report.md",
   "title": "DualRes Transformer — netPnL@10 Consolidated Report",
   "type": "report",
-  "status": "active",
+  "status": "dead",
   "model": "Transformer",
   "verdict": "",
   "updated": "2026-06-12"
@@ -777,7 +777,7 @@
   "path": "02 — Models/_Shared/Model Performance & Statistics.md",
   "title": "Model Performance & Statistics",
   "type": "report",
-  "status": "dead",
+  "status": "active",
   "model": "",
   "verdict": "DEAD",
   "updated": "2026-06-12"
@@ -804,7 +804,7 @@
   "path": "02 — Models/_Shared/Training Data & Regime Requirements.md",
   "title": "Training Data & Regime Requirements",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "",
   "verdict": "",
   "updated": "2026-06-12"
@@ -1074,7 +1074,7 @@
   "path": "04 — Research/V18 Hybrid Veto Scalability.md",
   "title": "Research: V18 Hybrid Veto Scalability & Portfolio Simulation",
   "type": "reference",
-  "status": "active",
+  "status": "dead",
   "model": "",
   "verdict": "",
   "updated": "2026-06-12"
@@ -1155,7 +1155,7 @@
   "path": "06 — Logs/Active Board.md",
   "title": "Current Context",
   "type": "reference",
-  "status": "dead",
+  "status": "active",
   "model": "",
   "verdict": "DEAD",
   "updated": "2026-06-12"

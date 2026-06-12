@@ -37,4 +37,4 @@
 | [[04 — Research/TBM 1h Ensemble Results|TBM 1-Hour Ensemble — Full Research Results]] | report | ❌ dead | KILLED | 2026-06-12 |
 | [[04 — Research/V10 V18 Independent Findings|V10 + V18 — Independent Findings (Claude, OOS 2025-07 → 2026-06)]] | report | 🟢 active |  | 2026-06-12 |
 | [[04 — Research/V10 vs V18 Edge Evaluation|V10 (XGBoost Ranking) vs V18 (Random Forest Classifier) - OOS 2026 Evaluation]] | report | 🟢 active |  | 2026-06-12 |
-| [[04 — Research/V18 Hybrid Veto Scalability|Research: V18 Hybrid Veto Scalability & Portfolio Simulation]] | reference | 🟢 active |  | 2026-06-12 |
+| [[04 — Research/V18 Hybrid Veto Scalability|Research: V18 Hybrid Veto Scalability & Portfolio Simulation]] | reference | ❌ dead |  | 2026-06-12 |

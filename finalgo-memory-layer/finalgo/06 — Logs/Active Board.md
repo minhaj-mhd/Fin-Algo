@@ -1,7 +1,7 @@
 ---
 title: "Current Context"
 type: reference
-status: dead
+status: active
 verdict: DEAD
 updated: 2026-06-12
 tags: []

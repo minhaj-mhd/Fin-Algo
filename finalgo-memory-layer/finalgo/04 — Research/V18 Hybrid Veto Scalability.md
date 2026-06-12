@@ -1,7 +1,7 @@
 ---
 title: "Research: V18 Hybrid Veto Scalability & Portfolio Simulation"
 type: reference
-status: active
+status: dead
 updated: 2026-06-12
 tags: []
 ---

@@ -69,7 +69,6 @@
 - [[04 — Research/Dual-TF Entry-Exit Overlay Research|Dual-TF Entry/Exit Overlay Research (2026-06-11)]] — Question: can the 15m conviction ranker (Multi-Timeframe Models|v3_15min_clean, FILTER_GRA
 - [[04 — Research/V10 V18 Independent Findings|V10 + V18 — Independent Findings (Claude, OOS 2025-07 → 2026-06)]] — This document supersedes and corrects V10_vs_V18_Edge_Evaluation.md (see §6).
 - [[04 — Research/V10 vs V18 Edge Evaluation|V10 (XGBoost Ranking) vs V18 (Random Forest Classifier) - OOS 2026 Evaluation]] — This document serves as the permanent evaluation record comparing the structural edge of v
-- [[04 — Research/V18 Hybrid Veto Scalability|Research: V18 Hybrid Veto Scalability & Portfolio Simulation]] — In early June 2026, the Vanguard Engine tested a new hybrid architecture: combining the v1
 
 ## 05 — Operations  (6)
 → [[05 — Operations/_MOC|Browse all 6]]
@@ -84,6 +83,7 @@
 → [[06 — Logs/_MOC|Browse all 35]]
 - [[06 — Logs/50 Strategies Performance Results|50-Strategy Regime-Aware Backtest Results]] — Test Period: May 2026
 - [[06 — Logs/50 Strategies Regime Backtest Plan|50 Strategies Regime Backtest Plan]] — The objective is to evaluate all 50 trading strategies in the catalog using a Regime-Aware
+- [[06 — Logs/Active Board|Current Context]] — This document tracks the active development topics, current focus, and immediate next step
 - [[06 — Logs/tasks|tasks]] — Look at the pattern across your own vault. v8's 0.046 Spearman → early-stopping-on-test le
 
 ## 09 — Archive  (32)

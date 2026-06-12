@@ -1,7 +1,7 @@
 ---
 title: "DualRes Transformer — netPnL@10 Consolidated Report"
 type: report
-status: active
+status: dead
 model: "Transformer"
 updated: 2026-06-12
 tags: []

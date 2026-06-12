@@ -1,7 +1,7 @@
 ---
 title: "Meta-Veto MV2 Certification Report"
 type: report
-status: dead
+status: active
 model: "Meta-Veto"
 updated: 2026-06-12
 tags: []

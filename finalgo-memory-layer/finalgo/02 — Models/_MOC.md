@@ -74,19 +74,19 @@
 | [[02 — Models/Gauntlet Reports/v2 15min 3y Report|Validation Gauntlet Report: `v2_15min_3y]] | report | 🟢 active | FILTER_GRADE | 2026-06-12 |
 | [[02 — Models/Gauntlet Reports/v3 15min Clean Report|Validation Gauntlet Report: `v3_15min_clean]] | report | 🟢 active | FILTER_GRADE | 2026-06-12 |
 | [[02 — Models/Gauntlet Reports/v3 Gating Sweep Report|daily_macro_v3 Gating Sweep Report (v10 to v19)]] | report | 🟢 active |  | 2026-06-12 |
-| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v10 Native 1h|Gating Uplift Certification Report: `v10_native_1h]] | reference | ❌ dead |  | 2026-06-12 |
-| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v10 depth4 1h|Gating Uplift Certification Report: `v10_depth4_1h]] | reference | ❌ dead |  | 2026-06-12 |
-| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v11 Utility 1h|Gating Uplift Certification Report: `v11_utility_1h]] | reference | ❌ dead |  | 2026-06-12 |
-| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v12 Lambdamart 1h|Gating Uplift Certification Report: `v12_lambdamart_1h]] | reference | ❌ dead |  | 2026-06-12 |
-| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v13 Ndcg Raw 1h|Gating Uplift Certification Report: `v13_ndcg_raw_1h]] | reference | ❌ dead |  | 2026-06-12 |
-| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v14 Lambdamart No Es 1h|Gating Uplift Certification Report: `v14_lambdamart_no_es_1h]] | reference | ❌ dead |  | 2026-06-12 |
-| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v15 Lambdamart Es 1h|Gating Uplift Certification Report: `v15_lambdamart_es_1h]] | reference | ❌ dead |  | 2026-06-12 |
-| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v16 Binary Breakout 1h|Gating Uplift Certification Report: `v16_binary_breakout_1h]] | reference | ❌ dead |  | 2026-06-12 |
-| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v17 Random Forest 1h|Gating Uplift Certification Report: `v17_random_forest_1h]] | reference | ❌ dead |  | 2026-06-12 |
-| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v18 Random Forest 1h|Gating Uplift Certification Report: `v18_random_forest_1h]] | reference | ❌ dead |  | 2026-06-12 |
-| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v19 Catboost 1h|Gating Uplift Certification Report: `v19_catboost_1h]] | reference | ❌ dead |  | 2026-06-12 |
-| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v2 15min 3y|Gating Uplift Certification Report: `v2_15min_3y]] | reference | ❌ dead |  | 2026-06-12 |
-| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v3 15min Clean|Gating Uplift Certification Report: `v3_15min_clean]] | reference | ❌ dead |  | 2026-06-12 |
+| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v10 Native 1h|Gating Uplift Certification Report: `v10_native_1h]] | reference | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v10 depth4 1h|Gating Uplift Certification Report: `v10_depth4_1h]] | reference | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v11 Utility 1h|Gating Uplift Certification Report: `v11_utility_1h]] | reference | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v12 Lambdamart 1h|Gating Uplift Certification Report: `v12_lambdamart_1h]] | reference | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v13 Ndcg Raw 1h|Gating Uplift Certification Report: `v13_ndcg_raw_1h]] | reference | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v14 Lambdamart No Es 1h|Gating Uplift Certification Report: `v14_lambdamart_no_es_1h]] | reference | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v15 Lambdamart Es 1h|Gating Uplift Certification Report: `v15_lambdamart_es_1h]] | reference | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v16 Binary Breakout 1h|Gating Uplift Certification Report: `v16_binary_breakout_1h]] | reference | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v17 Random Forest 1h|Gating Uplift Certification Report: `v17_random_forest_1h]] | reference | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v18 Random Forest 1h|Gating Uplift Certification Report: `v18_random_forest_1h]] | reference | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v19 Catboost 1h|Gating Uplift Certification Report: `v19_catboost_1h]] | reference | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v2 15min 3y|Gating Uplift Certification Report: `v2_15min_3y]] | reference | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Gauntlet Reports/v3 Gating Uplift v3 15min Clean|Gating Uplift Certification Report: `v3_15min_clean]] | reference | 🟢 active |  | 2026-06-12 |
 | [[02 — Models/Gauntlet Reports/v8 Upstox 3y Report|Validation Gauntlet Report: `v8_upstox_3y]] | report | 🟢 active | FILTER_GRADE | 2026-06-12 |
 | [[02 — Models/Gauntlet Reports/v9 Clean 1h Report|Validation Gauntlet Report: `v9_clean_1h]] | report | 🟢 active | FILTER_GRADE | 2026-06-12 |
 
@@ -94,21 +94,21 @@
 
 | Doc | Type | Status | Verdict | Updated |
 |---|---|---|---|---|
-| [[02 — Models/Meta-Veto/Certification Report|Meta-Veto MV2 Certification Report]] | report | ❌ dead |  | 2026-06-12 |
+| [[02 — Models/Meta-Veto/Certification Report|Meta-Veto MV2 Certification Report]] | report | 🟢 active |  | 2026-06-12 |
 | [[02 — Models/Meta-Veto/M1 Orthogonality Audit MV2|M1 Orthogonality Kill-Gate Report (MV2)]] | report | 🟢 active |  | 2026-06-12 |
 | [[02 — Models/Meta-Veto/M1 Orthogonality Audit v10 v19|M1 Orthogonality Audit: v10-v19 Stacking Panel]] | report | 🟢 active |  | 2026-06-12 |
-| [[02 — Models/Meta-Veto/Meta-Veto Rectification Plan MV2|Meta-Veto Rectification Plan MV2 — Rebuild, Capacity Ladder & Re-Certification]] | spec | 🟢 active |  | 2026-06-12 |
-| [[02 — Models/Meta-Veto/Meta-Veto Stacking Framework Plan|Meta-Veto Stacking Framework — Engineering & Certification Plan (M0–M5)]] | spec | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Meta-Veto/Meta-Veto Rectification Plan MV2|Meta-Veto Rectification Plan MV2 — Rebuild, Capacity Ladder & Re-Certification]] | spec | ❌ dead |  | 2026-06-12 |
+| [[02 — Models/Meta-Veto/Meta-Veto Stacking Framework Plan|Meta-Veto Stacking Framework — Engineering & Certification Plan (M0–M5)]] | spec | ❌ dead |  | 2026-06-12 |
 | [[02 — Models/Meta-Veto/Orthogonality Audit|Meta-Veto Orthogonality & Information Audit Report]] | report | 🟢 active |  | 2026-06-12 |
 
 ### Transformer
 
 | Doc | Type | Status | Verdict | Updated |
 |---|---|---|---|---|
-| [[02 — Models/Transformer/Cross-Sectional Transformer Architecture Proposal|Cross-Sectional Transformer (CST) — Architecture Proposal & Research Spec]] | spec | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Transformer/Cross-Sectional Transformer Architecture Proposal|Cross-Sectional Transformer (CST) — Architecture Proposal & Research Spec]] | spec | ❌ dead |  | 2026-06-12 |
 | [[02 — Models/Transformer/DualRes Cross-Sectional Transformer Architecture|Dual-Resolution Cross-Sectional Transformer — Architecture]] | spec | 🟢 active |  | 2026-06-12 |
 | [[02 — Models/Transformer/DualRes Transformer Flowchart|DualRes Cross-Sectional Transformer — In-Depth Architecture Flowchart]] | reference | 🟢 active |  | 2026-06-12 |
-| [[02 — Models/Transformer/DualRes Transformer netPnL10 Report|DualRes Transformer — netPnL@10 Consolidated Report]] | report | 🟢 active |  | 2026-06-12 |
+| [[02 — Models/Transformer/DualRes Transformer netPnL10 Report|DualRes Transformer — netPnL@10 Consolidated Report]] | report | ❌ dead |  | 2026-06-12 |
 | [[02 — Models/Transformer/Sided Transformer Preregistration|Pre-Registration: Dual Side-Specialized Ranking Transformers]] | spec | ❌ dead | DEAD | 2026-06-12 |
 
 ### _Shared
@@ -118,8 +118,8 @@
 | [[02 — Models/_Shared/Advanced Tree Models Roadmap|Advanced Tree Models Roadmap]] | spec | 🟢 active |  | 2026-06-12 |
 | [[02 — Models/_Shared/Feature Engineering & Normalization|Vanguard Feature Engineering & Normalization Strategy]] | reference | 🟢 active |  | 2026-06-12 |
 | [[02 — Models/_Shared/Model Inference Data Structure|Vanguard Model — Inference-Time Data Structure]] | reference | 🟢 active |  | 2026-06-12 |
-| [[02 — Models/_Shared/Model Performance & Statistics|Model Performance & Statistics]] | report | ❌ dead | DEAD | 2026-06-12 |
+| [[02 — Models/_Shared/Model Performance & Statistics|Model Performance & Statistics]] | report | 🟢 active | DEAD | 2026-06-12 |
 | [[02 — Models/_Shared/Model Registry & File Structures|Model Registry & File Structures]] | reference | 🟢 active |  | 2026-06-12 |
 | [[02 — Models/_Shared/Multi-Timeframe Models|Multi-Timeframe Architecture (Actual V2.3 Specifications)]] | reference | 🟢 active |  | 2026-06-12 |
-| [[02 — Models/_Shared/Training Data & Regime Requirements|Training Data & Regime Requirements]] | reference | ❌ dead |  | 2026-06-12 |
+| [[02 — Models/_Shared/Training Data & Regime Requirements|Training Data & Regime Requirements]] | reference | 🟢 active |  | 2026-06-12 |
 | [[02 — Models/_Shared/V8 Microstructure Feature Comparison|Vanguard v8 Model Comparison: Baseline vs Microstructure Features]] | report | 🟢 active |  | 2026-06-12 |

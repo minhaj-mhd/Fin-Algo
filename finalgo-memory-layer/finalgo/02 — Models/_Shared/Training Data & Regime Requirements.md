@@ -1,7 +1,7 @@
 ---
 title: "Training Data & Regime Requirements"
 type: reference
-status: dead
+status: active
 updated: 2026-06-12
 tags: []
 ---

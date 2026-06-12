@@ -1,7 +1,7 @@
 ---
 title: "Meta-Veto Rectification Plan MV2 — Rebuild, Capacity Ladder & Re-Certification"
 type: spec
-status: active
+status: dead
 model: "Meta-Veto"
 updated: 2026-06-12
 tags: []
