@@ -1293,20 +1293,33 @@ class VanguardOrchestrator:
                         pass
         return False
 
+    # Minimum number of names that must carry a real 15m score before the
+    # top-X% quantile is trustworthy. Below this the 15m fetch was likely
+    # rate-limited down to a handful of names and the cross-section is biased.
+    MIN_15M_UNIVERSE = 30
+
     def _check_15m_percentile(self, ticker, side, top_percent=0.10):
+        """Returns (is_in_top, score_15m, threshold, is_valid).
+
+        is_valid is False when there is no usable 15m score for this ticker, or
+        the valid 15m cross-section is too thin to compute a trustworthy
+        quantile. Callers MUST treat is_valid=False as 'indeterminate' (hold /
+        skip) and never as a conviction reversal — a transient 15m data gap is
+        not a directional flip.
+        """
         with self.lock:
             df = self.latest_full_scores
         if df is None or df.empty or "score_15m" not in df.columns:
-            return False, 0.0, 0.0
+            return False, float("nan"), 0.0, False
+
+        valid_scores = df["score_15m"].dropna()
 
         row = df[df["ticker"] == ticker]
-        if row.empty:
-            return False, 0.0, 0.0
+        score_15m = float(row.iloc[0]["score_15m"]) if not row.empty else float("nan")
 
-        score_15m = float(row.iloc[0]["score_15m"])
-        valid_scores = df["score_15m"].dropna()
-        if valid_scores.empty:
-            return False, score_15m, 0.0
+        # Indeterminate: thin universe, ticker absent, or this name has no score.
+        if len(valid_scores) < self.MIN_15M_UNIVERSE or row.empty or pd.isna(score_15m):
+            return False, score_15m, 0.0, False
 
         if side == "LONG":
             threshold = valid_scores.quantile(1.0 - top_percent)
@@ -1314,8 +1327,8 @@ class VanguardOrchestrator:
         else: # SHORT
             threshold = valid_scores.quantile(top_percent)
             is_in_top = score_15m <= threshold
-            
-        return is_in_top, score_15m, threshold
+
+        return is_in_top, score_15m, threshold, True
 
     def _get_current_conviction(self, ticker, side):
         with self.lock:
@@ -1454,9 +1467,13 @@ class VanguardOrchestrator:
                         if (last_flip_check is None or (now - last_flip_check).total_seconds() >= 900) and trade["status"] == "OPEN":
                             self._conviction_flip_checked[trade_id] = now
                             # Use 33% (Top 1/3) for maintenance to prevent whipsaws
-                            is_in_top, score_15m, threshold = self._check_15m_percentile(trade["ticker"], trade["side"], top_percent=0.33)
+                            is_in_top, score_15m, threshold, valid_15m = self._check_15m_percentile(trade["ticker"], trade["side"], top_percent=0.33)
 
-                            if not is_in_top:
+                            if not valid_15m:
+                                # No / thin 15m data this cycle is NOT a conviction
+                                # reversal — hold the position rather than closing it.
+                                print(f"[CONVICTION-HOLD] {trade['ticker']} {trade['side']} — 15m score indeterminate (no data / thin universe). Holding.")
+                            elif not is_in_top:
                                 is_conviction_flip = True
                                 flip_note = f" | Conviction Flip @ 15-min check (15m_score={score_15m:.3f}, top33%_threshold={threshold:.3f})"
                                 print(f"[CONVICTION-FLIP] {trade['ticker']} {trade['side']} — 15m Conviction dropped out of top 33%. Closing.")
@@ -1691,7 +1708,10 @@ class VanguardOrchestrator:
                                 continue
 
                             # 15m Top 10% confirmation check (Entry demands high conviction)
-                            is_in_top_10, score_15m, top_10_threshold = self._check_15m_percentile(ticker, side, top_percent=0.10)
+                            is_in_top_10, score_15m, top_10_threshold, valid_15m = self._check_15m_percentile(ticker, side, top_percent=0.10)
+                            if not valid_15m:
+                                log(f"[15M-FILTER] {side} {ticker} 15m score indeterminate (no data / thin universe). Skipping.")
+                                continue
                             if not is_in_top_10:
                                 log(f"[15M-FILTER] {side} {ticker} 15m score ({score_15m:.3f}) not in top 10% (threshold: {top_10_threshold:.3f}). Skipping.")
                                 continue

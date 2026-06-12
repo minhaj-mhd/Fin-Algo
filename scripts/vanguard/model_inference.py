@@ -236,6 +236,26 @@ class ModelManager:
             log(f"[ERROR] Prediction Error: {e}")
             return pd.DataFrame()
 
+    @staticmethod
+    def _combine_long_short(l, s, index):
+        """Combine the long and short rank:pairwise margins into a single
+        directional score (positive = long-favoured, negative = short-favoured).
+
+        Each leg is independently z-scored across the cross-section BEFORE
+        differencing. The two ranking models have arbitrary, uncalibrated output
+        scales; the previous ``(l - mean(l)) - (s - mean(s))`` let whichever leg
+        had the wider spread dominate (which baked a persistent short bias into
+        score_15m). Z-scoring puts both legs on unit variance so they contribute
+        symmetrically. Falls back to plain demeaning when a leg has ~zero spread
+        (e.g. a single-name cross-section)."""
+        l = np.asarray(l, dtype=float)
+        s = np.asarray(s, dtype=float)
+        l_std = l.std()
+        s_std = s.std()
+        l_norm = (l - l.mean()) / l_std if l_std > 1e-9 else (l - l.mean())
+        s_norm = (s - s.mean()) / s_std if s_std > 1e-9 else (s - s.mean())
+        return pd.Series(l_norm - s_norm, index=index)
+
     def score_15m_universe(self, df_15m):
         """Scores the 15-minute universe dataframe."""
         if not hasattr(self, 'tf_15m_long') or not self.tf_15m_long or df_15m.empty:
@@ -250,7 +270,10 @@ class ModelManager:
             
             if hasattr(self, 'tf_15m_scaler') and self.tf_15m_scaler is not None:
                 try:
-                    X_final = self.tf_15m_scaler.transform(X_clean)
+                    if not hasattr(self.tf_15m_scaler, 'scale_') or self.tf_15m_scaler.scale_ is None:
+                        X_final = self.tf_15m_scaler.fit_transform(X_clean)
+                    else:
+                        X_final = self.tf_15m_scaler.transform(X_clean)
                 except Exception as e:
                     log(f"[WARN] 15m scaler failed: {e}")
                     X_final = X_clean
@@ -260,7 +283,7 @@ class ModelManager:
             dmatrix = xgb.DMatrix(X_final, feature_names=self.tf_15m_features)
             l = self.tf_15m_long.predict(dmatrix)
             s = self.tf_15m_short.predict(dmatrix)
-            return pd.Series((l - np.mean(l)) - (s - np.mean(s)), index=df_15m.index)
+            return self._combine_long_short(l, s, df_15m.index)
         except Exception as e:
             log(f"[WARN] 15m scoring failed: {e}")
             return pd.Series(dtype=float, index=df_15m.index)
@@ -279,7 +302,10 @@ class ModelManager:
             
             if hasattr(self, 'tf_30m_scaler') and self.tf_30m_scaler is not None:
                 try:
-                    X_final = self.tf_30m_scaler.transform(X_clean)
+                    if not hasattr(self.tf_30m_scaler, 'scale_') or self.tf_30m_scaler.scale_ is None:
+                        X_final = self.tf_30m_scaler.fit_transform(X_clean)
+                    else:
+                        X_final = self.tf_30m_scaler.transform(X_clean)
                 except Exception as e:
                     log(f"[WARN] 30m scaler failed: {e}")
                     X_final = X_clean
@@ -289,7 +315,7 @@ class ModelManager:
             dmatrix = xgb.DMatrix(X_final, feature_names=self.tf_30m_features)
             l = self.tf_30m_long.predict(dmatrix)
             s = self.tf_30m_short.predict(dmatrix)
-            return pd.Series((l - np.mean(l)) - (s - np.mean(s)), index=df_30m.index)
+            return self._combine_long_short(l, s, df_30m.index)
         except Exception as e:
             log(f"[WARN] 30m scoring failed: {e}")
             return pd.Series(dtype=float, index=df_30m.index)
@@ -308,7 +334,10 @@ class ModelManager:
             
             if hasattr(self, 'tf_daily_scaler') and self.tf_daily_scaler is not None:
                 try:
-                    X_final = self.tf_daily_scaler.transform(X_clean)
+                    if not hasattr(self.tf_daily_scaler, 'scale_') or self.tf_daily_scaler.scale_ is None:
+                        X_final = self.tf_daily_scaler.fit_transform(X_clean)
+                    else:
+                        X_final = self.tf_daily_scaler.transform(X_clean)
                 except Exception as e:
                     log(f"[WARN] 1d scaler failed: {e}")
                     X_final = X_clean
@@ -318,7 +347,7 @@ class ModelManager:
             dmatrix = xgb.DMatrix(X_final, feature_names=self.tf_daily_features)
             l = self.tf_daily_long.predict(dmatrix)
             s = self.tf_daily_short.predict(dmatrix)
-            return pd.Series((l - np.mean(l)) - (s - np.mean(s)), index=df_1d.index)
+            return self._combine_long_short(l, s, df_1d.index)
         except Exception as e:
             log(f"[WARN] 1d scoring failed: {e}")
             return pd.Series(dtype=float, index=df_1d.index)
