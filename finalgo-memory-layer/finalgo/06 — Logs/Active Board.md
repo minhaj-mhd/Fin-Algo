@@ -36,7 +36,7 @@ tags: [board]
 * [ ] Build predictive models for Market Psychology using volume profiles and order flow data.
 * [x] Design and backtest a 6+ member 1-hour public-data XGBoost ensemble using completed-bar labels, regime gates, and time-of-day pockets.
 * [x] Implement Monotonic Constraints in the XGBoost architecture to strictly enforce economic logic (e.g. higher volatility must reduce Long conviction) and aggressively regularize against noise. **Result: FAILED. Human logic contradicts micro-structural mechanics. High relative volatility is required for 1H breakouts. Reverting constraints.**
-* [ ] Build `v17` Random Forest with bagging to test if an entirely different algorithmic paradigm handles noise better than Gradient Boosting.
+* [x] Build `v17` Random Forest with bagging to test if an entirely different algorithmic paradigm handles noise better than Gradient Boosting.
 * [x] Re-audit v8 with purged walk-forward — **DEMOTED, net-negative & decaying**. See [[02 — Models/_Shared/Model Performance & Statistics|Model Performance & Statistics]].
 * [x] Re-audit `v2_15min_3y` with the same purged walk-forward methodology (v8 and v10-depth4 both failed; 15m is the last unaudited "active" model). → Fold into Gauntlet Phase P7 below.
 * [x] **Build the Validation Gauntlet** per [[01 — Architecture/Validation Gauntlet/Validation Gauntlet Architecture|the approved spec]] — P0–P7 completed by agents; conformance audit verified the core harness but found 6 critical gaps.

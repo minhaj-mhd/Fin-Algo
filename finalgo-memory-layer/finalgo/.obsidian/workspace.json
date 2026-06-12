@@ -11,10 +11,14 @@
             "id": "b1200661ab034e3b",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "06 — Logs/Active Board.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Active Board"
             }
           }
         ]
@@ -181,6 +185,11 @@
   },
   "active": "b1200661ab034e3b",
   "lastOpenFiles": [
+    "00 — Start Here/AI Operating Protocol.md",
+    "01 — Architecture/Data & Code/Database Architecture.md",
+    "01 — Architecture/Data & Code/Codebase File Directory.md",
+    "01 — Architecture/_MOC.md",
+    "00 — Start Here/_MOC.md",
     "06 — Logs/Completed Work Archive.md",
     "00 — Start Here/AI Operating Protocol.md.tmp.37072.aa3a95f4881e",
     "00 — Start Here/Dead-Ends Register.md",
@@ -191,8 +200,6 @@
     "04 — Research/_MOC.md",
     "03 — Strategies/_MOC.md",
     "02 — Models/_MOC.md",
-    "01 — Architecture/_MOC.md",
-    "00 — Start Here/_MOC.md",
     "02 — Models/30m/assets/weekly_consistency.png",
     "02 — Models/30m/assets/time_of_day_conviction_short.png",
     "02 — Models/30m/assets/time_of_day_conviction_long.png",
@@ -223,9 +230,6 @@
     "02 — Models/Gauntlet Reports/v3 Gating Uplift v3 15min Clean.md",
     "02 — Models/Gauntlet Reports/v3 Gating Uplift v2 15min 3y.md",
     "02 — Models/Gauntlet Reports/v3 Gating Uplift v19 Catboost 1h.md",
-    "02 — Models/Gauntlet Reports/v3 Gating Uplift v18 Random Forest 1h.md",
-    "02 — Models/Gauntlet Reports/v3 Gating Uplift v17 Random Forest 1h.md",
-    "02 — Models/Gauntlet Reports/v3 Gating Uplift v16 Binary Breakout 1h.md",
-    "02 — Models/Gauntlet Reports/v3 Gating Uplift v15 Lambdamart Es 1h.md"
+    "02 — Models/Gauntlet Reports/v3 Gating Uplift v18 Random Forest 1h.md"
   ]
 }
