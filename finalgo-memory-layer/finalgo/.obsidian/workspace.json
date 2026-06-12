@@ -181,6 +181,16 @@
   },
   "active": "b1200661ab034e3b",
   "lastOpenFiles": [
+    "00 — Start Here/Dead-Ends Register.md",
+    "00 — Start Here/INDEX.json",
+    "09 — Archive/_MOC.md",
+    "06 — Logs/_MOC.md",
+    "05 — Operations/_MOC.md",
+    "04 — Research/_MOC.md",
+    "03 — Strategies/_MOC.md",
+    "02 — Models/_MOC.md",
+    "01 — Architecture/_MOC.md",
+    "00 — Start Here/_MOC.md",
     "02 — Models/30m/assets/weekly_consistency.png",
     "02 — Models/30m/assets/time_of_day_conviction_short.png",
     "02 — Models/30m/assets/time_of_day_conviction_long.png",
@@ -192,7 +202,6 @@
     "02 — Models/30m/assets/complete_edge_map.png",
     "02 — Models/30m/assets",
     "02 — Models/15m/assets/stacked_strategy.png",
-    "02 — Models/15m/assets/stacked_entry.png",
     "02 — Models/15m/assets",
     "02 — Models/1H/assets",
     "06 — Logs/restructure_mapping.csv",
@@ -201,7 +210,6 @@
     "09 — Archive/legacy_archive/scripts/train_daily_xgboost.py",
     "09 — Archive/legacy_archive/scripts/train_daily_transformer_v2.py",
     "09 — Archive/legacy_archive/scripts/train_daily_transformer.py",
-    "09 — Archive/legacy_archive/scripts/test_quick.py",
     "04 — Research/1030 Strategy/Implementation Plan.md",
     "04 — Research/1030 Strategy/Feature Engineering Report.md",
     "04 — Research/1030 Strategy/Architecture Research Report.md",
@@ -218,14 +226,6 @@
     "02 — Models/Gauntlet Reports/v3 Gating Uplift v17 Random Forest 1h.md",
     "02 — Models/Gauntlet Reports/v3 Gating Uplift v16 Binary Breakout 1h.md",
     "02 — Models/Gauntlet Reports/v3 Gating Uplift v15 Lambdamart Es 1h.md",
-    "02 — Models/Gauntlet Reports/v3 Gating Uplift v14 Lambdamart No Es 1h.md",
-    "02 — Models/Gauntlet Reports/v3 Gating Uplift v13 Ndcg Raw 1h.md",
-    "02 — Models/Gauntlet Reports/v3 Gating Uplift v12 Lambdamart 1h.md",
-    "02 — Models/Gauntlet Reports/v3 Gating Uplift v11 Utility 1h.md",
-    "02 — Models/Gauntlet Reports/v3 Gating Uplift v10 Native 1h.md",
-    "02 — Models/Gauntlet Reports/v3 Gating Uplift v10 depth4 1h.md",
-    "02 — Models/Gauntlet Reports/v3 Gating Sweep Report.md",
-    "02 — Models/Gauntlet Reports/v3 15min Clean Report.md",
-    "02 — Models/Gauntlet Reports/v2 15min 3y Report.md"
+    "02 — Models/Gauntlet Reports/v3 Gating Uplift v14 Lambdamart No Es 1h.md"
   ]
 }

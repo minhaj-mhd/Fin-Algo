@@ -1,0 +1,1739 @@
+[
+ {
+  "path": "00 — Start Here/AI Operating Protocol.md",
+  "title": "AI Agent Operating Protocol & Shared Memory Guide",
+  "type": "reference",
+  "status": "superseded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "01 — Architecture/Data & Code/Codebase File Directory.md",
+  "title": "Codebase File Directory",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "01 — Architecture/Data & Code/Database Architecture.md",
+  "title": "Database Architecture (SQLite Schema & Analytics)",
+  "type": "spec",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "01 — Architecture/Execution & Runtime/AI Veto & Gemini Audit.md",
+  "title": "AI Veto & Gemini Audit (Live LLM Validation)",
+  "type": "report",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "01 — Architecture/Execution & Runtime/Shadow Tracker & Execution Loop.md",
+  "title": "Shadow Tracker & Execution Loop",
+  "type": "reference",
+  "status": "superseded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "01 — Architecture/Global System Architecture.md",
+  "title": "Global System Architecture",
+  "type": "spec",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "01 — Architecture/Validation Gauntlet/Validation Gauntlet Architecture.md",
+  "title": "Validation Gauntlet — Architecture & Implementation Plan",
+  "type": "spec",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "01 — Architecture/Validation Gauntlet/Validation Gauntlet Remediation Plan.md",
+  "title": "Validation Gauntlet — Remediation Plan (R1–R8)",
+  "type": "spec",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "01 — Architecture/Vanguard Engine Refactor Roadmap.md",
+  "title": "Vanguard Engine Refactor Roadmap",
+  "type": "spec",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "01 — Architecture/Vanguard System Features.md",
+  "title": "Vanguard Trading System — Feature & Architecture Release",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/15m/15m Conviction Audit Report.md",
+  "title": "15-Minute Conviction Score Audit",
+  "type": "report",
+  "status": "active",
+  "model": "15m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/15m/Clean Re-Analysis & OOS Validation.md",
+  "title": "Clean Re-Analysis & OOS Validation (Native Data, Holdout-Verified)",
+  "type": "report",
+  "status": "active",
+  "model": "15m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/15m/Complete Edge Catalog.md",
+  "title": "Complete Edge Catalog: v2_15min_3y Walk-Forward & OOS Analysis",
+  "type": "report",
+  "status": "active",
+  "model": "15m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/15m/Dual-Timeframe Strategy & Full Research Journey.md",
+  "title": "Dual-Timeframe Strategy & Full Research Journey",
+  "type": "reference",
+  "status": "superseded",
+  "model": "15m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/15m/Feature Analysis & SHAP.md",
+  "title": "Feature Analysis & SHAP: v2_15min_3y",
+  "type": "report",
+  "status": "active",
+  "model": "15m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/15m/Model Card - v3 Clean 15min.md",
+  "title": "Model Card — v3_15min_clean",
+  "type": "reference",
+  "status": "active",
+  "model": "15m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/15m/Model Diagnostics & Visualizations.md",
+  "title": "Model Diagnostics & Visualizations: v2_15min_3y",
+  "type": "reference",
+  "status": "active",
+  "model": "15m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/15m/OOS Calibration & Thresholds.md",
+  "title": "OOS Calibration & Thresholds: v2_15min_3y",
+  "type": "report",
+  "status": "active",
+  "model": "15m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/15m/Prediction Bucket & Calibration Deep Dive.md",
+  "title": "Prediction Bucket & Calibration Deep Dive: v2_15min_3y",
+  "type": "report",
+  "status": "active",
+  "model": "15m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/15m/Sniper Trade Analysis.md",
+  "title": "Sniper Trade Analysis: v2_15min_3y",
+  "type": "report",
+  "status": "active",
+  "model": "15m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/15m/Time of Day & Residual Analysis.md",
+  "title": "Time of Day & Residual Analysis: v2_15min_3y",
+  "type": "report",
+  "status": "active",
+  "model": "15m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/1H/Advanced Alpha Visualizations.md",
+  "title": "Advanced Alpha Visualizations (1-Hour Core Model)",
+  "type": "reference",
+  "status": "active",
+  "model": "1H",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/1H/Complete Edge Catalog.md",
+  "title": "Complete Edge Catalog: Exhaustive Dual-Model Parameter Exploration",
+  "type": "report",
+  "status": "active",
+  "model": "1H",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/1H/Dual Confirmation Architecture.md",
+  "title": "The Dual-Confirmation Architecture",
+  "type": "spec",
+  "status": "active",
+  "model": "1H",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/1H/Fresh OOS Verification - Jan-May 2026.md",
+  "title": "Fresh OOS Verification: Sniper Strategy — Jan–May 2026",
+  "type": "report",
+  "status": "active",
+  "model": "1H",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/1H/Live Trading Configuration & Verdict.md",
+  "title": "Live Trading Configuration & Tradability Verdict",
+  "type": "reference",
+  "status": "active",
+  "model": "1H",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/1H/Model Card - v10 Native 1h.md",
+  "title": "Model Card — v10_native_1h",
+  "type": "reference",
+  "status": "active",
+  "model": "1H",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/1H/OOS Calibration & Thresholds.md",
+  "title": "Comprehensive Empirical Analysis of Model Thresholds & Execution Architecture",
+  "type": "report",
+  "status": "superseded",
+  "model": "1H",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/1H/Quarterly Consistency & Regimes.md",
+  "title": "Quarterly Consistency & Macro Regimes",
+  "type": "reference",
+  "status": "active",
+  "model": "1H",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/1H/Time of Day Conviction.md",
+  "title": "Time of Day vs. Conviction Score",
+  "type": "reference",
+  "status": "active",
+  "model": "1H",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/30m/Complete Edge Catalog.md",
+  "title": "Complete Edge Catalog: Exhaustive Dual-Model Parameter Exploration",
+  "type": "report",
+  "status": "active",
+  "model": "30m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/30m/Dual Confirmation Architecture.md",
+  "title": "The Dual-Confirmation Architecture (30-Minute Model)",
+  "type": "spec",
+  "status": "active",
+  "model": "30m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/30m/OOS Calibration & Thresholds.md",
+  "title": "Comprehensive Empirical Analysis of Model Thresholds & Execution Architecture",
+  "type": "report",
+  "status": "active",
+  "model": "30m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/30m/Time of Day Conviction.md",
+  "title": "Time of Day vs. Conviction Score (30-Minute Model)",
+  "type": "reference",
+  "status": "active",
+  "model": "30m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/30m/Weekly Consistency & Regimes.md",
+  "title": "Weekly Consistency & Regime Analysis (30-Minute Model)",
+  "type": "reference",
+  "status": "active",
+  "model": "30m",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Daily Gatekeeper/Daily Gatekeeper V2 Rebuild Plan.md",
+  "title": "Daily Gatekeeper V2 — Rebuild & Certification Plan (D0–D6)",
+  "type": "spec",
+  "status": "active",
+  "model": "Daily Gatekeeper",
+  "verdict": "DEAD",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Daily Gatekeeper/Daily Gatekeeper V2 Rebuild and Certification Report.md",
+  "title": "Daily Gatekeeper V2 — Rebuild & Certification Report (D0–D6)",
+  "type": "report",
+  "status": "concluded",
+  "model": "Daily Gatekeeper",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Daily Gatekeeper/Daily Gatekeeper V3 Rebuild and Certification Report.md",
+  "title": "Daily Gatekeeper V3 — Rebuild & Certification Report",
+  "type": "report",
+  "status": "concluded",
+  "model": "Daily Gatekeeper",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Daily Gatekeeper/Gatekeeper V2 Feature Availability.md",
+  "title": "Gatekeeper V2 Feature Availability & Point-in-Time Contract",
+  "type": "reference",
+  "status": "active",
+  "model": "Daily Gatekeeper",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/Daily Macro v2 Report.md",
+  "title": "Validation Gauntlet Report: `daily_macro_v2",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/Daily Macro v3 Report.md",
+  "title": "Validation Gauntlet Report: `daily_macro_v3",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "DEAD",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/Daily Xgb Report.md",
+  "title": "Validation Gauntlet Report: `daily_xgb",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "DEAD",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/Gauntlet V10 V19 Master Report.md",
+  "title": "Validation Gauntlet Master Evaluation Report (v10 to v19)",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v10 Native 1h Report.md",
+  "title": "Validation Gauntlet Report: `v10_depth4_1h",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v10 depth4 1h Report.md",
+  "title": "Validation Gauntlet Report: `v10_depth4_1h",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v11 Utility 1h Report.md",
+  "title": "Validation Gauntlet Report: `v10_depth4_1h",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v12 Lambdamart 1h Report.md",
+  "title": "Validation Gauntlet Report: `v12_lambdamart_1h",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "DEAD",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v13 Ndcg Raw 1h Report.md",
+  "title": "Validation Gauntlet Report: `v13_ndcg_raw_1h",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "DEAD",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v14 Lambdamart No Es 1h Report.md",
+  "title": "Validation Gauntlet Report: `v14_lambdamart_no_es_1h",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v15 Lambdamart Es 1h Report.md",
+  "title": "Validation Gauntlet Report: `v15_lambdamart_es_1h",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v16 Binary Breakout 1h Report.md",
+  "title": "Validation Gauntlet Report: `v16_binary_breakout_1h",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v17 Random Forest 1h Report.md",
+  "title": "Validation Gauntlet Report: `v17_random_forest_1h",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "DEAD",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v18 Random Forest 1h Report.md",
+  "title": "Validation Gauntlet Report: `v18_random_forest_1h",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "DEAD",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v19 Catboost 1h Report.md",
+  "title": "Validation Gauntlet Report: `v19_catboost_1h",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v2 15min 3y Report.md",
+  "title": "Validation Gauntlet Report: `v2_15min_3y",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 15min Clean Report.md",
+  "title": "Validation Gauntlet Report: `v3_15min_clean",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 Gating Sweep Report.md",
+  "title": "daily_macro_v3 Gating Sweep Report (v10 to v19)",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v10 Native 1h.md",
+  "title": "Gating Uplift Certification Report: `v10_native_1h",
+  "type": "reference",
+  "status": "dead",
+  "model": "Gauntlet Reports",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v10 depth4 1h.md",
+  "title": "Gating Uplift Certification Report: `v10_depth4_1h",
+  "type": "reference",
+  "status": "dead",
+  "model": "Gauntlet Reports",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v11 Utility 1h.md",
+  "title": "Gating Uplift Certification Report: `v11_utility_1h",
+  "type": "reference",
+  "status": "dead",
+  "model": "Gauntlet Reports",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v12 Lambdamart 1h.md",
+  "title": "Gating Uplift Certification Report: `v12_lambdamart_1h",
+  "type": "reference",
+  "status": "dead",
+  "model": "Gauntlet Reports",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v13 Ndcg Raw 1h.md",
+  "title": "Gating Uplift Certification Report: `v13_ndcg_raw_1h",
+  "type": "reference",
+  "status": "dead",
+  "model": "Gauntlet Reports",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v14 Lambdamart No Es 1h.md",
+  "title": "Gating Uplift Certification Report: `v14_lambdamart_no_es_1h",
+  "type": "reference",
+  "status": "dead",
+  "model": "Gauntlet Reports",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v15 Lambdamart Es 1h.md",
+  "title": "Gating Uplift Certification Report: `v15_lambdamart_es_1h",
+  "type": "reference",
+  "status": "dead",
+  "model": "Gauntlet Reports",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v16 Binary Breakout 1h.md",
+  "title": "Gating Uplift Certification Report: `v16_binary_breakout_1h",
+  "type": "reference",
+  "status": "dead",
+  "model": "Gauntlet Reports",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v17 Random Forest 1h.md",
+  "title": "Gating Uplift Certification Report: `v17_random_forest_1h",
+  "type": "reference",
+  "status": "dead",
+  "model": "Gauntlet Reports",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v18 Random Forest 1h.md",
+  "title": "Gating Uplift Certification Report: `v18_random_forest_1h",
+  "type": "reference",
+  "status": "dead",
+  "model": "Gauntlet Reports",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v19 Catboost 1h.md",
+  "title": "Gating Uplift Certification Report: `v19_catboost_1h",
+  "type": "reference",
+  "status": "dead",
+  "model": "Gauntlet Reports",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v2 15min 3y.md",
+  "title": "Gating Uplift Certification Report: `v2_15min_3y",
+  "type": "reference",
+  "status": "dead",
+  "model": "Gauntlet Reports",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v3 Gating Uplift v3 15min Clean.md",
+  "title": "Gating Uplift Certification Report: `v3_15min_clean",
+  "type": "reference",
+  "status": "dead",
+  "model": "Gauntlet Reports",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v8 Upstox 3y Report.md",
+  "title": "Validation Gauntlet Report: `v8_upstox_3y",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Gauntlet Reports/v9 Clean 1h Report.md",
+  "title": "Validation Gauntlet Report: `v9_clean_1h",
+  "type": "report",
+  "status": "active",
+  "model": "Gauntlet Reports",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Meta-Veto/Certification Report.md",
+  "title": "Meta-Veto MV2 Certification Report",
+  "type": "report",
+  "status": "dead",
+  "model": "Meta-Veto",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Meta-Veto/M1 Orthogonality Audit MV2.md",
+  "title": "M1 Orthogonality Kill-Gate Report (MV2)",
+  "type": "report",
+  "status": "active",
+  "model": "Meta-Veto",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Meta-Veto/M1 Orthogonality Audit v10 v19.md",
+  "title": "M1 Orthogonality Audit: v10-v19 Stacking Panel",
+  "type": "report",
+  "status": "active",
+  "model": "Meta-Veto",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Meta-Veto/Meta-Veto Rectification Plan MV2.md",
+  "title": "Meta-Veto Rectification Plan MV2 — Rebuild, Capacity Ladder & Re-Certification",
+  "type": "spec",
+  "status": "active",
+  "model": "Meta-Veto",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Meta-Veto/Meta-Veto Stacking Framework Plan.md",
+  "title": "Meta-Veto Stacking Framework — Engineering & Certification Plan (M0–M5)",
+  "type": "spec",
+  "status": "active",
+  "model": "Meta-Veto",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Meta-Veto/Orthogonality Audit.md",
+  "title": "Meta-Veto Orthogonality & Information Audit Report",
+  "type": "report",
+  "status": "active",
+  "model": "Meta-Veto",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Transformer/Cross-Sectional Transformer Architecture Proposal.md",
+  "title": "Cross-Sectional Transformer (CST) — Architecture Proposal & Research Spec",
+  "type": "spec",
+  "status": "active",
+  "model": "Transformer",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Transformer/DualRes Cross-Sectional Transformer Architecture.md",
+  "title": "Dual-Resolution Cross-Sectional Transformer — Architecture",
+  "type": "spec",
+  "status": "active",
+  "model": "Transformer",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Transformer/DualRes Transformer Flowchart.md",
+  "title": "DualRes Cross-Sectional Transformer — In-Depth Architecture Flowchart",
+  "type": "reference",
+  "status": "active",
+  "model": "Transformer",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Transformer/DualRes Transformer netPnL10 Report.md",
+  "title": "DualRes Transformer — netPnL@10 Consolidated Report",
+  "type": "report",
+  "status": "active",
+  "model": "Transformer",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/Transformer/Sided Transformer Preregistration.md",
+  "title": "Pre-Registration: Dual Side-Specialized Ranking Transformers",
+  "type": "spec",
+  "status": "dead",
+  "model": "Transformer",
+  "verdict": "DEAD",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/_Shared/Advanced Tree Models Roadmap.md",
+  "title": "Advanced Tree Models Roadmap",
+  "type": "spec",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/_Shared/Feature Engineering & Normalization.md",
+  "title": "Vanguard Feature Engineering & Normalization Strategy",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/_Shared/Model Inference Data Structure.md",
+  "title": "Vanguard Model — Inference-Time Data Structure",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/_Shared/Model Performance & Statistics.md",
+  "title": "Model Performance & Statistics",
+  "type": "report",
+  "status": "dead",
+  "model": "",
+  "verdict": "DEAD",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/_Shared/Model Registry & File Structures.md",
+  "title": "Model Registry & File Structures",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/_Shared/Multi-Timeframe Models.md",
+  "title": "Multi-Timeframe Architecture (Actual V2.3 Specifications)",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/_Shared/Training Data & Regime Requirements.md",
+  "title": "Training Data & Regime Requirements",
+  "type": "reference",
+  "status": "dead",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "02 — Models/_Shared/V8 Microstructure Feature Comparison.md",
+  "title": "Vanguard v8 Model Comparison: Baseline vs Microstructure Features",
+  "type": "report",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "03 — Strategies/Empirical Regime Simulation Results.md",
+  "title": "Empirical Regime Simulation Results",
+  "type": "report",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "03 — Strategies/MTF Limit Order Architecture.md",
+  "title": "Multi-Timeframe (MTF) Support & Resistance Limit Order Architecture",
+  "type": "spec",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "03 — Strategies/Market Friction & Slippage.md",
+  "title": "Market Friction & Slippage (The Cost Drag Analysis)",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "03 — Strategies/Strategy Catalog.md",
+  "title": "Strategy Catalog & Execution Pipelines",
+  "type": "report",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "03 — Strategies/Strategy Dashboard UI.md",
+  "title": "Vanguard Dashboard UI: Strategy Integration",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "03 — Strategies/Strategy March 2026 Revision.md",
+  "title": "FinalGo: Optimized Trading Strategy (March 2026 Revision)",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "03 — Strategies/Time Based ATR Targets.md",
+  "title": "Time-Based ATR Targeting (1-Hour Hold Constraints)",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "03 — Strategies/Upstox Fees & Statutory Taxes.md",
+  "title": "Upstox Fees & Statutory Taxes Research (2024-2025)",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/1030 Strategy/Architecture Research Report.md",
+  "title": "Intraday Stock Trading: AI Architecture Research Report",
+  "type": "spec",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/1030 Strategy/Feature Engineering Report.md",
+  "title": "Feature Engineering for 10:30 AM Intraday Trading Model (Indian Stock Market)",
+  "type": "report",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/1030 Strategy/Implementation Plan.md",
+  "title": "10:30 AM Momentum Prediction System — Implementation Plan (V2)",
+  "type": "spec",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/Cluster Research/Deep Dive High Return Clusters.md",
+  "title": "Deep Dive: High Return Trades Clustering",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/Cluster Research/FINAL CONCLUSION.md",
+  "title": "Final Conclusion: Unsupervised Clustering for Veto Override — Research Closed",
+  "type": "reference",
+  "status": "dead",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/Cluster Research/Failed Unanimous Multi TF Strategy.md",
+  "title": "Failed Approach: Unanimous Multi-Timeframe Conviction Strategy",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/Cluster Research/Feature Definitions.md",
+  "title": "Early-Stage Gatekeeper Feature Definitions",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/Cluster Research/Feature Set Analysis.md",
+  "title": "Vanguard Trades Database Schema & Feature Set Analysis",
+  "type": "report",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/Cluster Research/Live Implementation Mechanics.md",
+  "title": "Live Implementation Mechanics: Veto Override Engine",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/Cluster Research/Master Veto Override Table.md",
+  "title": "Master Veto Override: Cluster Sweet Spots",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/Cluster Research/Out Of Sample Validation Report.md",
+  "title": "Out-of-Sample Validation Report: Veto Override Clustering",
+  "type": "report",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/Cluster Research/Unsupervised Vetoed Trades Analysis.md",
+  "title": "Unsupervised Clustering Analysis of Vetoed Trades (Robust Version)",
+  "type": "report",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/Cluster Research/Walk Forward Validation Report.md",
+  "title": "Walk-Forward Validation Report: Veto Override Clustering",
+  "type": "report",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/Codebase Cleanup Strategy.md",
+  "title": "Codebase & Documentation Cleanup Strategy",
+  "type": "reference",
+  "status": "superseded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/Dominance Variance Analysis.md",
+  "title": "Dominance & Variance Channel Analysis Report",
+  "type": "report",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/Dual-TF Entry-Exit Overlay Research.md",
+  "title": "Dual-TF Entry/Exit Overlay Research (2026-06-11)",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/TBM 1h Ensemble Implementation Plan.md",
+  "title": "TBM 1-Hour Ensemble — Finalized Implementation Plan",
+  "type": "spec",
+  "status": "dead",
+  "model": "",
+  "verdict": "KILLED",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/TBM 1h Ensemble Results.md",
+  "title": "TBM 1-Hour Ensemble — Full Research Results",
+  "type": "report",
+  "status": "dead",
+  "model": "",
+  "verdict": "KILLED",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/V10 V18 Independent Findings.md",
+  "title": "V10 + V18 — Independent Findings (Claude, OOS 2025-07 → 2026-06)",
+  "type": "report",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/V10 vs V18 Edge Evaluation.md",
+  "title": "V10 (XGBoost Ranking) vs V18 (Random Forest Classifier) - OOS 2026 Evaluation",
+  "type": "report",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/V18 Hybrid Veto Scalability.md",
+  "title": "Research: V18 Hybrid Veto Scalability & Portfolio Simulation",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "05 — Operations/MCP/Jupyter MCP Setup.md",
+  "title": "Jupyter / Python Data Sandbox MCP Integration",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "05 — Operations/MCP/MCP Registry.md",
+  "title": "MCP Servers Registry",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "05 — Operations/MCP/Obsidian MCP Setup.md",
+  "title": "Obsidian MCP Integration",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "05 — Operations/MCP/SQLite MCP Setup.md",
+  "title": "SQLite Database MCP Integration",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "05 — Operations/MCP/TradingView MCP Setup.md",
+  "title": "TradingView MCP Setup",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "05 — Operations/Upstox Brokerage API Plan.md",
+  "title": "Upstox Get Brokerage API Integration Plan",
+  "type": "spec",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/50 Strategies Performance Results.md",
+  "title": "50-Strategy Regime-Aware Backtest Results",
+  "type": "report",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/50 Strategies Regime Backtest Plan.md",
+  "title": "50 Strategies Regime Backtest Plan",
+  "type": "spec",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Active Board.md",
+  "title": "Current Context",
+  "type": "reference",
+  "status": "dead",
+  "model": "",
+  "verdict": "DEAD",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-08-Print-v10-Final-Tree.md",
+  "title": "Conversation Context: Print v10 Final Tree",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-09-API-Keys-Performance.md",
+  "title": "Conversation Context: API Keys Performance",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-09-Hybrid-Optimization.md",
+  "title": "Conversation Context: Hybrid Model V10 + V16 Optimization",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-09-Hybrid-v10-v17.md",
+  "title": "Conversation Context: Hybrid v10 Ranker + v17 Random Forest",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-09-Test-Jupyter-MCP.md",
+  "title": "Conversation Context: Test Jupyter MCP Connection",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-09-v17-Random-Forest.md",
+  "title": "Conversation Context: v17 Random Forest Experiment",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-09-v18-Directional-Random-Forest.md",
+  "title": "Conversation Context: v18 Directional Random Forest",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-11-15m-Model-Audit.md",
+  "title": "Conversation Context: 15m Model Audit & Logic Fix Discovery",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-11-DualTF-Entry-Exit-Research.md",
+  "title": "Conversation Context: Dual-TF Entry/Exit Overlay Research",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-11-Gauntlet-Test-V10-V19.md",
+  "title": "Conversation Context: Gauntlet Test V10-V19 Models with step_months=2",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-11-Ticker-Streaming.md",
+  "title": "Conversation Context: Streaming LLM Response for Ticker Display Page",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-12-Fix-15m-Conviction-Flip-Calc.md",
+  "title": "Conversation Context: Fix 15-min Conviction-Flip Exit Calculation",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "sub-cost",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-12-Fix-SignalGenerator-entry_top_k.md",
+  "title": "Conversation Context: Fix SignalGenerator TypeError entry_top_k",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-12-Limit-Order-Fallback.md",
+  "title": "Conversation Context: Limit Order Fallback Logic",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-12-Shoonya-API-Historical-Data-Test.md",
+  "title": "Conversation Context: Shoonya API Historical Data Test",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-12-Sided-Transformer-Gate.md",
+  "title": "Conversation Context: Side-Specialist Transformer + Cost-Aware Veto Gate",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "DEAD",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-12-Sophisticated-Transformer.md",
+  "title": "Conversation Context: Sophisticated Cross-Sectional + Temporal Transformer",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "DEAD",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-12-v10-Hold-Periods.md",
+  "title": "Conversation Context: v10 1-Hour Hold Periods Backtest",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Daily Logs/2026-05-31.md",
+  "title": "Daily Update: 2026-05-31",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Daily Logs/2026-06-01.md",
+  "title": "Daily Log: 2026-06-01",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Daily Logs/2026-06-03.md",
+  "title": "Daily Log: 2026-06-03",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Daily Logs/2026-06-04.md",
+  "title": "Daily Log: 2026-06-04",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Daily Logs/2026-06-05.md",
+  "title": "Daily Log: 2026-06-05",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Daily Logs/2026-06-06.md",
+  "title": "2026-06-06",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Daily Logs/2026-06-07.md",
+  "title": "Conversation Context: Model Audits & Edge Discovery",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Daily Logs/2026-06-08.md",
+  "title": "Conversation Context: 1H XGB Edge Diagnosis",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Daily Logs/2026-06-09.md",
+  "title": "Conversation Context: Fix Jupyter MCP Connection",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Daily Logs/2026-06-10.md",
+  "title": "2026-06-10",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "FILTER_GRADE",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Daily Logs/2026-06-11.md",
+  "title": "Daily Log — 2026-06-11",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "DEAD",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Memory Layer Restructure Plan.md",
+  "title": "Memory Layer Restructure Plan (handoff spec for executing agents)",
+  "type": "spec",
+  "status": "superseded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Regime-Aware Routing Plan.md",
+  "title": "Regime-Aware Routing Plan (Conditional Gatekeeping)",
+  "type": "spec",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/tasks.md",
+  "title": "tasks",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/Centaur Dual Specialist Roadmap.md",
+  "title": "Centaur Dual-Specialist & ADX Meta-Routing Roadmap (May 27, 2026)",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/Historical Daily Status Report May 12 2026.md",
+  "title": "Historical Daily Status Report (May 12, 2026)",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/Timezone And Overfitting Audits.md",
+  "title": "Timezone & Overfitting Audits (Dec 5, 2024)",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/V1 Baseline And Xgboost Inversion Logic.md",
+  "title": "Vanguard V1 Baseline & XGBoost Inversion Logic (Dec 2024)",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/ACTION PLAN.md",
+  "title": "MODEL IMPROVEMENT ACTION PLAN",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/COMPLETE ANALYSIS.md",
+  "title": "Complete Analysis: Inverted vs Non-Inverted XGBoost",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/DECEMBER 3 ANALYSIS.md",
+  "title": "December 3, 2025 - Complete Day Trading Analysis",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/EVALUATION REPORT.md",
+  "title": "Model Evaluation & Improvement Report",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/FEATURE ENGINEERING.md",
+  "title": "Vanguard Feature Engineering & Normalization Strategy",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/FIXES APPLIED.md",
+  "title": "Critical Fixes Applied",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/INDEX.md",
+  "title": "Complete Index: Inverted vs Non-Inverted XGBoost Analysis",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/INVERTED Vs NONINVERTED.md",
+  "title": "QUICK REFERENCE: Inverted vs Non-Inverted XGBoost",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/Improvement Strategy.md",
+  "title": "Model Improvement Strategy & Analysis",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/JOURNEY TO V2.md",
+  "title": "Journey to Vanguard v2.0: Specialized Multi-Model Ensemble",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/MODEL INFERENCE DATA.md",
+  "title": "Vanguard Model — Inference-Time Data Structure",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/OVERFITTING ANALYSIS.md",
+  "title": "Overfitting Analysis Report",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/PROBABILITY ANALYSIS.md",
+  "title": "TOP-1 STOCK GAIN PROBABILITY - EXECUTIVE SUMMARY",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/QUALITY METRICS.md",
+  "title": "Quality Metrics Summary",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/README EVALUATION.md",
+  "title": "Model Evaluation & Improvement - Complete Documentation",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/STRATEGY MARCH 2026.md",
+  "title": "FinalGo: Optimized Trading Strategy (March 2026 Revision)",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/SYSTEM FEATURES.md",
+  "title": "Vanguard Trading System — Feature & Architecture Release",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/TIMEZONE ANALYSIS.md",
+  "title": "Timezone Analysis: UTC vs IST Handling",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/UPSTOX BROKERAGE API PLAN.md",
+  "title": "Upstox Get Brokerage API Integration Plan",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/UPSTOX FEES AND TAXES.md",
+  "title": "Upstox Fees & Statutory Taxes Research (2024-2025)",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/V8 COMPARISON.md",
+  "title": "Vanguard v8 Model Comparison: Baseline vs Microstructure Features",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/VANGUARD ACTION PLAN.md",
+  "title": "Action Plan: FinalGo \\\"Vanguard\\\" Systems (March 2026)",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/VANGUARD STATUS REPORT.md",
+  "title": "Vanguard Intelligence: Project Status Report",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/VISUAL SUMMARY.md",
+  "title": "VISUAL SUMMARY: Why We Use Inverted XGBoost",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/WHY INVERTED XGBOOST.md",
+  "title": "WHY WE USE INVERTED XGBoost: Complete Explanation",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/docs/daily_reports/2026-05-12_report.md",
+  "title": "Vanguard Daily Performance Report - 2026-05-12",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/memory_layer/Dual-Specialist & Meta-Routing (Roadmap).md",
+  "title": "Dual-Specialist & Meta-Routing (Proposed Architectural Roadmap)",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ },
+ {
+  "path": "09 — Archive/legacy_archive/memory_layer/Outdated Vanguard V1 Baseline.md",
+  "title": "Outdated Vanguard V1 Specification (Archive)",
+  "type": "archive",
+  "status": "archived",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-12"
+ }
+]
