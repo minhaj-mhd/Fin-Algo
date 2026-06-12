@@ -19,20 +19,29 @@ def read_text(p):
 
 
 WL = re.compile(r'\[\[([^\]]+)\]\]')
-EXTERNAL_PREFIXES = ('project_', 'feedback_', 'reference_', 'user_')
+EXTERNAL_PREFIXES = ('project_', 'feedback_', 'reference_', 'user_',
+                     'project-', 'feedback-', 'reference-', 'user-')
+PLACEHOLDERS = {'Note Name', 'Folder/Note Name', 'Folder/Note Name|Display Label',
+                '06. Context & Logs/Conversations/Conv-YYYY-MM-DD-Topic'}
+IMG_EXT = ('.png', '.jpg', '.jpeg', '.svg', '.gif', '.webp')
 
-# index all md by relpath(noext) and by basename(noext)
+# index all md by relpath(noext) and by basename(noext); index ALL files by path-suffix (for assets)
 by_rel = set()
 by_base = defaultdict(list)
+all_paths = []
 for root, _, files in os.walk(VAULT):
     if '.obsidian' in root:
         continue
     for f in files:
-        if not f.endswith('.md'):
-            continue
-        rel = os.path.relpath(os.path.join(root, f), VAULT).replace('\\', '/')[:-3]
-        by_rel.add(rel)
-        by_base[rel.split('/')[-1]].append(rel)
+        rel = os.path.relpath(os.path.join(root, f), VAULT).replace('\\', '/')
+        all_paths.append(rel)
+        if f.endswith('.md'):
+            r = rel[:-3]
+            by_rel.add(r)
+            by_base[r.split('/')[-1]].append(r)
+
+def asset_exists(target):
+    return any(p == target or p.endswith('/' + target) for p in all_paths)
 
 broken = []
 ambiguous = []
@@ -46,7 +55,11 @@ for root, _, files in os.walk(VAULT):
         txt = read_text(os.path.join(root, f))
         for m in WL.finditer(txt):
             target = m.group(1).split('|')[0].split('#')[0].strip().rstrip('/')
-            if not target:
+            if not target or target in PLACEHOLDERS:
+                continue
+            if target.lower().endswith(IMG_EXT):     # image embed -> resolve by path-suffix
+                if not asset_exists(target):
+                    broken.append((src, target))
                 continue
             t = target[:-3] if target.endswith('.md') else target
             base = t.split('/')[-1]

@@ -1,0 +1,196 @@
+path,top_folder,bytes,lines,first_h1,has_frontmatter,guess_type,guess_status,guess_verdict,run_id
+Welcome.md,Welcome.md,11891,111,Welcome to the Vanguard Brain (Obsidian Memory Layer),no,moc,active,DEAD,
+agent.md,agent.md,7958,104,🤖 AI Agent Operating Protocol & Shared Memory Guide,no,moc,superseded,,
+tasks.md,tasks.md,4813,28,,no,reference,active,DEAD,
+to remove.md,to remove.md,26,3,,no,reference,active,,
+01. Core Architecture/Global System Architecture.md,01. Core Architecture,6789,92,🏛️ Global System Architecture,no,reference,active,,
+01. Core Architecture/Validation Gauntlet Architecture.md,01. Core Architecture,22349,308,🛡️ Validation Gauntlet — Architecture & Implementation Plan,no,reference,active,NET-NEGATIVE,
+01. Core Architecture/Validation Gauntlet Remediation Plan.md,01. Core Architecture,25044,227,🔧 Validation Gauntlet — Remediation Plan (R1–R8),no,spec,active,,
+01. Core Architecture/Vanguard System Features.md,01. Core Architecture,4552,60,Vanguard Trading System — Feature & Architecture Release,no,moc,active,,
+02. Model Suite/15m_Conviction_Audit_Report.md,02. Model Suite,282749,4848,15-Minute Conviction Score Audit,no,report,active,,
+02. Model Suite/Advanced Tree Models Roadmap.md,02. Model Suite,3481,27,Advanced Tree Models Roadmap,no,spec,active,,
+02. Model Suite/Cross-Sectional Transformer Architecture Proposal.md,02. Model Suite,18122,231,Cross-Sectional Transformer (CST) — Architecture Proposal & Research Spec,no,spec,active,NET-NEGATIVE,
+02. Model Suite/Daily Gatekeeper V2 Rebuild Plan.md,02. Model Suite,11519,116,🏛️ Daily Gatekeeper V2 — Rebuild & Certification Plan (D0–D6),no,spec,active,DEAD,20260610T102743Z-5f7d069f
+02. Model Suite/Daily Gatekeeper V2 Rebuild and Certification Report.md,02. Model Suite,13655,212,🏛️ Daily Gatekeeper V2 — Rebuild & Certification Report (D0–D6),no,report,concluded,FILTER_GRADE,20260610T135608Z-5f7d069f
+02. Model Suite/Daily Gatekeeper V3 Rebuild and Certification Report.md,02. Model Suite,7537,113,🏛️ Daily Gatekeeper V3 — Rebuild & Certification Report,no,report,concluded,FILTER_GRADE,20260610T144343Z-5f7d069f
+02. Model Suite/DualRes-CrossSectional-Transformer-Architecture.md,02. Model Suite,6347,80,🧠 Dual-Resolution Cross-Sectional Transformer — Architecture,no,reference,active,,
+02. Model Suite/DualRes-Transformer-Flowchart.md,02. Model Suite,7378,134,🗺️ DualRes Cross-Sectional Transformer — In-Depth Architecture Flowchart,no,reference,active,,
+02. Model Suite/DualRes-Transformer-netPnL10-Report.md,02. Model Suite,2641,49,📊 DualRes Transformer — netPnL@10 Consolidated Report,no,report,active,SUB-COST,
+02. Model Suite/Empirical Regime Simulation Results.md,02. Model Suite,3159,38,🧪 Empirical Regime Simulation Results,no,report,active,,
+02. Model Suite/Feature Engineering & Normalization.md,02. Model Suite,3714,49,Vanguard Feature Engineering & Normalization Strategy,no,reference,active,,
+02. Model Suite/Gatekeeper V2 Feature Availability.md,02. Model Suite,3312,50,🏛️ Gatekeeper V2 Feature Availability & Point-in-Time Contract,no,moc,active,,
+02. Model Suite/Meta-Veto Rectification Plan MV2.md,02. Model Suite,12788,114,"🔁 Meta-Veto Rectification Plan MV2 — Rebuild, Capacity Ladder & Re-Certification",no,spec,active,DEAD,
+02. Model Suite/Meta-Veto Stacking Framework Plan.md,02. Model Suite,14785,151,🧠 Meta-Veto Stacking Framework — Engineering & Certification Plan (M0–M5),no,spec,active,,
+02. Model Suite/Model Inference Data Structure.md,02. Model Suite,7338,208,Vanguard Model — Inference-Time Data Structure,no,reference,active,,
+02. Model Suite/Model Performance & Statistics.md,02. Model Suite,31430,375,📊 Model Performance & Statistics,no,reference,dead,DEAD,20260610T102743Z-5f7d069f
+02. Model Suite/Model Registry & File Structures.md,02. Model Suite,5724,123,🗃️ Model Registry & File Structures,no,reference,superseded,,
+02. Model Suite/Multi-Timeframe Models.md,02. Model Suite,5016,71,⏱️ Multi-Timeframe Architecture (Actual V2.3 Specifications),no,reference,active,,
+02. Model Suite/Sided-Transformer-Preregistration.md,02. Model Suite,9430,141,🧪 Pre-Registration: Dual Side-Specialized Ranking Transformers,no,spec,dead,DEAD,
+02. Model Suite/Training Data & Regime Requirements.md,02. Model Suite,4016,59,Training Data & Regime Requirements,no,reference,superseded,,
+02. Model Suite/V8 Microstructure Feature Comparison.md,02. Model Suite,3945,68,Vanguard v8 Model Comparison: Baseline vs Microstructure Features,no,reference,active,,
+03. Trading Strategies/MTF_Limit_Order_Architecture.md,03. Trading Strategies,2556,27,Multi-Timeframe (MTF) Support & Resistance Limit Order Architecture,no,reference,active,,
+03. Trading Strategies/Market Friction & Slippage.md,03. Trading Strategies,4175,66,⚠️ Market Friction & Slippage (The Cost Drag Analysis),no,reference,active,,
+03. Trading Strategies/Strategy Catalog.md,03. Trading Strategies,7212,97,📈 Strategy Catalog & Execution Pipelines,no,report,active,,
+03. Trading Strategies/Strategy March 2026 Revision.md,03. Trading Strategies,3555,74,🚀 FinalGo: Optimized Trading Strategy (March 2026 Revision),no,reference,active,,
+03. Trading Strategies/Strategy_Dashboard_UI.md,03. Trading Strategies,1752,21,Vanguard Dashboard UI: Strategy Integration,no,reference,active,,
+03. Trading Strategies/Time_Based_ATR_Targets.md,03. Trading Strategies,1762,31,Time-Based ATR Targeting (1-Hour Hold Constraints),no,reference,active,,
+03. Trading Strategies/Upstox Fees & Statutory Taxes.md,03. Trading Strategies,3745,83,Upstox Fees & Statutory Taxes Research (2024-2025),no,reference,active,,
+04. Data & Code Map/AI Veto & Gemini Audit.md,04. Data & Code Map,7734,102,🛡️ AI Veto & Gemini Audit (Live LLM Validation),no,report,active,,
+04. Data & Code Map/Codebase File Directory.md,04. Data & Code Map,6996,65,📂 Codebase File Directory,no,moc,active,,
+04. Data & Code Map/Database Architecture.md,04. Data & Code Map,6629,155,💾 Database Architecture (SQLite Schema & Analytics),no,reference,active,,
+04. Data & Code Map/Shadow Tracker & Execution Loop.md,04. Data & Code Map,6303,98,🔄 Shadow Tracker & Execution Loop,no,reference,superseded,,
+04. Data & Code Map/Upstox Brokerage API Plan.md,04. Data & Code Map,3073,58,Upstox Get Brokerage API Integration Plan,no,spec,active,,
+05. Archives/Centaur-Dual-Specialist-Roadmap.md,05. Archives,1261,13,"🏗️ Centaur Dual-Specialist & ADX Meta-Routing Roadmap (May 27, 2026)",no,archive,archive,,
+05. Archives/Historical-Daily-Status-Report-May-12-2026.md,05. Archives,777,13,"📊 Historical Daily Status Report (May 12, 2026)",no,archive,archive,,
+05. Archives/Timezone-and-Overfitting-Audits.md,05. Archives,1610,16,"🛡️ Timezone & Overfitting Audits (Dec 5, 2024)",no,archive,archive,,
+05. Archives/V1-Baseline-and-XGBoost-Inversion-Logic.md,05. Archives,1625,20,📈 Vanguard V1 Baseline & XGBoost Inversion Logic (Dec 2024),no,archive,archive,,
+05. Archives/legacy_archive/docs/ACTION_PLAN.md,05. Archives,9966,350,MODEL IMPROVEMENT ACTION PLAN,no,archive,archive,,
+05. Archives/legacy_archive/docs/COMPLETE_ANALYSIS.md,05. Archives,10103,375,Complete Analysis: Inverted vs Non-Inverted XGBoost,no,archive,archive,,
+05. Archives/legacy_archive/docs/DECEMBER_3_ANALYSIS.md,05. Archives,5575,174,"December 3, 2025 - Complete Day Trading Analysis",no,archive,archive,,
+05. Archives/legacy_archive/docs/EVALUATION_REPORT.md,05. Archives,11390,329,Model Evaluation & Improvement Report,no,archive,archive,,
+05. Archives/legacy_archive/docs/FEATURE_ENGINEERING.md,05. Archives,3714,49,Vanguard Feature Engineering & Normalization Strategy,no,archive,archive,,
+05. Archives/legacy_archive/docs/FIXES_APPLIED.md,05. Archives,7522,250,Critical Fixes Applied,no,archive,archive,,
+05. Archives/legacy_archive/docs/INDEX.md,05. Archives,9169,380,Complete Index: Inverted vs Non-Inverted XGBoost Analysis,no,archive,archive,,
+05. Archives/legacy_archive/docs/INVERTED_vs_NONINVERTED.md,05. Archives,7489,270,QUICK REFERENCE: Inverted vs Non-Inverted XGBoost,no,archive,archive,,
+05. Archives/legacy_archive/docs/JOURNEY_TO_V2.md,05. Archives,5659,113,Journey to Vanguard v2.0: Specialized Multi-Model Ensemble,no,archive,archive,,
+05. Archives/legacy_archive/docs/MODEL_INFERENCE_DATA.md,05. Archives,12009,266,Vanguard Model — Inference-Time Data Structure,no,archive,archive,,
+05. Archives/legacy_archive/docs/OVERFITTING_ANALYSIS.md,05. Archives,16143,556,Overfitting Analysis Report,no,archive,archive,,
+05. Archives/legacy_archive/docs/PROBABILITY_ANALYSIS.md,05. Archives,11174,434,TOP-1 STOCK GAIN PROBABILITY - EXECUTIVE SUMMARY,no,archive,archive,,
+05. Archives/legacy_archive/docs/QUALITY_METRICS.md,05. Archives,9776,282,Quality Metrics Summary,no,archive,archive,,
+05. Archives/legacy_archive/docs/README_EVALUATION.md,05. Archives,9916,353,Model Evaluation & Improvement - Complete Documentation,no,archive,archive,,
+05. Archives/legacy_archive/docs/STRATEGY_MARCH_2026.md,05. Archives,3555,74,🚀 FinalGo: Optimized Trading Strategy (March 2026 Revision),no,archive,archive,,
+05. Archives/legacy_archive/docs/SYSTEM_FEATURES.md,05. Archives,4531,60,Vanguard Trading System — Feature & Architecture Release,no,archive,archive,,
+05. Archives/legacy_archive/docs/TIMEZONE_ANALYSIS.md,05. Archives,11632,430,Timezone Analysis: UTC vs IST Handling,no,archive,archive,,
+05. Archives/legacy_archive/docs/UPSTOX_BROKERAGE_API_PLAN.md,05. Archives,3073,58,Upstox Get Brokerage API Integration Plan,no,archive,archive,,
+05. Archives/legacy_archive/docs/UPSTOX_FEES_AND_TAXES.md,05. Archives,3745,83,Upstox Fees & Statutory Taxes Research (2024-2025),no,archive,archive,,
+05. Archives/legacy_archive/docs/V8_COMPARISON.md,05. Archives,3945,68,Vanguard v8 Model Comparison: Baseline vs Microstructure Features,no,archive,archive,,
+05. Archives/legacy_archive/docs/VANGUARD_ACTION_PLAN.md,05. Archives,3095,59,"🎯 Action Plan: FinalGo ""Vanguard"" Systems (March 2026)",no,archive,archive,,
+05. Archives/legacy_archive/docs/VANGUARD_STATUS_REPORT.md,05. Archives,3033,50,Vanguard Intelligence: Project Status Report,no,archive,archive,,
+05. Archives/legacy_archive/docs/VISUAL_SUMMARY.md,05. Archives,15372,348,VISUAL SUMMARY: Why We Use Inverted XGBoost,no,archive,archive,,
+05. Archives/legacy_archive/docs/WHY_INVERTED_XGBOOST.md,05. Archives,10299,355,WHY WE USE INVERTED XGBoost: Complete Explanation,no,archive,archive,,
+05. Archives/legacy_archive/docs/improvement_strategy.md,05. Archives,8325,248,Model Improvement Strategy & Analysis,no,archive,archive,,
+05. Archives/legacy_archive/docs/daily_reports/2026-05-12_report.md,05. Archives,1277,42,Vanguard Daily Performance Report - 2026-05-12,no,archive,archive,,
+05. Archives/legacy_archive/memory_layer/Dual-Specialist & Meta-Routing (Roadmap).md,05. Archives,5914,91,🧠 Dual-Specialist & Meta-Routing (Proposed Architectural Roadmap),no,archive,archive,,
+05. Archives/legacy_archive/memory_layer/Outdated Vanguard V1 Baseline.md,05. Archives,5181,72,🗃️ Outdated Vanguard V1 Specification (Archive),no,archive,archive,,
+06. Context & Logs/50-Strategies-Performance-Results.md,06. Context & Logs,8075,65,50-Strategy Regime-Aware Backtest Results,no,report,active,,
+06. Context & Logs/50-Strategies-Regime-Backtest-Plan.md,06. Context & Logs,2830,43,,no,spec,active,,
+06. Context & Logs/Codebase Cleanup Strategy.md,06. Context & Logs,11918,130,🧹 Codebase & Documentation Cleanup Strategy,no,reference,superseded,,
+06. Context & Logs/Current Context.md,06. Context & Logs,43286,103,Current Context,no,reference,dead,DEAD,
+06. Context & Logs/Memory Layer Restructure Plan.md,06. Context & Logs,12834,142,🗂️ Memory Layer Restructure Plan (handoff spec for executing agents),no,spec,superseded,DEAD,
+06. Context & Logs/Regime-Aware Routing Plan.md,06. Context & Logs,3007,35,🚦 Regime-Aware Routing Plan (Conditional Gatekeeping),no,spec,concluded,,
+06. Context & Logs/Vanguard Engine Refactor Roadmap.md,06. Context & Logs,12100,317,Vanguard Engine Refactor Roadmap,no,spec,active,,
+06. Context & Logs/Conversations/Conv-2026-06-08-Print-v10-Final-Tree.md,06. Context & Logs,2009,26,💬 Conversation Context: Print v10 Final Tree,no,log,active,,
+06. Context & Logs/Conversations/Conv-2026-06-09-API-Keys-Performance.md,06. Context & Logs,970,22,💬 Conversation Context: API Keys Performance,no,log,active,,
+06. Context & Logs/Conversations/Conv-2026-06-09-Hybrid-Optimization.md,06. Context & Logs,1818,27,💬 Conversation Context: Hybrid Model V10 + V16 Optimization,no,log,active,,
+06. Context & Logs/Conversations/Conv-2026-06-09-Hybrid-v10-v17.md,06. Context & Logs,2231,29,💬 Conversation Context: Hybrid v10 Ranker + v17 Random Forest,no,log,active,,
+06. Context & Logs/Conversations/Conv-2026-06-09-Test-Jupyter-MCP.md,06. Context & Logs,775,23,💬 Conversation Context: Test Jupyter MCP Connection,no,log,active,,
+06. Context & Logs/Conversations/Conv-2026-06-09-v17-Random-Forest.md,06. Context & Logs,2316,43,💬 Conversation Context: v17 Random Forest Experiment,no,log,active,,
+06. Context & Logs/Conversations/Conv-2026-06-09-v18-Directional-Random-Forest.md,06. Context & Logs,8046,77,💬 Conversation Context: v18 Directional Random Forest,no,log,active,,
+06. Context & Logs/Conversations/Conv-2026-06-11-15m-Model-Audit.md,06. Context & Logs,2504,30,💬 Conversation Context: 15m Model Audit & Logic Fix Discovery,no,log,active,,
+06. Context & Logs/Conversations/Conv-2026-06-11-DualTF-Entry-Exit-Research.md,06. Context & Logs,3951,44,💬 Conversation Context: Dual-TF Entry/Exit Overlay Research,no,log,active,DEAD,
+06. Context & Logs/Conversations/Conv-2026-06-11-Gauntlet-Test-V10-V19.md,06. Context & Logs,3430,40,💬 Conversation Context: Gauntlet Test V10-V19 Models with step_months=2,no,log,concluded,FILTER_GRADE,
+06. Context & Logs/Conversations/Conv-2026-06-11-Ticker-Streaming.md,06. Context & Logs,1662,24,💬 Conversation Context: Streaming LLM Response for Ticker Display Page,no,log,concluded,,
+06. Context & Logs/Conversations/Conv-2026-06-12-Fix-15m-Conviction-Flip-Calc.md,06. Context & Logs,4001,35,💬 Conversation Context: Fix 15-min Conviction-Flip Exit Calculation,no,log,active,SUB-COST,
+06. Context & Logs/Conversations/Conv-2026-06-12-Fix-SignalGenerator-entry_top_k.md,06. Context & Logs,1081,21,💬 Conversation Context: Fix SignalGenerator TypeError entry_top_k,no,log,concluded,,
+06. Context & Logs/Conversations/Conv-2026-06-12-Limit-Order-Fallback.md,06. Context & Logs,1929,25,💬 Conversation Context: Limit Order Fallback Logic,no,log,concluded,,
+06. Context & Logs/Conversations/Conv-2026-06-12-Shoonya-API-Historical-Data-Test.md,06. Context & Logs,1257,26,💬 Conversation Context: Shoonya API Historical Data Test,no,log,active,,
+06. Context & Logs/Conversations/Conv-2026-06-12-Sided-Transformer-Gate.md,06. Context & Logs,4387,38,💬 Conversation Context: Side-Specialist Transformer + Cost-Aware Veto Gate,no,log,dead,DEAD,
+06. Context & Logs/Conversations/Conv-2026-06-12-Sophisticated-Transformer.md,06. Context & Logs,10352,134,💬 Conversation Context: Sophisticated Cross-Sectional + Temporal Transformer,no,log,active,KILLED,
+06. Context & Logs/Conversations/Conv-2026-06-12-v10-Hold-Periods.md,06. Context & Logs,1488,25,💬 Conversation Context: v10 1-Hour Hold Periods Backtest,no,log,concluded,NET-NEGATIVE,
+06. Context & Logs/Daily Logs/2026-05-31.md,06. Context & Logs,961,13,📅 Daily Update: 2026-05-31,no,log,active,,
+06. Context & Logs/Daily Logs/2026-06-01.md,06. Context & Logs,7305,89,📅 Daily Log: 2026-06-01,no,log,superseded,,
+06. Context & Logs/Daily Logs/2026-06-03.md,06. Context & Logs,18409,297,📅 Daily Log: 2026-06-03,no,log,superseded,DEAD,
+06. Context & Logs/Daily Logs/2026-06-04.md,06. Context & Logs,14177,282,📅 Daily Log: 2026-06-04,no,log,concluded,,
+06. Context & Logs/Daily Logs/2026-06-05.md,06. Context & Logs,19464,315,📅 Daily Log: 2026-06-05,no,log,concluded,,
+06. Context & Logs/Daily Logs/2026-06-06.md,06. Context & Logs,6121,139,2026-06-06,no,log,concluded,,
+06. Context & Logs/Daily Logs/2026-06-07.md,06. Context & Logs,8257,141,💬 Conversation Context: Model Audits & Edge Discovery,no,log,concluded,,
+06. Context & Logs/Daily Logs/2026-06-08.md,06. Context & Logs,4340,59,💬 Conversation Context: 1H XGB Edge Diagnosis,no,log,concluded,,
+06. Context & Logs/Daily Logs/2026-06-09.md,06. Context & Logs,14334,275,💬 Conversation Context: Fix Jupyter MCP Connection,no,log,concluded,,
+06. Context & Logs/Daily Logs/2026-06-10.md,06. Context & Logs,11607,81,,no,log,active,FILTER_GRADE,20260610T135608Z-5f7d069f
+06. Context & Logs/Daily Logs/2026-06-11.md,06. Context & Logs,15062,114,📅 Daily Log — 2026-06-11,no,log,concluded,DEAD,20260610T144343Z-5f7d069f
+07. Cluster Research/Deep_Dive_High_Return_Clusters.md,07. Cluster Research,7011,143,Deep Dive: High Return Trades Clustering,no,reference,active,,
+07. Cluster Research/FINAL_CONCLUSION.md,07. Cluster Research,13604,167,Final Conclusion: Unsupervised Clustering for Veto Override — Research Closed,no,reference,dead,,
+07. Cluster Research/Failed-Unanimous-Multi-TF-Strategy.md,07. Cluster Research,3311,46,Failed Approach: Unanimous Multi-Timeframe Conviction Strategy,no,reference,active,,
+07. Cluster Research/Feature_Definitions.md,07. Cluster Research,2061,22,Early-Stage Gatekeeper Feature Definitions,no,reference,active,,
+07. Cluster Research/Feature_Set_Analysis.md,07. Cluster Research,5123,45,Vanguard Trades Database Schema & Feature Set Analysis,no,report,active,,
+07. Cluster Research/Live_Implementation_Mechanics.md,07. Cluster Research,1664,19,Live Implementation Mechanics: Veto Override Engine,no,reference,active,,
+07. Cluster Research/Master_Veto_Override_Table.md,07. Cluster Research,1907,23,Master Veto Override: Cluster Sweet Spots,no,reference,active,,
+07. Cluster Research/Out_of_Sample_Validation_Report.md,07. Cluster Research,3643,53,Out-of-Sample Validation Report: Veto Override Clustering,no,report,concluded,,
+07. Cluster Research/Unsupervised_Vetoed_Trades_Analysis.md,07. Cluster Research,3668,42,Unsupervised Clustering Analysis of Vetoed Trades (Robust Version),no,report,active,,
+07. Cluster Research/Walk_Forward_Validation_Report.md,07. Cluster Research,2900,45,Walk-Forward Validation Report: Veto Override Clustering,no,report,active,,
+07. MCP Integrations/Jupyter MCP Setup.md,07. MCP Integrations,1739,39,Jupyter / Python Data Sandbox MCP Integration,no,reference,active,,
+07. MCP Integrations/MCP Registry.md,07. MCP Integrations,1681,27,MCP Servers Registry,no,reference,active,,
+07. MCP Integrations/Obsidian MCP Setup.md,07. MCP Integrations,2362,64,Obsidian MCP Integration,no,reference,active,,
+07. MCP Integrations/SQLite MCP Setup.md,07. MCP Integrations,1312,34,SQLite Database MCP Integration,no,reference,active,,
+07. MCP Integrations/TradingView MCP Setup.md,07. MCP Integrations,2045,45,TradingView MCP Setup,no,moc,active,,
+07. Research & Backtests/TBM-1h-Ensemble-Implementation-Plan.md,07. Research & Backtests,15643,251,TBM 1-Hour Ensemble — Finalized Implementation Plan,no,spec,dead,KILLED,
+07. Research & Backtests/V18-Hybrid-Veto-Scalability.md,07. Research & Backtests,2887,36,🧠 Research: V18 Hybrid Veto Scalability & Portfolio Simulation,no,reference,active,,
+08. Model Analysis/Dominance Variance Analysis.md,08. Model Analysis,8449,132,📊 Dominance & Variance Channel Analysis Report,no,report,active,,
+08. Model Analysis/Gauntlet_V10_V19_Master_Report.md,08. Model Analysis,41817,741,📊 Validation Gauntlet Master Evaluation Report (v10 to v19),no,report,active,FILTER_GRADE,20260610T173707Z-d795438c
+08. Model Analysis/1-Hour Vanguard Model/Advanced Alpha Visualizations.md,08. Model Analysis,1582,31,Advanced Alpha Visualizations (1-Hour Core Model),no,reference,active,,
+08. Model Analysis/1-Hour Vanguard Model/Complete Edge Catalog.md,08. Model Analysis,8768,149,Complete Edge Catalog: Exhaustive Dual-Model Parameter Exploration,no,report,active,DEAD,
+08. Model Analysis/1-Hour Vanguard Model/Dual Confirmation Architecture.md,08. Model Analysis,4128,61,The Dual-Confirmation Architecture,no,reference,active,,
+08. Model Analysis/1-Hour Vanguard Model/Fresh OOS Verification - Jan-May 2026.md,08. Model Analysis,7730,142,Fresh OOS Verification: Sniper Strategy — Jan–May 2026,no,report,active,,
+08. Model Analysis/1-Hour Vanguard Model/Live Trading Configuration & Verdict.md,08. Model Analysis,6983,130,Live Trading Configuration & Tradability Verdict,no,reference,active,DEAD,
+08. Model Analysis/1-Hour Vanguard Model/Model Card - v10 Native 1h.md,08. Model Analysis,4715,99,Model Card — v10_native_1h,no,reference,active,,
+08. Model Analysis/1-Hour Vanguard Model/OOS Calibration & Thresholds.md,08. Model Analysis,5934,78,Comprehensive Empirical Analysis of Model Thresholds & Execution Architecture,no,reference,superseded,,
+08. Model Analysis/1-Hour Vanguard Model/Quarterly Consistency & Regimes.md,08. Model Analysis,2050,26,Quarterly Consistency & Macro Regimes,no,reference,active,,
+08. Model Analysis/1-Hour Vanguard Model/TBM-1h-Ensemble-Results.md,08. Model Analysis,15962,245,TBM 1-Hour Ensemble — Full Research Results,no,report,dead,KILLED,
+08. Model Analysis/1-Hour Vanguard Model/Time of Day Conviction.md,08. Model Analysis,1782,26,Time of Day vs. Conviction Score,no,reference,active,,
+08. Model Analysis/1-Hour Vanguard Model/V10_V18_Independent_Findings.md,08. Model Analysis,10440,177,"V10 + V18 — Independent Findings (Claude, OOS 2025-07 → 2026-06)",no,report,active,,
+08. Model Analysis/1-Hour Vanguard Model/V10_vs_V18_Edge_Evaluation.md,08. Model Analysis,2898,34,V10 (XGBoost Ranking) vs V18 (Random Forest Classifier) - OOS 2026 Evaluation,no,report,active,,
+08. Model Analysis/15-Minute Vanguard Model/Clean Re-Analysis & OOS Validation.md,08. Model Analysis,12593,157,"Clean Re-Analysis & OOS Validation (Native Data, Holdout-Verified)",no,report,active,NET-NEGATIVE,
+08. Model Analysis/15-Minute Vanguard Model/Complete Edge Catalog.md,08. Model Analysis,6368,135,Complete Edge Catalog: v2_15min_3y Walk-Forward & OOS Analysis,no,report,active,,
+08. Model Analysis/15-Minute Vanguard Model/Dual-TF Entry-Exit Overlay Research.md,08. Model Analysis,6906,68,🔬 Dual-TF Entry/Exit Overlay Research (2026-06-11),no,reference,active,FILTER_GRADE,20260610T113721Z-5f7d069f
+08. Model Analysis/15-Minute Vanguard Model/Dual-Timeframe Strategy & Full Research Journey.md,08. Model Analysis,24857,396,Dual-Timeframe Strategy & Full Research Journey,no,reference,superseded,,
+08. Model Analysis/15-Minute Vanguard Model/Feature Analysis & SHAP.md,08. Model Analysis,7527,153,Feature Analysis & SHAP: v2_15min_3y,no,report,active,,
+08. Model Analysis/15-Minute Vanguard Model/Model Card - v3 Clean 15min.md,08. Model Analysis,4723,94,Model Card — v3_15min_clean,no,reference,active,,
+08. Model Analysis/15-Minute Vanguard Model/Model Diagnostics & Visualizations.md,08. Model Analysis,7495,162,Model Diagnostics & Visualizations: v2_15min_3y,no,reference,active,,
+08. Model Analysis/15-Minute Vanguard Model/OOS Calibration & Thresholds.md,08. Model Analysis,5885,112,OOS Calibration & Thresholds: v2_15min_3y,no,reference,active,,
+08. Model Analysis/15-Minute Vanguard Model/Prediction Bucket & Calibration Deep Dive.md,08. Model Analysis,13597,231,Prediction Bucket & Calibration Deep Dive: v2_15min_3y,no,reference,active,,
+08. Model Analysis/15-Minute Vanguard Model/Sniper Trade Analysis.md,08. Model Analysis,8698,159,Sniper Trade Analysis: v2_15min_3y,no,report,active,,
+08. Model Analysis/15-Minute Vanguard Model/Time of Day & Residual Analysis.md,08. Model Analysis,6070,117,Time of Day & Residual Analysis: v2_15min_3y,no,report,active,,
+08. Model Analysis/30-Minute Vanguard Model/Complete Edge Catalog.md,08. Model Analysis,10030,191,Complete Edge Catalog: Exhaustive Dual-Model Parameter Exploration,no,report,active,DEAD,
+08. Model Analysis/30-Minute Vanguard Model/Dual Confirmation Architecture.md,08. Model Analysis,2563,40,The Dual-Confirmation Architecture (30-Minute Model),no,reference,active,,
+08. Model Analysis/30-Minute Vanguard Model/OOS Calibration & Thresholds.md,08. Model Analysis,4082,87,Comprehensive Empirical Analysis of Model Thresholds & Execution Architecture,no,reference,active,DEAD,
+08. Model Analysis/30-Minute Vanguard Model/Time of Day Conviction.md,08. Model Analysis,2280,47,Time of Day vs. Conviction Score (30-Minute Model),no,reference,active,,
+08. Model Analysis/30-Minute Vanguard Model/Weekly Consistency & Regimes.md,08. Model Analysis,2641,60,Weekly Consistency & Regime Analysis (30-Minute Model),no,reference,active,,
+08. Model Analysis/Gauntlet Reports/daily_macro_v2_report.md,08. Model Analysis,4943,95,🛡️ Validation Gauntlet Report: `daily_macro_v2`,no,report,active,FILTER_GRADE,20260610T135608Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/daily_macro_v3_report.md,08. Model Analysis,4918,95,🛡️ Validation Gauntlet Report: `daily_macro_v3`,no,report,active,DEAD,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/daily_xgb_report.md,08. Model Analysis,3968,80,🛡️ Validation Gauntlet Report: `daily_xgb`,no,report,active,DEAD,20260610T102743Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v10_depth4_1h_report.md,08. Model Analysis,4626,90,🛡️ Validation Gauntlet Report: `v10_depth4_1h`,no,report,active,FILTER_GRADE,20260610T184210Z-d795438c
+08. Model Analysis/Gauntlet Reports/v10_native_1h_report.md,08. Model Analysis,4626,90,🛡️ Validation Gauntlet Report: `v10_depth4_1h`,no,report,active,FILTER_GRADE,20260610T184210Z-d795438c
+08. Model Analysis/Gauntlet Reports/v11_utility_1h_report.md,08. Model Analysis,4626,90,🛡️ Validation Gauntlet Report: `v10_depth4_1h`,no,report,active,FILTER_GRADE,20260610T184210Z-d795438c
+08. Model Analysis/Gauntlet Reports/v12_lambdamart_1h_report.md,08. Model Analysis,4617,90,🛡️ Validation Gauntlet Report: `v12_lambdamart_1h`,no,report,active,DEAD,20260610T185243Z-d795438c
+08. Model Analysis/Gauntlet Reports/v13_ndcg_raw_1h_report.md,08. Model Analysis,4615,90,🛡️ Validation Gauntlet Report: `v13_ndcg_raw_1h`,no,report,active,DEAD,20260610T185246Z-d795438c
+08. Model Analysis/Gauntlet Reports/v14_lambdamart_no_es_1h_report.md,08. Model Analysis,4649,90,🛡️ Validation Gauntlet Report: `v14_lambdamart_no_es_1h`,no,report,active,FILTER_GRADE,20260610T185301Z-d795438c
+08. Model Analysis/Gauntlet Reports/v15_lambdamart_es_1h_report.md,08. Model Analysis,4642,90,🛡️ Validation Gauntlet Report: `v15_lambdamart_es_1h`,no,report,active,FILTER_GRADE,20260610T190242Z-d795438c
+08. Model Analysis/Gauntlet Reports/v16_binary_breakout_1h_report.md,08. Model Analysis,4644,90,🛡️ Validation Gauntlet Report: `v16_binary_breakout_1h`,no,report,active,FILTER_GRADE,20260610T190244Z-d795438c
+08. Model Analysis/Gauntlet Reports/v17_random_forest_1h_report.md,08. Model Analysis,4150,82,🛡️ Validation Gauntlet Report: `v17_random_forest_1h`,no,report,active,DEAD,20260610T121944Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v18_random_forest_1h_report.md,08. Model Analysis,4188,82,🛡️ Validation Gauntlet Report: `v18_random_forest_1h`,no,report,active,DEAD,20260610T124108Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v19_catboost_1h_report.md,08. Model Analysis,4637,90,🛡️ Validation Gauntlet Report: `v19_catboost_1h`,no,report,active,FILTER_GRADE,20260610T191237Z-d795438c
+08. Model Analysis/Gauntlet Reports/v2_15min_3y_report.md,08. Model Analysis,5399,103,🛡️ Validation Gauntlet Report: `v2_15min_3y`,no,report,active,FILTER_GRADE,20260610T173707Z-d795438c
+08. Model Analysis/Gauntlet Reports/v3_15min_clean_report.md,08. Model Analysis,5070,98,🛡️ Validation Gauntlet Report: `v3_15min_clean`,no,report,active,FILTER_GRADE,20260610T113721Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v3_gating_sweep_report.md,08. Model Analysis,10579,62,📊 daily_macro_v3 Gating Sweep Report (v10 to v19),no,report,active,NET-NEGATIVE,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v3_gating_uplift_v10_depth4_1h.md,08. Model Analysis,2167,50,🛡️ Gating Uplift Certification Report: `v10_depth4_1h`,no,reference,dead,,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v3_gating_uplift_v10_native_1h.md,08. Model Analysis,2166,50,🛡️ Gating Uplift Certification Report: `v10_native_1h`,no,reference,dead,,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v3_gating_uplift_v11_utility_1h.md,08. Model Analysis,2170,50,🛡️ Gating Uplift Certification Report: `v11_utility_1h`,no,reference,dead,,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v3_gating_uplift_v12_lambdamart_1h.md,08. Model Analysis,2179,50,🛡️ Gating Uplift Certification Report: `v12_lambdamart_1h`,no,reference,dead,,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v3_gating_uplift_v13_ndcg_raw_1h.md,08. Model Analysis,2173,50,🛡️ Gating Uplift Certification Report: `v13_ndcg_raw_1h`,no,reference,dead,,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v3_gating_uplift_v14_lambdamart_no_es_1h.md,08. Model Analysis,2197,50,🛡️ Gating Uplift Certification Report: `v14_lambdamart_no_es_1h`,no,reference,dead,,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v3_gating_uplift_v15_lambdamart_es_1h.md,08. Model Analysis,2188,50,🛡️ Gating Uplift Certification Report: `v15_lambdamart_es_1h`,no,reference,dead,,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v3_gating_uplift_v16_binary_breakout_1h.md,08. Model Analysis,2194,50,🛡️ Gating Uplift Certification Report: `v16_binary_breakout_1h`,no,reference,dead,,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v3_gating_uplift_v17_random_forest_1h.md,08. Model Analysis,2187,50,🛡️ Gating Uplift Certification Report: `v17_random_forest_1h`,no,reference,dead,,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v3_gating_uplift_v18_random_forest_1h.md,08. Model Analysis,2188,50,🛡️ Gating Uplift Certification Report: `v18_random_forest_1h`,no,reference,dead,,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v3_gating_uplift_v19_catboost_1h.md,08. Model Analysis,2173,50,🛡️ Gating Uplift Certification Report: `v19_catboost_1h`,no,reference,dead,,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v3_gating_uplift_v2_15min_3y.md,08. Model Analysis,2161,50,🛡️ Gating Uplift Certification Report: `v2_15min_3y`,no,reference,dead,,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v3_gating_uplift_v3_15min_clean.md,08. Model Analysis,2170,50,🛡️ Gating Uplift Certification Report: `v3_15min_clean`,no,reference,dead,,20260610T144343Z-5f7d069f
+08. Model Analysis/Gauntlet Reports/v8_upstox_3y_report.md,08. Model Analysis,4608,90,🛡️ Validation Gauntlet Report: `v8_upstox_3y`,no,report,active,FILTER_GRADE,20260610T172623Z-d795438c
+08. Model Analysis/Gauntlet Reports/v9_clean_1h_report.md,08. Model Analysis,4166,82,🛡️ Validation Gauntlet Report: `v9_clean_1h`,no,report,active,FILTER_GRADE,20260610T110022Z-5f7d069f
+08. Model Analysis/Meta-Veto/Certification Report.md,08. Model Analysis,5752,63,🧠 Meta-Veto MV2 Certification Report,no,report,superseded,DEAD,
+08. Model Analysis/Meta-Veto/M1 Orthogonality Audit MV2.md,08. Model Analysis,2177,46,M1 Orthogonality Kill-Gate Report (MV2),no,report,active,,
+08. Model Analysis/Meta-Veto/M1_Orthogonality_Audit_v10_v19.md,08. Model Analysis,1185,30,📊 M1 Orthogonality Audit: v10-v19 Stacking Panel,no,report,active,,
+08. Model Analysis/Meta-Veto/Orthogonality Audit.md,08. Model Analysis,6556,61,🧠 Meta-Veto Orthogonality & Information Audit Report,no,report,active,,
+research_1030_strategy/architecture_research_report.md,research_1030_strategy,7086,80,Intraday Stock Trading: AI Architecture Research Report,no,report,active,,
+research_1030_strategy/feature_engineering_report.md,research_1030_strategy,6247,74,Feature Engineering for 10:30 AM Intraday Trading Model (Indian Stock Market),no,report,active,,
+research_1030_strategy/implementation_plan.md,research_1030_strategy,9574,218,10:30 AM Momentum Prediction System — Implementation Plan (V2),no,spec,active,,
