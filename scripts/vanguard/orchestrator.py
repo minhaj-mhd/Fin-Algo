@@ -1293,7 +1293,7 @@ class VanguardOrchestrator:
                         pass
         return False
 
-    def _check_15m_top_10_percent(self, ticker, side):
+    def _check_15m_percentile(self, ticker, side, top_percent=0.10):
         with self.lock:
             df = self.latest_full_scores
         if df is None or df.empty or "score_15m" not in df.columns:
@@ -1309,13 +1309,13 @@ class VanguardOrchestrator:
             return False, score_15m, 0.0
 
         if side == "LONG":
-            threshold = valid_scores.quantile(0.90)
-            is_in_top_10 = score_15m >= threshold
+            threshold = valid_scores.quantile(1.0 - top_percent)
+            is_in_top = score_15m >= threshold
         else: # SHORT
-            threshold = valid_scores.quantile(0.10)
-            is_in_top_10 = score_15m <= threshold
+            threshold = valid_scores.quantile(top_percent)
+            is_in_top = score_15m <= threshold
             
-        return is_in_top_10, score_15m, threshold
+        return is_in_top, score_15m, threshold
 
     def _get_current_conviction(self, ticker, side):
         with self.lock:
@@ -1453,14 +1453,15 @@ class VanguardOrchestrator:
                         
                         if (last_flip_check is None or (now - last_flip_check).total_seconds() >= 900) and trade["status"] == "OPEN":
                             self._conviction_flip_checked[trade_id] = now
-                            is_in_top_10, score_15m, threshold = self._check_15m_top_10_percent(trade["ticker"], trade["side"])
+                            # Use 33% (Top 1/3) for maintenance to prevent whipsaws
+                            is_in_top, score_15m, threshold = self._check_15m_percentile(trade["ticker"], trade["side"], top_percent=0.33)
 
-                            if not is_in_top_10:
+                            if not is_in_top:
                                 is_conviction_flip = True
-                                flip_note = f" | Conviction Flip @ 15-min check (15m_score={score_15m:.3f}, top10%_threshold={threshold:.3f})"
-                                print(f"[CONVICTION-FLIP] {trade['ticker']} {trade['side']} — 15m Conviction dropped out of top 10%. Closing.")
+                                flip_note = f" | Conviction Flip @ 15-min check (15m_score={score_15m:.3f}, top33%_threshold={threshold:.3f})"
+                                print(f"[CONVICTION-FLIP] {trade['ticker']} {trade['side']} — 15m Conviction dropped out of top 33%. Closing.")
                             else:
-                                print(f"[CONVICTION-OK] {trade['ticker']} {trade['side']} — 15m Conviction in top 10%.")
+                                print(f"[CONVICTION-OK] {trade['ticker']} {trade['side']} — 15m Conviction in top 33%.")
 
                         # --- Time Expiry Extension Check ---
                         raw_time_expiry = now >= datetime.fromisoformat(trade["exit_time"])
@@ -1689,8 +1690,8 @@ class VanguardOrchestrator:
                                 log(f"[VETO-COOLDOWN] {side} {ticker} vetoed recently. Skipping.")
                                 continue
 
-                            # 15m Top 10% confirmation check
-                            is_in_top_10, score_15m, top_10_threshold = self._check_15m_top_10_percent(ticker, side)
+                            # 15m Top 10% confirmation check (Entry demands high conviction)
+                            is_in_top_10, score_15m, top_10_threshold = self._check_15m_percentile(ticker, side, top_percent=0.10)
                             if not is_in_top_10:
                                 log(f"[15M-FILTER] {side} {ticker} 15m score ({score_15m:.3f}) not in top 10% (threshold: {top_10_threshold:.3f}). Skipping.")
                                 continue
