@@ -76,6 +76,15 @@ anti-overnight check). Deflated t-threshold 1.96 (fresh dataset family, 0 priors
 - **Net:** v20 = a *certified* short FILTER, marginally stronger than v10 at the top of the book, still
   **not a tradeable standalone short.** Stamped into `models/research/v20_rolling_1h/metadata.json`.
 
+### Full-panel diagnostic (`run 20260615T182221Z`, NO verdict authority)
+Ran the overlapping 18/day panel (`1h_roll_full`) against a throwaway dir to **demonstrate the
+significance inflation** that disqualified it from certification. Same FILTER_GRADE, but: Top-1 SHORT
+@10bps went from **t −1.23 (not significant)** on the clean :15 cert to **t −4.92 (✷ "significant")**
+here — same sub-cost short, ~3.5× more (75%-correlated) "trades" treated as independent. Economics
+unchanged / arguably worse at 18/day (Top-1 short net −7.9 vs −3.3 bps; off-:15 moments rank worse at
+top-of-book). Confirms: certify on the non-overlapping :15 cadence only; the overlapping panel over-
+states confidence. (Scratch `panel_full.csv` + `_diag` dir deleted post-run.)
+
 ## Reusable artifacts
 - Panel: `data/research/v20_rolling_1h/panel.parquet` (gitignored)
 - Model: `models/research/v20_rolling_1h/` (XGB long/short, not registered)
