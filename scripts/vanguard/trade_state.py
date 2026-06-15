@@ -55,6 +55,45 @@ class TradeStateManager:
         return False
 
     @staticmethod
+    def check_live_candle_not_reversing(side, candle):
+        """Guards against entering into a violent immediate reversal on the live
+        (still-forming) 1-minute candle.
+
+        Returns True when it is SAFE to enter (the live candle is NOT reversing
+        heavily against `side`), and False only when the candle is strongly
+        against the trade. A heavy reversal is a bar moving against us (bearish
+        for LONG / bullish for SHORT) that also closes in the far end of its
+        range — mirroring the 0.40/0.60 bar-position thresholds used by
+        check_candle_direction. Missing or degenerate candles are treated as
+        non-reversing (True) so a thin live bar never blocks an otherwise
+        confirmed entry.
+        """
+        if not candle:
+            return True
+
+        o = candle.get("open")
+        h = candle.get("high")
+        l = candle.get("low")
+        c = candle.get("close")
+
+        if o is None or h is None or l is None or c is None:
+            return True
+
+        length = h - l
+        if length <= 1e-8:
+            return True
+
+        pos = (c - l) / length
+
+        if side == "LONG":
+            # Strong red bar closing near its low → reversing against the long.
+            return not (c < o and pos <= 0.40)
+        elif side == "SHORT":
+            # Strong green bar closing near its high → reversing against the short.
+            return not (c > o and pos >= 0.60)
+        return True
+
+    @staticmethod
     def evaluate_open_trade_exit(trade, price, pnl, now):
         """Evaluates whether an open trade has met exit criteria (SL, BE, Trailing Stop, Time Expiry).
         Returns a tuple: (should_exit, exit_status, exit_note)
