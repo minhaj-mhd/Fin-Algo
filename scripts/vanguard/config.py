@@ -56,6 +56,15 @@ DAILY_MACRO_META_PATH = "models/daily_macro_v2/metadata.json"
 ENTRY_TOP_K = 5
 HOLD_PERCENTILE = 0.95
 
+# --- Violent adverse-thrust entry guard ---
+# When the completed look-back candle that failed direction confirmation is also a
+# violent bar closing in the extreme quartile AGAINST the trade, cancel instead of
+# placing the pending-limit. On a strong rip/dump the pending-limit degrades to an
+# instant market fill into the breakout (cf. BALKRISIND.NS 2026-06-15: 3.59% range
+# bar closing at pos 0.87, shorted into the breakout, -1.48% stop-loss).
+THRUST_VETO_RANGE_PCT = 2.5   # look-back candle high-low range as % of price
+THRUST_VETO_POS = 0.75        # close position in range (>= for SHORT, <= 1-x for LONG)
+
 # --- Gemini API Configuration ---
 GEMINI_ENABLED_DEFAULT = True
 GEMINI_STATE_FILE = "data/gemini_usage.json"

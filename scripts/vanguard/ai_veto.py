@@ -512,6 +512,21 @@ Output your response strictly in the following plain-text format (Do NOT use JSO
                 risk = data2.get("risk_factor", "N/A")
                 sr_risk = data2.get("support_resistance_risk", "LOW").upper()
 
+                # --- Bias-contradiction hard veto --------------------------------
+                # RULE 1 only hard-vetoes on enumerated catalysts (rating UPGRADE,
+                # earnings beat, ...), so a standing "Strong Buy / higher targets"
+                # -> BULLISH bias can still pass a SHORT. Never trade directly against
+                # the audit's own directional read (cf. SBILIFE.NS 2026-06-15: BULLISH
+                # bias, shorted into strength, -0.33% SL).
+                bias_u = str(bias).upper()
+                if not veto_triggered and (
+                    (side == "SHORT" and bias_u == "BULLISH") or
+                    (side == "LONG" and bias_u == "BEARISH")
+                ):
+                    veto_triggered = True
+                    veto_rule = "RULE 1B (bias-contradiction)"
+                    risk = f"S2 structural bias {bias_u} directly contradicts the {side} trade direction."
+
                 if veto_triggered:
                     sent2 = "VETOED"
                     final_reason = f"[VETOED by {model_name} | {veto_rule}] News: {news_found} | {cot} | Risk: {risk}"

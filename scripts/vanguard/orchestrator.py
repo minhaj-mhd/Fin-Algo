@@ -1151,24 +1151,68 @@ class VanguardOrchestrator:
             # Entry failed look-back confirmation or candle was None
             if candle:
                 c_str = f" (Candle: O={candle.get('open')}, H={candle.get('high')}, L={candle.get('low')}, C={candle.get('close')})"
-                
-                # Limit Order 25% strength logic
+
                 high = candle.get('high')
                 low = candle.get('low')
-                if side == "LONG":
-                    limit_price = round(low + 0.25 * (high - low), 2)
-                else:
-                    limit_price = round(high - 0.25 * (high - low), 2)
+                close = candle.get('close')
 
-                comment_msg = f"PENDING_LIMIT at {limit_price} - Look-back candle failed{c_str} | {reason}"
-                status = "PENDING_LIMIT"
-                
-                # Calculate quantity for limit order, assuming limit_price as entry
-                stop_loss_pct, take_profit_pct = self.compute_15min_atr(ticker)
-                base_qty = self.risk_manager.calculate_trade_quantity(limit_price, stop_loss_pct)
-                qty = max(1, int(base_qty * size_multiplier))
-                
-                limit_expiry = (now + timedelta(minutes=15)).isoformat()
+                # --- Violent adverse-thrust guard ---------------------------------
+                # The look-back bar already failed direction confirmation (it moved
+                # against this trade). If it is ALSO a violent bar closing in the
+                # extreme quartile against us, do NOT fade it: placing the pending
+                # limit on a strong rip/dump degrades to an instant market fill into
+                # the breakout (cf. BALKRISIND.NS 2026-06-15: 3.59% rip, -1.48% SL).
+                rng = (high - low) if (high is not None and low is not None) else 0.0
+                rng_pct = (rng / close * 100.0) if close else 0.0
+                close_pos = ((close - low) / rng) if rng > 1e-8 else 0.5
+                adverse_thrust = rng_pct > config.THRUST_VETO_RANGE_PCT and (
+                    (side == "SHORT" and close_pos >= config.THRUST_VETO_POS) or
+                    (side == "LONG" and close_pos <= 1.0 - config.THRUST_VETO_POS)
+                )
+
+                if adverse_thrust:
+                    thrust_kind = "rip" if side == "SHORT" else "dump"
+                    comment_msg = (f"[THRUST-VETO] Look-back bar range {rng_pct:.2f}% > "
+                                   f"{config.THRUST_VETO_RANGE_PCT}% closing at pos {close_pos:.2f} — "
+                                   f"runaway {thrust_kind} against {side}; not fading.{c_str} | {reason}")
+                    status = "VETOED"
+                    limit_price = entry_price
+                    limit_expiry = (now + timedelta(hours=1)).isoformat()
+                    qty = 0
+                    stop_loss_pct = 0.50
+                    take_profit_pct = 1.00
+                else:
+                    # Limit Order 25% strength logic — retrace toward the bar extreme.
+                    # The pending limit MUST be non-marketable for the entry side, else
+                    # the fill trigger (LONG: price<=limit, SHORT: price>=limit) is
+                    # already satisfied and fires instantly at market, giving no
+                    # patience. When the bar closed in the extreme quartile against us,
+                    # the 25% level lands on the wrong side of the close, so fall back
+                    # to the bar extreme (cf. BALKRISIND/SBILIFE 2026-06-15: short limit
+                    # placed below market -> instant fill into the breakout; one even
+                    # filled above the bar's high).
+                    rng = high - low
+                    # eps covers bars that closed exactly at their extreme (pos 0/1),
+                    # where the bar-extreme fallback would still equal the close.
+                    eps = 0.0005
+                    if side == "LONG":
+                        limit_price = round(low + 0.25 * rng, 2)
+                        if limit_price >= close:                          # would buy at/above market
+                            limit_price = round(min(low, close * (1 - eps)), 2)  # retest the bar low
+                    else:
+                        limit_price = round(high - 0.25 * rng, 2)
+                        if limit_price <= close:                          # would sell/short at/below market
+                            limit_price = round(max(high, close * (1 + eps)), 2) # retest the bar high
+
+                    comment_msg = f"PENDING_LIMIT at {limit_price} - Look-back candle failed{c_str} | {reason}"
+                    status = "PENDING_LIMIT"
+
+                    # Calculate quantity for limit order, assuming limit_price as entry
+                    stop_loss_pct, take_profit_pct = self.compute_15min_atr(ticker)
+                    base_qty = self.risk_manager.calculate_trade_quantity(limit_price, stop_loss_pct)
+                    qty = max(1, int(base_qty * size_multiplier))
+
+                    limit_expiry = (now + timedelta(minutes=15)).isoformat()
             else:
                 c_str = " (Candle data unavailable)"
                 comment_msg = f"Cancelled - Look-back candle confirmation failed{c_str} | {reason}"
