@@ -107,6 +107,7 @@ def log(*args, **kwargs):
         "[ROTATE]": Colors.NEON_YELLOW + Colors.BOLD,
         "[ROTATE-RESET]": Colors.NEON_YELLOW + Colors.BOLD,
         "[CACHE-HIT]": Colors.GREY,
+        "[NETWORK]": Colors.NEON_CYAN + Colors.BOLD,
         "[RESTART]": Colors.NEON_BLUE + Colors.BOLD,
         "[DEBUG]": Colors.GREY,
         "[TRADE]": Colors.NEON_GREEN + Colors.BOLD + Colors.UNDERLINE,

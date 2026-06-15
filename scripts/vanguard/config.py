@@ -76,3 +76,8 @@ LATEST_SCORES_FILE = "data/latest_scores.json"
 WEBSOCKET_ENABLED = True
 SANDBOX_MODE = True  # Always defaults to Safe Sandbox/Paper mode
 GAUNTLET_ENFORCEMENT = "warn"  # "warn" (warn-only rollout) | "enforce" (hard refuse)
+
+# --- Network Monitor ---
+NETWORK_MONITOR_ENABLED = True   # Halt the engine and wait when the internet/broker is unreachable
+NETWORK_CHECK_INTERVAL = 15      # Seconds between connectivity retries while offline (linear backoff)
+NETWORK_PROBE_TIMEOUT = 3.0      # Per-probe TCP connect timeout (seconds)

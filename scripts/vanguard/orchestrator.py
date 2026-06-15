@@ -17,6 +17,7 @@ from scripts.vanguard.trade_state import TradeStateManager
 from scripts.vanguard.risk_manager import RiskManager
 from scripts.vanguard.broker_adapter import BrokerAdapter
 from scripts.vanguard.ai_veto import AIVetoManager
+from scripts.vanguard.network_monitor import wait_for_network
 from scripts.vanguard.persistence import log_trade, save_latest_scores
 
 from scripts.database_manager import init_db, get_trades_by_status
@@ -30,6 +31,10 @@ class VanguardOrchestrator:
         log("\n" + "=" * 60)
         log("VANGUARD SYSTEM - FULLY ORCHESTRATED V2.3 MIGRATED")
         log("=" * 60)
+
+        # 0. Network liveness gate — don't boot (broker/WS/data init all need
+        #    connectivity) until the network is reachable.
+        wait_for_network(label="STARTUP")
 
         # 1. Initialize Components
         self.strategy_filters = StrategyFilters()
@@ -1361,6 +1366,11 @@ class VanguardOrchestrator:
                     time.sleep(5)
                     continue
 
+                # Network liveness gate — pause trade tracking (live-price
+                # polling) until the connection is back, rather than churning
+                # get_live_price errors for every open position.
+                wait_for_network(label="SHADOW-TRACKER")
+
                 for trade in current_trades:
                     try:
                         price = self.broker.get_live_price(trade["ticker"])
@@ -1632,6 +1642,11 @@ class VanguardOrchestrator:
                     print(f"[{now_str}] Outside Market Hours. Waiting...")
                     time.sleep(600)
                     continue
+
+                # Network liveness gate — halt the scan cycle and wait if the
+                # connection is down (the cycle below makes heavy REST calls to
+                # the broker, yfinance and Gemini).
+                wait_for_network(label="ORCHESTRATOR")
 
                 log("\n" + "-" * 40)
                 log(f"VANGUARD SCAN CYCLE: {datetime.now().strftime('%H:%M:%S')}")
