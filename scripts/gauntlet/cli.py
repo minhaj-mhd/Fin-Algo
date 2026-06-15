@@ -99,6 +99,34 @@ REGISTERED_DATASETS = {
         feature_pipeline=None,
         prefix_invariance_waiver_reason="Daily macro dataset contains cross-asset and global features that cannot be computed per-ticker in isolation.",
         unverified_label_waiver_reason="Daily close-to-close returns have no intraday target bars."
+    ),
+    # --- v20 rolling-1h (research) ---
+    # AUTHORITATIVE: v10's 5 NON-overlapping :15 decision moments -> independent queries -> honest significance.
+    "1h_roll_15anchor": DatasetSpec(
+        path="data/research/v20_rolling_1h/panel_15anchor.csv",
+        label_col="Next_Hour_Return",
+        bar_minutes=60,
+        bar_label_side="left",
+        label_horizon_bars=1,
+        label_may_cross_session=False,
+        raw_close_col="Close",
+        feature_pipeline=None,
+        prefix_invariance_waiver_reason="v20 rolling features are computed on the full 15-min-spaced window series and cannot be recomputed per-ticker in isolation on the :15 subset.",
+        unverified_label_waiver_reason="The day's last :15 entry (14:15) is a BOUNDARY row: its +1h target (15:15 close) is the session's final bar and not itself a labeled entry row, so its label is not recomputed against an in-dataset target. NOT verified: in-dataset recomputation of 14:15 labels (~20% of rows); the anti-overnight statistical check confirms they are intraday, not overnight, returns."
+    ),
+    # DIAGNOSTIC ONLY (no verdict authority): all 18 overlapping windows/day. Overlap inflates the
+    # Gauntlet's CI/t-stats (queries not independent). bar spacing 15m, label horizon 4 bars = 1h.
+    "1h_roll_full": DatasetSpec(
+        path="data/research/v20_rolling_1h/panel_full.csv",
+        label_col="Next_Hour_Return",
+        bar_minutes=15,
+        bar_label_side="left",
+        label_horizon_bars=4,
+        label_may_cross_session=False,
+        raw_close_col="Close",
+        feature_pipeline=None,
+        prefix_invariance_waiver_reason="v20 rolling features cannot be recomputed per-ticker in isolation.",
+        unverified_label_waiver_reason="DIAGNOSTIC dataset (overlapping windows). Last entry/day is BOUNDARY (~5%); labels are correct (anti-overnight check passes) but the overlapping construction makes Gauntlet significance over-optimistic, so this run carries NO verdict authority."
     )
 }
 

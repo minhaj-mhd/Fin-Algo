@@ -49,10 +49,19 @@ CFG = {
         desc='NATIVE 1-hour XGBoost Ranking Model (Upstox V3 hours/1) — Depth 4',
         params=dict(max_depth=4, min_child_weight=10),
     ),
+    '1h_roll': dict(
+        data='data/research/v20_rolling_1h/panel.parquet',
+        ret_col='Next_Hour_Return',
+        model_dir='models/research/v20_rolling_1h',
+        desc='RESEARCH v20: overlapping rolling 1h candles (15-min step) — anchor-agnostic 1h ranker. '
+             'Same recipe/features as v10, only the candle grid differs. NOT Gauntlet-certified; '
+             'overlapping windows inflate significance (effective N ~1/4 rows) — point estimates only.',
+        params=dict(max_depth=5, min_child_weight=10),
+    ),
 }
 
 ap = argparse.ArgumentParser()
-ap.add_argument('--tf', required=True, choices=['15min', '1h', '1h_v3', '1h_v3_d4'])
+ap.add_argument('--tf', required=True, choices=['15min', '1h', '1h_v3', '1h_v3_d4', '1h_roll'])
 args = ap.parse_args()
 c = CFG[args.tf]
 DATA_FILE, RET_COL, MODEL_DIR = c['data'], c['ret_col'], c['model_dir']
@@ -66,9 +75,9 @@ print("=" * 64)
 print(f"CLEAN {args.tf.upper()} RANKING TRAINING — Walk-Forward + Early Stopping")
 print("=" * 64)
 print(f"Loading {DATA_FILE} ...")
-df = pd.read_csv(DATA_FILE)
+df = pd.read_parquet(DATA_FILE) if DATA_FILE.endswith('.parquet') else pd.read_csv(DATA_FILE)
 print(f"Loaded {df.shape[0]:,} rows")
-df['YearMonth'] = df['DateTime'].str[:7]
+df['YearMonth'] = pd.to_datetime(df['DateTime']).dt.strftime('%Y-%m')
 unique_months = sorted(df['YearMonth'].unique())
 print(f"Spans {len(unique_months)} months: {unique_months[0]} -> {unique_months[-1]}")
 

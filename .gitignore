@@ -22,6 +22,11 @@ data/*.csv
 data/historical/
 data/raw_upstox_cache*/
 data/raw_upstox_daily_cache/
+data/raw_upstox_oi_cache/
+
+# Research panels (large, regenerate via scripts/research/)
+data/research/**/*.parquet
+data/research/**/*.csv
 
 # Temporary files
 scratch/
