@@ -16,7 +16,8 @@ class SignalGenerator:
         is_in_cooldown_fn,
         is_veto_cooldown_fn,
         min_conviction=0.0,
-        min_raw_score=0.0
+        min_raw_score=0.0,
+        entry_top_k=2
     ):
         """Processes live model scores and applies dual pipelines (Pure AI + Structural Strategy)
         augmented with the Vanguard 4-Tier Sniper Waterfall Architecture.
@@ -47,12 +48,12 @@ class SignalGenerator:
             raw_col = "long_score" if side == "LONG" else "short_score"
             rank_col_name = "Long_Rank" if side == "LONG" else "Short_Rank"
             
-            # Top 2 Hybrid (Net) Candidates sorted by rank
-            top_net = eligible_df.sort_values(rank_col_name, ascending=True).head(2)
-            
-            # Top 2 Pure Directional Candidates sorted by raw score (excluding top_net)
+            # Top-K Hybrid (Net) Candidates sorted by rank (scale-free)
+            top_net = eligible_df.sort_values(rank_col_name, ascending=True).head(entry_top_k)
+
+            # Top-K Pure Directional Candidates sorted by raw score (excluding top_net)
             eligible_raw_df = eligible_df[~eligible_df['ticker'].isin(top_net['ticker'])]
-            top_raw = eligible_raw_df.sort_values(raw_col, ascending=False).head(2)
+            top_raw = eligible_raw_df.sort_values(raw_col, ascending=False).head(entry_top_k)
             
             for _, row in top_net.iterrows():
                 ai_signals.append({
