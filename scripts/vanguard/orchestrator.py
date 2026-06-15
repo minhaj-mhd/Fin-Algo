@@ -808,11 +808,18 @@ class VanguardOrchestrator:
                     if "timestamp" in hist_df.columns:
                         hist_df.set_index("timestamp", inplace=True)
                     
-                    df_30m = hist_df.resample('30min', origin='start_day').agg({
+                    # Anchor the 30m/1h buckets at the 09:15 market open, NOT midnight.
+                    # origin='start_day' buckets to 00:00 -> bars at 09:00/10:00 (and a
+                    # malformed 45-min first bar), but v10_native_1h / 30m were trained
+                    # on a 09:15-anchored grid (09:15, 10:15, ... and 09:15, 09:45, ...).
+                    # A 09:15 origin makes each 1h bar exactly its four 15m bars.
+                    anchor_0915 = hist_df.index[0].normalize() + pd.Timedelta(hours=9, minutes=15)
+
+                    df_30m = hist_df.resample('30min', origin=anchor_0915).agg({
                         'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'
                     }).dropna()
-                    
-                    df_60m = hist_df.resample('1h', origin='start_day').agg({
+
+                    df_60m = hist_df.resample('1h', origin=anchor_0915).agg({
                         'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'
                     }).dropna()
 
