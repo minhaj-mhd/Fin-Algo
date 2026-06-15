@@ -196,12 +196,50 @@ class UpstoxSandboxBroker:
         days = 2 if interval == '1minute' else 1
         return self.get_historical_data(ticker, interval=interval, days=days)
 
+    # Sub-hour minute intervals NOT supported by the v2 HistoryApi
+    # (which only accepts 1minute/30minute/day/week/month). These are served
+    # natively by the v3 HistoryV3Api as unit='minutes', interval=<n>.
+    _V3_MINUTE_INTERVALS = {'5minute': '5', '15minute': '15'}
+
     def get_historical_data(self, ticker, interval='day', days=30, fallback=True):
         """Fetches historical OHLC from Upstox with yfinance fallback."""
         try:
             instrument_key = self.get_instrument_key(ticker)
+
+            # ── v3 path: native sub-hour minute candles (e.g. 15minute) ───────────
+            # The v2 endpoint rejects these with UDAPI1020 ("Interval accepts one
+            # of 1minute,30minute,day,week,month"); v3 supports arbitrary minutes.
+            if interval in self._V3_MINUTE_INTERVALS:
+                ival = self._V3_MINUTE_INTERVALS[interval]
+                to_date = datetime.now().strftime('%Y-%m-%d')
+                from_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
+                v3_api = upstox_client.HistoryV3Api(self.data_api_client)
+
+                all_candles = []
+                # 1. Historical (completed sessions up to the previous trading day)
+                hist_response = v3_api.get_historical_candle_data1(
+                    instrument_key, 'minutes', ival, to_date, from_date
+                )
+                if hist_response.status == 'success' and hist_response.data and hist_response.data.candles:
+                    all_candles.extend(hist_response.data.candles)
+                # 2. Intraday (today's live candles at the same granularity)
+                try:
+                    intra_response = v3_api.get_intra_day_candle_data(instrument_key, 'minutes', ival)
+                    if intra_response.status == 'success' and intra_response.data and intra_response.data.candles:
+                        all_candles.extend(intra_response.data.candles)
+                except Exception:
+                    pass
+
+                if all_candles:
+                    df = pd.DataFrame(all_candles, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume', 'oi'])
+                    df['timestamp'] = pd.to_datetime(df['timestamp'])
+                    # keep='last' preserves today's live candles over historical duplicates
+                    df = df.drop_duplicates(subset=['timestamp'], keep='last').sort_values('timestamp')
+                    return df
+                raise Exception("Historical data missing in v3 response")
+
             api_instance = upstox_client.HistoryApi(self.data_api_client)
-            
+
             # Use at least 10 days for daily interval to prevent empty weekend responses
             is_daily = interval in ['day', '1d']
             query_days = max(days, 10) if is_daily else days
