@@ -48,12 +48,19 @@ DEFAULT_LONG_MODEL_NAME = "xgb_long_model.json"
 DEFAULT_SHORT_MODEL_NAME = "xgb_short_model.json"
 DEFAULT_MODEL_NAME = "v2_3_production_xgb"
 
+# 1-hour candle construction for the active 1h ranker.
+#   True  -> OVERLAPPING trailing-1h candles (15-min step): fresh 1h signal every 15-min scan.
+#            REQUIRED by v20_rolling_1h (trained on the rolling grid).
+#   False -> non-overlapping 09:15-anchored 1h bars (v10_native_1h's grid; refreshes hourly).
+# ROLLBACK: set this False AND point registry.json active_model back to "v10_native_1h".
+ROLLING_1H_CANDLES = True
+
 DAILY_MACRO_LONG_PATH = "models/daily_macro_v2/xgb_long_model.json"
 DAILY_MACRO_SHORT_PATH = "models/daily_macro_v2/xgb_short_model.json"
 DAILY_MACRO_META_PATH = "models/daily_macro_v2/metadata.json"
 
 # --- Percentile Gating and Recalibration Constants (1H Trades) ---
-ENTRY_TOP_K = 5
+ENTRY_TOP_K = 3
 HOLD_PERCENTILE = 0.95
 
 # --- Violent adverse-thrust entry guard ---

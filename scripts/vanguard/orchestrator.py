@@ -819,9 +819,17 @@ class VanguardOrchestrator:
                         'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'
                     }).dropna()
 
-                    df_60m = hist_df.resample('1h', origin=anchor_0915).agg({
-                        'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'
-                    }).dropna()
+                    if getattr(config, "ROLLING_1H_CANDLES", False):
+                        # v20_rolling_1h: OVERLAPPING trailing-1h candles (4x15m, 15-min step) so the
+                        # 1h signal is FRESH at every 15-min scan instead of stale until the next :15
+                        # bar. Parity with scripts/research/build_rolling_1h_panel (v20 training grid).
+                        from scripts.feature_utils import build_rolling_1h_ohlcv
+                        df_60m = build_rolling_1h_ohlcv(hist_df)
+                    else:
+                        # v10_native_1h: NON-overlapping 09:15-anchored 1h bars (complete hourly).
+                        df_60m = hist_df.resample('1h', origin=anchor_0915).agg({
+                            'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'
+                        }).dropna()
 
                     import time
                     time.sleep(0.3)
@@ -953,7 +961,7 @@ class VanguardOrchestrator:
             except Exception:
                 return None
 
-        non_legacy_prefixes = ["v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19"]
+        non_legacy_prefixes = ["v6", "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20"]
         is_legacy = not any(str(self.model_manager.active_model_name).startswith(p) for p in non_legacy_prefixes)
 
         all_15m_data = []

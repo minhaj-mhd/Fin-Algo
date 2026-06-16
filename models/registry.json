@@ -1,5 +1,5 @@
 {
-  "active_model": "v10_native_1h",
+  "active_model": "v20_rolling_1h",
   "models": {
     "v1_yfinance_ranker": {
       "description": "Original 2-year yfinance model. 54 features. Spearman rho ~0.032.",
@@ -148,7 +148,7 @@
       "notes": "Rebuilt from data/ranking_data_upstox_1h_3y_clean.csv. WF L-WR@3=52.8%, S-WR@3=52.0%. Rho ~half of v8 (overnight contamination removed). NOT production-deployable until live broker 1h resample is unified to match (currently 30min->1h IST :00 grid != this 09:15-anchored grid). RESEARCH/backtest only."
     },
     "v10_native_1h": {
-      "description": "V10 NATIVE 1h: trained on Upstox V3 native hourly candles (HistoryV3Api hours/1). 86 features. Production-faithful — no resampling.",
+      "description": "V10 NATIVE 1h: trained on Upstox V3 native hourly candles (HistoryV3Api hours/1). 86 features. Production-faithful \u00e2\u20ac\u201d no resampling.",
       "long_model": "models/v10_native_1h/xgb_long_model.json",
       "short_model": "models/v10_native_1h/xgb_short_model.json",
       "scaler": "models/v10_native_1h/scaler.pkl",
@@ -167,7 +167,7 @@
       "meta": "models/daily_macro_v2/metadata.json",
       "type": "daily_gatekeeper",
       "long_test_spearman": 0.0295,
-      "short_test_spearman": 0.0350,
+      "short_test_spearman": 0.035,
       "trained_at": "2026-06-10",
       "notes": "Criteria v2 certified. Long: TRIGGER_GRADE, Short: FILTER_GRADE."
     },
@@ -179,9 +179,21 @@
       "meta": "models/daily_macro_v3/metadata.json",
       "type": "daily_gatekeeper",
       "long_test_spearman": 0.0207,
-      "short_test_spearman": 0.0290,
+      "short_test_spearman": 0.029,
       "trained_at": "2026-06-10",
       "notes": "Certified under Gauntlet v2. Long: DEAD, Short: FILTER_GRADE."
+    },
+    "v20_rolling_1h": {
+      "description": "V20 rolling-1h ranker (overlapping trailing-1h, 15-min step). Fresh 1h signal every 15-min scan. Gauntlet FILTER_GRADE both sides.",
+      "long_model": "models/research/v20_rolling_1h/xgb_long_model.json",
+      "short_model": "models/research/v20_rolling_1h/xgb_short_model.json",
+      "scaler": "models/research/v20_rolling_1h/scaler.pkl",
+      "meta": "models/research/v20_rolling_1h/metadata.json",
+      "type": "ranker",
+      "long_test_spearman": 0.027,
+      "short_test_spearman": 0.0286,
+      "trained_at": "2026-06-15",
+      "notes": "REQUIRES config.ROLLING_1H_CANDLES=True. Rollback: set that False + switch active_model to v10_native_1h."
     }
   }
 }

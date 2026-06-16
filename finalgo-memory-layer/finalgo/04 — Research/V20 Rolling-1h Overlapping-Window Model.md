@@ -85,6 +85,29 @@ unchanged / arguably worse at 18/day (Top-1 short net −7.9 vs −3.3 bps; off-
 top-of-book). Confirms: certify on the non-overlapping :15 cadence only; the overlapping panel over-
 states confidence. (Scratch `panel_full.csv` + `_diag` dir deleted post-run.)
 
+## 🚀 Production deployment — 2026-06-16 (user-directed 2-day live trial)
+Swapped v20 in for **v10_native_1h** as the active 1h ranker. Rationale (user): the live engine
+scans every 15 min ([orchestrator.py:1901](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/vanguard/orchestrator.py)),
+but v10's non-overlapping 1h bar only completes hourly → v10's conviction is **stale on ¾ of scans**;
+v20 gives a fresh trailing-1h ranking at every 15-min boundary. **It's a freshness/coverage upgrade to
+the 1h conviction gate, NOT new alpha** (v20 is a certified PEER of v10, still sub-cost).
+
+Done correctly (a naive registry swap would feed v20 the non-overlapping bars → broken):
+- New serving helper `feature_utils.build_rolling_1h_ohlcv` — **parity-verified byte-identical** (max
+  abs diff 0.0 on RELIANCE) to the training panel's `build_ticker` window construction.
+- `orchestrator.py` builds `df_60m` via the rolling helper when `config.ROLLING_1H_CANDLES=True`;
+  added `"v20"` to `non_legacy_prefixes` so it uses `compute_features(legacy=False)`.
+- `config.ROLLING_1H_CANDLES = True`; registry `active_model = v20_rolling_1h` (stamp verifies
+  FILTER_GRADE; feature list identical to v10's 86).
+- **Requires engine restart to take effect.**
+
+> **⏪ ROLLBACK (2 edits + restart):** set `config.ROLLING_1H_CANDLES = False` and
+> `python scripts/model_registry.py --switch v10_native_1h`, then restart the engine.
+
+> **Shared caveat (not a regression):** the engine fetches only 20 days of 15-min history, so long-lookback
+> features (e.g. Dist_52W_High) are approximate live — but v10 had the identical limitation, so the
+> v20-vs-v10 live comparison is fair.
+
 ## Reusable artifacts
 - Panel: `data/research/v20_rolling_1h/panel.parquet` (gitignored)
 - Model: `models/research/v20_rolling_1h/` (XGB long/short, not registered)

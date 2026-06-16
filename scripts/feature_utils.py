@@ -164,6 +164,39 @@ def Ultimate_Oscillator_legacy(df, short=7, medium=14, long=28):
     return 100*(4*avg1+2*avg2+avg3)/7
 
 
+def build_rolling_1h_ohlcv(df15):
+    """Overlapping rolling 1-hour candles from a 15-minute OHLCV frame: each row is the
+    trailing hour = 4 consecutive 15-min bars, stepped every 15 minutes, keyed by the
+    window CLOSE time (when the hour completes / you can act).
+
+    PARITY: this replicates the window construction in
+    scripts/research/build_rolling_1h_panel.build_ticker exactly, so a model trained on
+    that panel (v20_rolling_1h) is fed identical candles when served live. The contiguity
+    guard (4 bars exactly 45 min end-to-end) drops windows that would span the overnight gap.
+
+    Input: df15 indexed by 15-min bar-start timestamps, columns Open/High/Low/Close/Volume.
+    Output: rolling-1h OHLCV indexed by window-close time (latest row = current trailing hour).
+    """
+    STEP = pd.Timedelta(minutes=15)
+    d = df15.sort_index()
+    d = d[~d.index.duplicated(keep='last')]
+    # index-aligned Series (all share d.index) -> concat, then re-key by window close
+    win = pd.concat([
+        d['Open'].shift(3),
+        d['High'].rolling(4).max(),
+        d['Low'].rolling(4).min(),
+        d['Close'],
+        d['Volume'].rolling(4).sum(),
+    ], axis=1)
+    win.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+    tt = d.index.to_series()
+    contiguous = ((tt - tt.shift(3)) == (3 * STEP)).values   # 4 consecutive 15-min bars (same session)
+    win = win[contiguous].dropna(subset=['Open', 'High', 'Low', 'Close'])
+    win.index = win.index + STEP                              # key by the hour-close (entry) time
+    win = win[~win.index.duplicated(keep='last')].sort_index()
+    return win
+
+
 def compute_features(df, legacy=True):
     """Given a dataframe with columns Open/High/Low/Close/Volume indexed by datetime,
     compute all features used by the ranking model and return the augmented dataframe.
