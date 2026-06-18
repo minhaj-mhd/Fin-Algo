@@ -9,6 +9,15 @@
   "updated": "2026-06-12"
  },
  {
+  "path": "00 — Start Here/Ray of Hope.md",
+  "title": "Ray of Hope - Positive & Promising Edges",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-16"
+ },
+ {
   "path": "01 — Architecture/Data & Code/Codebase File Directory.md",
   "title": "Codebase File Directory",
   "type": "reference",
@@ -918,6 +927,24 @@
   "updated": "2026-06-12"
  },
  {
+  "path": "04 — Research/BCE-Transformer-V20-Veto.md",
+  "title": "BCE-Transformer-V20-Veto",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
+  "path": "04 — Research/Candle Rejection Performance.md",
+  "title": "Candle Rejection Performance",
+  "type": "research",
+  "status": "wip",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-18T06:53:33"
+ },
+ {
   "path": "04 — Research/Cluster Research/Deep Dive High Return Clusters.md",
   "title": "Deep Dive: High Return Trades Clustering",
   "type": "reference",
@@ -1080,6 +1107,15 @@
   "updated": "2026-06-12"
  },
  {
+  "path": "04 — Research/V20 Rolling-1h Overlapping-Window Model.md",
+  "title": "V20 Rolling-1h Overlapping-Window Model",
+  "type": "research",
+  "status": "concluded",
+  "model": "v20_rolling_1h",
+  "verdict": "",
+  "updated": "2026-06-15"
+ },
+ {
   "path": "05 — Operations/MCP/Jupyter MCP Setup.md",
   "title": "Jupyter / Python Data Sandbox MCP Integration",
   "type": "reference",
@@ -1134,6 +1170,15 @@
   "updated": "2026-06-12"
  },
  {
+  "path": "06 — Context & Logs/Conversations/Conv-2026-06-17-Plan-Multitask-Transformer.md",
+  "title": "Conv-2026-06-17-Plan-Multitask-Transformer",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
   "path": "06 — Logs/50 Strategies Performance Results.md",
   "title": "50-Strategy Regime-Aware Backtest Results",
   "type": "report",
@@ -1158,7 +1203,7 @@
   "status": "active",
   "model": "",
   "verdict": "",
-  "updated": "2026-06-12"
+  "updated": "2026-06-18"
  },
  {
   "path": "06 — Logs/Completed Work Archive.md",
@@ -1167,7 +1212,7 @@
   "status": "concluded",
   "model": "",
   "verdict": "",
-  "updated": "2026-06-12"
+  "updated": "2026-06-18"
  },
  {
   "path": "06 — Logs/Conversations/Conv-2026-06-08-Print-v10-Final-Tree.md",
@@ -1269,6 +1314,15 @@
   "updated": "2026-06-12"
  },
  {
+  "path": "06 — Logs/Conversations/Conv-2026-06-12-Daily-Transformer-Veto.md",
+  "title": "Conv 2026-06-12 Daily Transformer Veto Overlay on daily_macro_v2",
+  "type": "log",
+  "status": "concluded",
+  "model": "daily_macro_v2",
+  "verdict": "⚠️ UNVERIFIED (exploratory, no Gauntlet run) — daily veto does NOT significantly improve v2 net; dead-end",
+  "updated": "2026-06-12"
+ },
+ {
   "path": "06 — Logs/Conversations/Conv-2026-06-12-Fix-15m-Conviction-Flip-Calc.md",
   "title": "Conversation Context: Fix 15-min Conviction-Flip Exit Calculation",
   "type": "log",
@@ -1330,6 +1384,150 @@
   "model": "",
   "verdict": "",
   "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-12-v2-Transformer-1D-Backtest.md",
+  "title": "Conv-2026-06-12-v2-Transformer-1D-Backtest",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-13-V10-K1-Mean-Top15-Exploration.md",
+  "title": "Conv-2026-06-13-V10-K1-Mean-Top15-Exploration",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-14-Graph-OI-Models.md",
+  "title": "Graph-Based Models & Open-Interest Information Layer",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-14"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-15-Entry-Veto-Guards.md",
+  "title": "Entry Veto Guards — Thrust, Bias-Contradiction, Non-Marketable Limit",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-15"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-15-Fix-15min-Pulse-Scan-v3.md",
+  "title": "Fix 15-Minute Pulse Scan (Upstox v3 History API)",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-15"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-15-Fix-SignalGenerator-entry_top_k-Regression.md",
+  "title": "Re-Fix SignalGenerator entry_top_k (regressed by modular refactor)",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-15"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-15-Price-Action-SMC-Transformer.md",
+  "title": "Price-Action / SMC Transformer",
+  "type": "log",
+  "status": "active",
+  "model": "pa_transformer / level_gcn",
+  "verdict": "DEAD for tradability — explicit price-action/SMC adds no edge at 1h (features ρ≈noise; level-graph gated GCN real≈neg-control). NEW PHASE: closing val→test generalization gap via walk-forward. ⚠️ UNVERIFIED (exploratory, no Gauntlet)",
+  "updated": "2026-06-15"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-15-v20-Rolling-1h-Model.md",
+  "title": "Conv 2026-06-15 — v20 Rolling-1h Model",
+  "type": "log",
+  "status": "wip",
+  "model": "v20_rolling_1h",
+  "verdict": "",
+  "updated": "2026-06-15"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-16-BCE-Optuna-Tuning.md",
+  "title": "BCE Veto Transformer — Optuna Tuning (agent log)",
+  "type": "log",
+  "status": "🟢 Active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-16"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-16-Daily-Bars-Cache-Optimization.md",
+  "title": "Daily Bars Cache Optimization",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-16"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-16-Disable-WS-AutoReconnect.md",
+  "title": "Conv-2026-06-16-Disable-WS-AutoReconnect",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-16-Fade-Quality-Guard.md",
+  "title": "Fade-Entry Quality Guard (3 stop-losses post-mortem)",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-16"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-16-v20-Cadence-Transformer.md",
+  "title": "Conv-2026-06-16-v20-Cadence-Transformer",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-17-Check-Tuning-Progress.md",
+  "title": "Conv-2026-06-17-Check-Tuning-Progress",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-17-Shadow-Peak-Negative.md",
+  "title": "Conv-2026-06-17-Shadow-Peak-Negative",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-17-Transformer-Retrieval-Phase1.md",
+  "title": "Conv-2026-06-17-Transformer-Retrieval-Phase1",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
  },
  {
   "path": "06 — Logs/Daily Logs/2026-05-31.md",
@@ -1429,6 +1627,24 @@
   "model": "",
   "verdict": "DEAD",
   "updated": "2026-06-12"
+ },
+ {
+  "path": "06 — Logs/Daily Logs/2026-06-16.md",
+  "title": "Daily Log 2026-06-16",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-16"
+ },
+ {
+  "path": "06 — Logs/Daily Logs/2026-06-18.md",
+  "title": "Daily Log 2026-06-18",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-18"
  },
  {
   "path": "06 — Logs/Memory Layer Restructure Plan.md",
@@ -1744,5 +1960,23 @@
   "model": "",
   "verdict": "",
   "updated": "2026-06-12"
+ },
+ {
+  "path": "Learning/BCE Optuna Tuning — Step-by-Step.md",
+  "title": "BCE Veto Transformer — Optuna Hyperparameter Tuning (learning walkthrough)",
+  "type": "reference",
+  "status": "🟢 Active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-16"
+ },
+ {
+  "path": "Learning/v20 XGBoost Tuning — Step-by-Step.md",
+  "title": "v20 Base Ranker — Optuna Hyperparameter Tuning (learning walkthrough)",
+  "type": "reference",
+  "status": "🟢 Active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-17"
  }
 ]

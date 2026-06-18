@@ -2,7 +2,7 @@
 title: "Active Board"
 type: reference
 status: active
-updated: 2026-06-12
+updated: 2026-06-18
 tags: [board]
 ---
 # 🎯 Active Board
@@ -24,7 +24,6 @@ tags: [board]
 * **Intraday edge — strategic**: four independent lines (CST, DualRes, sided-transformer, gate) all
   confirm the 1h price/volume ceiling is **information**, not model/loss. Next real lever is
   order-flow / microstructure data, not another model.
-* **Performance tracking of candle-stage decisions (COMPLETED)** — Closed tracking gap for candle rejections, vetoes, and retracement limits. Structured terminal outcomes logged to JSONL for paired-difference and confirmation edge analysis. Verified with unit tests. See [[06 — Logs/Conversations/Conv-2026-06-18-Track-Candle-Rejections|Conversation Log]].
 * **v2 + Transformer 1-Day Hold Backtest (COMPLETED)**: Verified that shortening the hold period from 3 days to 1 day destroys the +32 bps `v2` edge (drops to ~7 bps net, losing significance), while the Transformer still adds zero value (+0.28 bps uplift). Conclusion stands: Deploy `v2-alone` on the 3-day holding period. See [[06 — Logs/Conversations/Conv-2026-06-12-v2-Transformer-1D-Backtest|Conversation Log]].
 
 ## Next Steps

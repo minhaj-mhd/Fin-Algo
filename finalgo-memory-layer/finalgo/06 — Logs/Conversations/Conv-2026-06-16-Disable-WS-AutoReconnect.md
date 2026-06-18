@@ -1,0 +1,21 @@
+# 💬 Conversation Context: Disable WS AutoReconnect
+
+## 📌 Metadata
+- **Conversation ID**: 45cf1236-7e69-4be9-ac4b-1c2fa8cf5693
+- **Start Date**: 2026-06-16
+- **Status**: 🟢 Active
+- **Focus Area**: Network Resiliency / Upstox WebSocket
+
+## 🎯 Objectives
+- [x] Fix the issue where WebSocket tries to reconnect during network downtime.
+
+## 💻 Active Code Files Modified
+- [upstox_websocket.py](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/upstox_websocket.py)
+
+## 📝 Compacted Session Log
+- **Initial Analysis**: The engine logged `SHADOW-TRACKER: connection DOWN` but the WebSocket kept attempting to reconnect rapidly, throwing `403 Forbidden` errors until our own rate-limit printed `Reconnecting in 20s (attempt 2)...`. This spam is due to the Upstox SDK's background auto-reconnect running irrespective of our `is_online()` checks.
+- **Step 1**: Inspected `MarketDataStreamerV3` in the `upstox_client` module and found it supports a `.auto_reconnect(False)` method.
+- **Step 2**: Inserted `streamer.auto_reconnect(False)` inside `upstox_websocket.py` `_connect_and_stream()` right after SDK object instantiation. This forces the SDK to fail out completely on connection drops, allowing our own outer loop to wait elegantly via `wait_for_network(label="WS-FEED")` without spamming the network with blind reconnection requests.
+
+## 🔗 Core Memory Links & Backlinks
+- Linked Core Specs: [[06 — Logs/Active Board]]
