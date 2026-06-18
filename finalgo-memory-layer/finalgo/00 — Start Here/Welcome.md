@@ -4,7 +4,7 @@
 > by `scripts/memory/build_index.py` from each doc's front-matter — do not hand-edit.
 > Protocol: [[00 — Start Here/AI Operating Protocol|AI Operating Protocol]] · Dead ends: [[00 — Start Here/Dead-Ends Register|Dead-Ends Register]] · Machine index: `00 — Start Here/INDEX.json`
 
-**221 docs** across 10 sections.
+**220 docs** across 10 sections.
 
 ## 00 — Start Here  (2)
 → [[00 — Start Here/_MOC|Browse all 2]]
@@ -84,8 +84,8 @@
 ## 06 — Context & Logs  (1)
 → [[06 — Context & Logs/_MOC|Browse all 1]]
 
-## 06 — Logs  (56)
-→ [[06 — Logs/_MOC|Browse all 56]]
+## 06 — Logs  (55)
+→ [[06 — Logs/_MOC|Browse all 55]]
 - [[06 — Logs/50 Strategies Performance Results|50-Strategy Regime-Aware Backtest Results]] — Test Period: May 2026
 - [[06 — Logs/50 Strategies Regime Backtest Plan|50 Strategies Regime Backtest Plan]] — The objective is to evaluate all 50 trading strategies in the catalog using a Regime-Aware
 - [[06 — Logs/Active Board|Active Board]] —  Daily Macro Scan Test Pollution Fix (COMPLETED) — Resolved test suite runs overwriting th
