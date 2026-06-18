@@ -2,6 +2,7 @@ import os
 import time
 import json
 from google import genai
+from google.genai import types
 
 class GeminiRotator:
     def __init__(self, state_file="data/gemini_rotation_state.json"):
@@ -10,6 +11,14 @@ class GeminiRotator:
         self.backup_key = None
         self.current_index = 0
         self.stats = {}
+        # Hard per-request HTTP timeout (ms). Without this, an overloaded Gemini
+        # endpoint that accepts the connection but never replies hangs the call —
+        # and the whole scan loop — forever. Configurable via env for S2 (search)
+        # calls which run longer than the S1 flash veto.
+        try:
+            self.request_timeout_ms = int(os.getenv("GEMINI_REQUEST_TIMEOUT_MS", "45000"))
+        except (TypeError, ValueError):
+            self.request_timeout_ms = 45000
         self.load_keys()
         self.load_state()
 
@@ -69,8 +78,10 @@ class GeminiRotator:
 
         last_exception = None
         max_attempts = len(self.main_keys) * 3  # Try each key multiple times
-        
+        consecutive_503 = 0  # 503 is a MODEL-wide overload, not a per-key quota
+
         import re
+        import random
 
         for attempt in range(max_attempts):
             now = time.time()
@@ -107,7 +118,10 @@ class GeminiRotator:
             
             try:
                 print(f"[GEMINI-ROTATOR] Attempting request using main key {self.current_index + 1} of {len(self.main_keys)}")
-                client = genai.Client(api_key=main_key)
+                client = genai.Client(
+                    api_key=main_key,
+                    http_options=types.HttpOptions(timeout=self.request_timeout_ms),
+                )
                 result = func(client, *args, **kwargs)
                 
                 # Succeeded on main key. Rotate main index for the next request.
@@ -124,9 +138,13 @@ class GeminiRotator:
                 
                 self.stats[key_id]["fail"] += 1
                 last_exception = e
-                
+
+                # Default inter-key delay (legitimate rate-limit backoff).
+                backoff = random.uniform(3.0, 5.0)
+
                 # Parse retry delay if it's a 429 RESOURCE_EXHAUSTED
                 if "429" in e_str and "RESOURCE_EXHAUSTED" in e_str:
+                    consecutive_503 = 0
                     match = re.search(r'Please retry in ([0-9.]+)s', e_str)
                     if match:
                         parsed_delay = float(match.group(1))
@@ -135,24 +153,34 @@ class GeminiRotator:
                     else:
                         print(f"[GEMINI-ROTATOR] Key {self.current_index + 1} hit a hard quota with NO retry delay. Aborting rotator to trigger model fallback.")
                         break
-                elif "503" in e_str or "UNAVAILABLE" in e_str:
-                    # Temporary spike, let's just rotate with a small cooldown
+                elif ("503" in e_str or "UNAVAILABLE" in e_str
+                      or "timeout" in e_str.lower() or "timed out" in e_str.lower()
+                      or "deadline" in e_str.lower()):
+                    # 503 UNAVAILABLE (and request timeouts) are MODEL-wide health problems,
+                    # not per-key quotas: every key talks to the same overloaded model, so
+                    # rotating keys can't fix it. Try at most one full pass of keys (in case
+                    # it's a transient blip), then bail FAST so the caller escalates to the
+                    # NEXT model tier instead of grinding against an endpoint that's down.
+                    consecutive_503 += 1
                     self.key_available_time[main_key] = time.time() + 3.0
-                    print(f"[GEMINI-ROTATOR] Key {self.current_index + 1} hit 503 spike. Cooldown set for 3.00s.")
+                    print(f"[GEMINI-ROTATOR] Key {self.current_index + 1} hit 503/timeout model-overload spike ({consecutive_503}/{len(self.main_keys)}).")
+                    if consecutive_503 >= len(self.main_keys):
+                        print(f"[GEMINI-ROTATOR] Model overloaded across all {len(self.main_keys)} keys — escalating to next model tier.")
+                        self.current_index = next_index
+                        self.save_state()
+                        break
+                    backoff = random.uniform(0.5, 1.0)  # short blip retry, not the quota delay
                 else:
                     # For other errors, no cooldown needed, just rotate
-                    pass
-                
+                    consecutive_503 = 0
+
                 self.current_index = next_index
                 self.save_state()
-                
-                # Apply a 3-5 second random delay between failed requests before trying the next key
-                import random
-                delay = random.uniform(3.0, 5.0)
-                print(f"[GEMINI-ROTATOR] Random delay of {delay:.2f}s before trying the next key...")
-                time.sleep(delay)
 
-        print("[GEMINI-ROTATOR] All attempts exhausted or cooldown too long. API permanently unavailable.")
+                print(f"[GEMINI-ROTATOR] Retrying with next key in {backoff:.2f}s...")
+                time.sleep(backoff)
+
+        print("[GEMINI-ROTATOR] Giving up on this model (keys exhausted or model overloaded) — caller will try the next tier.")
         if last_exception:
             raise last_exception
         else:
