@@ -13,6 +13,7 @@ tags: [board]
 
 ## 🔵 Current Focus
 
+* **Daily Macro Scan Test Pollution Fix (COMPLETED)** — Resolved test suite runs overwriting the production `daily_gatekeepers.json` file with `MagicMock` failures. Prevented tests from executing the daily macro scan by checking if `pytest` is in `sys.modules` or `PYTEST_CURRENT_TEST` is in the environment. Re-ran the scan to restore valid long and short tickers in the live system. See [[06 — Logs/Conversations/Conv-2026-06-18-Daily-Macro-Gatekeeper-Mock-Pollution|Conversation Log]].
 * **Shadow tracking peak negative PnL (COMPLETED)** — Implemented tracking of peak negative PnL (drawdown/maximum adverse excursion) in `trades` table, orchestrator tracking loop, risk manager, and dashboard UI templates (`vanguard_v2.html`, `strategy_detail.html`, `ticker_detail.html`). Verified with unit tests. See [[06 — Logs/Conversations/Conv-2026-06-17-Shadow-Peak-Negative|Conversation Log]].
 * **Phase-1 Dual-Resolution Retrieval-based Hybrid model (COMPLETED)** — Implemented contrastive dual-resolution transformer pre-training, FAISS index with bucket-filtering, time-decay, and 12-D neighbor returns distribution feature extraction. Trained LightGBM Ranker with graded relevance labels. Diagnostics and walk-forward evaluations completed, showing significant Net PnL (+0.94 bps) and Sharpe (+1.17) uplifts for top-3 LONG picks. See [[06 — Logs/Conversations/Conv-2026-06-17-Transformer-Retrieval-Phase1|Conversation Log]].
 * **Memory layer restructure (IN PROGRESS)** — vault reorganized into the `00–09` taxonomy with

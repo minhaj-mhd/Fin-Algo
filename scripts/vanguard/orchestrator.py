@@ -236,6 +236,14 @@ class VanguardOrchestrator:
             self.risk_manager.update_upstox_stats(self.active_shadow_trades)
 
     def update_daily_macro_filters(self):
+        in_test = (
+            "pytest" in sys.modules or 
+            os.environ.get("PYTEST_CURRENT_TEST") is not None
+        )
+        if in_test:
+            log("[DAILY-SCAN] Test environment detected. Skipping Daily Macro Scan to prevent test pollution.")
+            return
+
         now = datetime.now()
         now_date_str = now.strftime("%Y-%m-%d")
         if now.weekday() >= 5 or now_date_str in getattr(config, "NSE_HOLIDAYS_2026", set()):
