@@ -676,6 +676,7 @@
                                     <th>Target</th>
                                     <th>Live P&L</th>
                                     <th>Peak P&amp;L</th>
+                                    <th>Peak Neg</th>
                                     <th>Time Left</th>
                                     <th>Next 1H</th>
                                     <th>Gemini Sentiment</th>
@@ -684,7 +685,7 @@
                             </thead>
                             <tbody id="open-signals">
                                 <tr>
-                                    <td colspan="12" class="text-center text-dim py-4">No active trades.</td>
+                                    <td colspan="13" class="text-center text-dim py-4">No active trades.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -704,6 +705,7 @@
                                     <th>Timestamp</th>
                                     <th>Final P&L</th>
                                     <th>Peak P&L</th>
+                                    <th>Peak Neg</th>
                                     <th>Next 1H</th>
                                     <th>Gemini Sentiment</th>
                                     <th>TV 1H</th>
@@ -733,6 +735,10 @@
                                 <div id="veto-s2-pnl" class="fw-bold text-warning">+0.00%</div>
                             </div>
                             <div class="text-end">
+                                <div style="color: var(--text-dim); font-size: 9px; text-transform: uppercase;">Candle Avoided</div>
+                                <div id="veto-candle-pnl" class="fw-bold text-warning">+0.00%</div>
+                            </div>
+                            <div class="text-end">
                                 <div style="color: var(--text-dim); font-size: 9px; text-transform: uppercase;">Daily Total</div>
                                 <div id="veto-daily-pnl" class="fw-bold text-warning">+0.00%</div>
                             </div>
@@ -760,6 +766,7 @@
                                     <th>Tracking Price</th>
                                     <th>Shadow P&amp;L</th>
                                     <th>Peak P&amp;L</th>
+                                    <th>Peak Neg</th>
                                     <th>Veto Stage</th>
                                     <th>LLM Reason</th>
                                     <th>TV 1H</th>
@@ -769,7 +776,7 @@
                             </thead>
                             <tbody id="vetoed-ml-signals">
                                 <tr>
-                                    <td colspan="13" class="text-center text-dim py-4">No recently vetoed signals.</td>
+                                    <td colspan="14" class="text-center text-dim py-4">No recently vetoed signals.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -788,6 +795,7 @@
                                     <th>Tracking Price</th>
                                     <th>Shadow P&amp;L</th>
                                     <th>Peak P&amp;L</th>
+                                    <th>Peak Neg</th>
                                     <th>Veto Stage</th>
                                     <th>LLM Reason</th>
                                     <th>TV 1H</th>
@@ -796,7 +804,7 @@
                             </thead>
                             <tbody id="vetoed-strategy-signals">
                                 <tr>
-                                    <td colspan="13" class="text-center text-dim py-4">No recently vetoed signals.</td>
+                                    <td colspan="14" class="text-center text-dim py-4">No recently vetoed signals.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -963,13 +971,14 @@
                                     <th>Unrealized P&amp;L ₹</th>
                                     <th>Unrealized %</th>
                                     <th>Peak %</th>
+                                    <th>Peak Neg %</th>
                                     <th>Time Left</th>
                                     <th>1H Prob</th>
                                     <th>TV 1H</th>
                                 </tr>
                             </thead>
                             <tbody id="p-positions-body">
-                                <tr><td colspan="14" class="text-center text-dim py-4">No open positions.</td></tr>
+                                <tr><td colspan="15" class="text-center text-dim py-4">No open positions.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -999,6 +1008,7 @@
                                     <th>Net P&amp;L ₹</th>
                                     <th>P&amp;L %</th>
                                     <th>Peak P&amp;L %</th>
+                                    <th>Peak Neg %</th>
                                     <th>Status</th>
                                     <th>TV 1H</th>
                                     <th>Time</th>
@@ -1006,7 +1016,7 @@
                                 </tr>
                             </thead>
                             <tbody id="p-closed-body">
-                                <tr><td colspan="13" class="text-center text-dim py-4">No closed trades today.</td></tr>
+                                <tr><td colspan="14" class="text-center text-dim py-4">No closed trades today.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1370,6 +1380,7 @@
                                 <td class="mono fw-bold ${pnlCls}">${pnlSign(p.unrealized_pnl_inr)}${inrFmt(p.unrealized_pnl_inr)}</td>
                                 <td class="mono fw-bold ${pctCls}">${pnlSign(p.unrealized_pnl_pct)}${p.unrealized_pnl_pct.toFixed(2)}%</td>
                                 <td class="mono small text-dim">${pnlSign(p.peak_profit_pct)}${p.peak_profit_pct.toFixed(2)}%</td>
+                                <td class="mono small text-dim">${pnlSign(p.peak_adverse_pct || 0)}${(p.peak_adverse_pct || 0).toFixed(2)}%</td>
                                 ${timeCell}
                                 <td class="mono smallest text-info">${p.one_hour_prob || 'N/A'}</td>
                                 <td>
@@ -1381,7 +1392,7 @@
                         `;
                     });
                 } else {
-                    posBody.innerHTML = '<tr><td colspan="14" class="text-center text-dim py-4">No open positions.</td></tr>';
+                    posBody.innerHTML = '<tr><td colspan="15" class="text-center text-dim py-4">No open positions.</td></tr>';
                 }
 
                 // ── TODAY'S CLOSED TRADES TABLE ─────────────────────────────────
@@ -1456,6 +1467,7 @@
                                 <td class="mono fw-bold ${netCls}">${pnlSign(netPnl)}${inrFmt(netPnl)}</td>
                                 <td class="mono fw-bold ${pctCls}">${pnlSign(pnlPctV)}${pnlPctV.toFixed(2)}%</td>
                                 <td class="mono small text-dim">+${(t.peak_profit_pct || 0).toFixed(2)}%</td>
+                                <td class="mono small text-dim">${pnlSign(t.peak_adverse_pct || 0)}${(t.peak_adverse_pct || 0).toFixed(2)}%</td>
                                 <td>${stBadge}</td>
                                 <td>
                                     <span class="badge bg-dark text-white border border-white border-opacity-10 smallest" style="font-size: 9px;">
@@ -1468,7 +1480,7 @@
                         `;
                     });
                 } else {
-                    closedBody.innerHTML = '<tr><td colspan="13" class="text-center text-dim py-4">No closed trades today.</td></tr>';
+                    closedBody.innerHTML = '<tr><td colspan="14" class="text-center text-dim py-4">No closed trades today.</td></tr>';
                 }
 
                 // ── DAILY PERFORMANCE BAR ───────────────────────────────────────
@@ -1540,6 +1552,7 @@
                         const dv = s.vetoed.daily.alpha;
                         const s1v = s.vetoed.daily_s1 ? s.vetoed.daily_s1.alpha : 0;
                         const s2v = s.vetoed.daily_s2 ? s.vetoed.daily_s2.alpha : 0;
+                        const candlev = s.vetoed.daily_candle ? s.vetoed.daily_candle.alpha : 0;
                         
                         const dvEl = document.getElementById('veto-daily-pnl');
                         dvEl.innerText = (dv >= 0 ? '+' : '') + dv.toFixed(2) + '%';
@@ -1552,6 +1565,12 @@
                         const s2El = document.getElementById('veto-s2-pnl');
                         s2El.innerText = (s2v >= 0 ? '+' : '') + s2v.toFixed(2) + '%';
                         s2El.className = 'fw-bold ' + (s2v > 0 ? 'text-success' : (s2v < 0 ? 'text-danger' : 'text-white'));
+
+                        const candleEl = document.getElementById('veto-candle-pnl');
+                        if (candleEl) {
+                            candleEl.innerText = (candlev >= 0 ? '+' : '') + candlev.toFixed(2) + '%';
+                            candleEl.className = 'fw-bold ' + (candlev > 0 ? 'text-success' : (candlev < 0 ? 'text-danger' : 'text-white'));
+                        }
                     }
                 }
 
@@ -1632,6 +1651,7 @@
                                 </td>
                                 <td><span class="live-pnl ${livePnlCls}">${livePnlStr}</span></td>
                                 <td class="peak-pnl text-dim small">+${(t.peak_profit_pct || 0).toFixed(2)}%</td>
+                                <td class="peak-pnl text-dim small">${pnlSign(t.peak_adverse_pct || 0)}${(t.peak_adverse_pct || 0).toFixed(2)}%</td>
                                 <td>${timeDisplay}</td>
                                 <td class="mono smallest text-info">${t.one_hour_prob || 'N/A'}</td>
                                 <td>
@@ -1648,7 +1668,7 @@
                         `;
                     });
                 } else {
-                    openBody.innerHTML = '<tr><td colspan="12" class="text-center text-dim py-4">No active trades.</td></tr>';
+                    openBody.innerHTML = '<tr><td colspan="13" class="text-center text-dim py-4">No active trades.</td></tr>';
                 }
 
                 // 2.5 UPDATE VETOED TRADES
@@ -1687,7 +1707,7 @@
  
                                 htmlBuffer += `
                                     <tr class="bg-dark bg-opacity-50">
-                                        <td colspan="13" class="py-2">
+                                        <td colspan="14" class="py-2">
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <div class="d-flex align-items-center gap-2">
                                                     <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
@@ -1719,12 +1739,23 @@
                             const vetoTime = new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
                             const rawComment = t.comment || '';
-                            const isS1 = rawComment.includes('[S1-VETO]') || rawComment.includes('[S1-');
-                            const vetoStage = isS1 ? 'S1' : 'S2';
-                            const stageColor  = isS1 ? '#ffc107' : '#ff6b6b';
-                            const stageBg     = isS1 ? 'rgba(255,193,7,0.12)'  : 'rgba(255,107,107,0.12)';
-                            const stageBorder = isS1 ? 'rgba(255,193,7,0.35)'  : 'rgba(255,107,107,0.35)';
-                            const stageTitle  = isS1 ? 'Stage 1: Technical Audit (Gemini S1)' : 'Stage 2: Governance / News Audit (Gemini S2)';
+                            let vetoStage, stageColor, stageBg, stageBorder, stageTitle;
+                            
+                            if (t.reject_stage === 'candle' || t.status === 'CANCELLED' || t.status === 'CANCELLED_EXPIRED') {
+                                const isLimit = t.reject_reason === 'LIMIT_EXPIRED';
+                                vetoStage = isLimit ? 'LIMIT' : 'CANDLE';
+                                stageColor = isLimit ? '#00d4ff' : '#bd93f9';
+                                stageBg = isLimit ? 'rgba(0, 212, 255, 0.12)' : 'rgba(189, 147, 249, 0.12)';
+                                stageBorder = isLimit ? 'rgba(0, 212, 255, 0.35)' : 'rgba(189, 147, 249, 0.35)';
+                                stageTitle = isLimit ? 'Limit order expired without fill' : `Candle-stage Veto: ${t.reject_reason || 'Rejection'}`;
+                            } else {
+                                const isS1 = rawComment.includes('[S1-VETO]') || rawComment.includes('[S1-');
+                                vetoStage = isS1 ? 'S1' : 'S2';
+                                stageColor  = isS1 ? '#ffc107' : '#ff6b6b';
+                                stageBg     = isS1 ? 'rgba(255,193,7,0.12)'  : 'rgba(255,107,107,0.12)';
+                                stageBorder = isS1 ? 'rgba(255,193,7,0.35)'  : 'rgba(255,107,107,0.35)';
+                                stageTitle  = isS1 ? 'Stage 1: Technical Audit (Gemini S1)' : 'Stage 2: Governance / News Audit (Gemini S2)';
+                            }
 
                             const cleanReason = rawComment
                                 .replace(/^\[S[12]-VETO\]\s*/i, '')
@@ -1781,6 +1812,7 @@
                                     <td class="mono ${priceCls}">${priceLabel}₹${(t.exit_price || t.entry_price).toFixed(2)}</td>
                                     <td><span class="live-pnl ${livePnlCls}">${livePnlStr}</span></td>
                                     <td class="mono small text-dim">+${(t.peak_profit_pct || 0).toFixed(2)}%</td>
+                                    <td class="mono small text-dim">${pnlSign(t.peak_adverse_pct || 0)}${(t.peak_adverse_pct || 0).toFixed(2)}%</td>
                                     <td>
                                         <span title="${stageTitle}" style="
                                             display: inline-flex; align-items: center; gap: 4px;
@@ -1809,7 +1841,7 @@
                         if (totalPages > 1) {
                             htmlBuffer += `
                                 <tr class="bg-dark bg-opacity-50">
-                                    <td colspan="13" class="py-2 text-center border-top border-secondary border-opacity-10">
+                                    <td colspan="14" class="py-2 text-center border-top border-secondary border-opacity-10">
                                         <button class="btn btn-sm btn-outline-secondary me-2 px-3 py-1" onclick="changeVetoPage('${tableType}', -1)" ${currentPage === 1 ? 'disabled' : ''} style="font-size: 11px;">Previous</button>
                                         <span class="text-dim mx-2" style="font-size: 11px;">Page ${currentPage} of ${totalPages} (${tradesList.length} total)</span>
                                         <button class="btn btn-sm btn-outline-secondary ms-2 px-3 py-1" onclick="changeVetoPage('${tableType}', 1)" ${currentPage === totalPages ? 'disabled' : ''} style="font-size: 11px;">Next</button>
@@ -1824,8 +1856,8 @@
                     renderVetoList(mlTrades, vetoMlBody, false, 'ml');
                     renderVetoList(stratTrades, vetoStrategyBody, true, 'strat');
                 } else {
-                    vetoMlBody.innerHTML = '<tr><td colspan="13" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
-                    vetoStrategyBody.innerHTML = '<tr><td colspan="13" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
+                    vetoMlBody.innerHTML = '<tr><td colspan="14" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
+                    vetoStrategyBody.innerHTML = '<tr><td colspan="14" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
                 }
 
                 // 3. UPDATE CLOSED TRADES
@@ -1840,7 +1872,7 @@
                         if (dateStr !== lastDate) {
                             closedBody.innerHTML += `
                                 <tr class="bg-dark bg-opacity-50">
-                                    <td colspan="10" class="py-2">
+                                    <td colspan="11" class="py-2">
                                         <div class="d-flex align-items-center gap-2">
                                             <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
                                                 <i class="bi bi-calendar3 me-1"></i> ${dateStr}
@@ -1894,6 +1926,7 @@
                                 <td class="text-dim small">${time}</td>
                                 <td class="mono fw-bold ${profitCls}">${t.final_profit_pct > 0 ? '+' : ''}${t.final_profit_pct.toFixed(2)}%</td>
                                 <td class="mono small text-dim">+${(t.peak_profit_pct || 0).toFixed(2)}%</td>
+                                <td class="mono small text-dim">${pnlSign(t.peak_adverse_pct || 0)}${(t.peak_adverse_pct || 0).toFixed(2)}%</td>
                                 <td class="mono smallest text-info">${t.one_hour_prob || 'N/A'}</td>
                                 <td>
                                     <span class="badge bg-dark text-info border border-info border-opacity-10" style="font-size: 9px;">

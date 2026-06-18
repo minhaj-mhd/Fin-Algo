@@ -17,8 +17,10 @@ class AIVetoManager:
         # Rotation State
         self.s1_model_tiers = getattr(config, "GEMINI_S1_MODEL_TIERS", config.GEMINI_MODEL_TIERS)
         self.s2_model_tiers = getattr(config, "GEMINI_S2_MODEL_TIERS", config.GEMINI_MODEL_TIERS)
-        self.s1_active_tier_idx = 0
-        self.s1_active_key_idx = 0
+        # Round-robin the top-N S1 "primary" models per audit so one overloaded
+        # model isn't always tried first; -lite fallbacks stay fixed at the tail.
+        self.s1_primary_rotate = getattr(config, "GEMINI_S1_PRIMARY_ROTATE", 2)
+        self.s1_tier_rotation = 0
 
         self.sentiment_cache = {}
 
@@ -71,6 +73,19 @@ class AIVetoManager:
             "sma50": sma50,
             "high_52w": pct_to_price(features.get("Dist_52W_High", 0))
         }
+
+    def _next_s1_tiers(self):
+        """S1 model order for this audit, rotating the top-N 'primary' models so a
+        single overloaded model isn't always tried first. The -lite fallback tiers
+        keep their fixed order at the tail. Advances the rotation each call."""
+        tiers = list(self.s1_model_tiers)
+        n = min(self.s1_primary_rotate, len(tiers))
+        if n <= 1:
+            return tiers
+        offset = self.s1_tier_rotation % n
+        self.s1_tier_rotation = (self.s1_tier_rotation + 1) % n
+        primaries = tiers[:n]
+        return primaries[offset:] + primaries[:offset] + tiers[n:]
 
     def _extract_response_text(self, resp) -> str:
         try:
@@ -308,9 +323,54 @@ class AIVetoManager:
         daily_sma20 = _f("Daily_SMA20_Dist", pct=True, decimals=2)
         daily_atr = _f("Daily_ATR_Pct", pct=True, decimals=2)
 
-        prompt_flash = f"""You are a professional intraday risk analyst checking if a trade is blocked by an immediate hard structural price wall.
-The machine learning model has already approved the trade's technical strength (RSI, volume, trend, conviction). You must NOT evaluate momentum, volume, or trend.
-Your ONLY job is a geometric check: Is there an immediate hard structural price wall (Bollinger Bands, Donchian channels, SMAs, 52W High) within 0.2% of the current price that physically blocks this trade?
+        # ── Momentum / price-action context for the S1 trap veto ─────────────
+        # Anchored to the code-level FADE_QUALITY_GUARD thresholds (config.py) so
+        # the model's judgment uses the same rvol discriminator the engine does:
+        # a knife/breakout only runs us over when VOLUME is behind it.
+        knife_rvol    = config.FADE_ADVERSE_MIN_RVOL                 # below this, an adverse move is noise
+        breakout_rvol = config.FADE_BREAKOUT_RVOL                    # heavy participation behind a breakout
+        breakout_52h  = abs(config.FADE_BREAKOUT_52H_PROXIMITY) * 100  # % from 52W high that counts as a breakout
+        dist_52w_pct  = _f("Dist_52W_High", pct=True, decimals=2)
+        dist_sma6     = _f("Dist_SMA6", pct=True, decimals=2)
+        dist_sma12    = _f("Dist_SMA12", pct=True, decimals=2)
+
+        momentum_block = (
+            f"RVOL (relative volume)  : {rvol}x\n"
+            f"Up-streak / Down-streak : {up_streak} / {dn_streak} consecutive bars\n"
+            f"Green-bar ratio (last 5): {green_ratio}\n"
+            f"Close position in bar   : {bar_pos}  (1.0 = top of bar, 0.0 = bottom)\n"
+            f"Distance vs SMA-6 / 12  : {dist_sma6} / {dist_sma12}\n"
+            f"Distance below 52W High : {dist_52w_pct}\n"
+            f"Daily trend             : {daily_trend_str} | Daily RSI {daily_rsi}"
+        )
+
+        if side == "LONG":
+            trap_check = (
+                "This is a LONG. The momentum trap to block is a FALLING KNIFE — buying a stock that is in an\n"
+                "active, volume-backed free-fall. Set veto=TRUE only when ALL THREE hold:\n"
+                "  1. The last 30 min of 1-min bars show a STEEP, PERSISTENT decline (lower lows, mostly red\n"
+                "     bars) that is STILL falling in the final ~5 bars — no basing or stabilization yet.\n"
+                "  2. Price is BELOW SMA-6 and SMA-12 and the daily trend is DOWN.\n"
+                f"  3. RVOL >= {knife_rvol} — real volume is behind the drop (not a low-volume drift).\n"
+                f"Do NOT veto if the decline has STALLED / is basing or turning back up in the last few bars (a\n"
+                f"stabilizing knife is the valid mean-reversion entry this LONG wants), or if RVOL < {knife_rvol}\n"
+                "(a light-volume dip is noise that tends to bounce)."
+            )
+        else:
+            trap_check = (
+                "This is a SHORT. The momentum trap to block is a BREAKOUT — shorting a stock that is in an\n"
+                "active, volume-backed breakout (standing in front of a freight train). Set veto=TRUE only when\n"
+                "ALL THREE hold:\n"
+                "  1. The last 30 min of 1-min bars show a STEEP, PERSISTENT advance (higher highs, mostly green\n"
+                "     bars) that is STILL rising in the final ~5 bars — no stalling or rollover yet.\n"
+                f"  2. Price is within {breakout_52h:.1f}% of the 52-week high OR breaking the upper Donchian /\n"
+                "     Bollinger band (a fresh breakout with little overhead supply).\n"
+                f"  3. RVOL >= {breakout_rvol} — heavy participation is confirming the breakout.\n"
+                "Do NOT veto if the advance has STALLED / rolled over in the last few bars (exhaustion is the\n"
+                f"valid fade this SHORT wants), or if RVOL < {breakout_rvol} (an unconfirmed pop tends to fade)."
+            )
+
+        prompt_flash = f"""You are a professional intraday risk analyst running a fast veto on a trade the machine-learning model has ALREADY approved on technical strength (RSI, volume, trend, conviction). You do NOT re-score the model's edge. You run exactly TWO independent veto checks and BLOCK the trade if EITHER one fails.
 
 ═══ TRADE PROPOSAL ═══════════════════════════════════════════════
 TICKER  : {ticker}
@@ -321,23 +381,32 @@ ML CONVICTION : {conviction:.4f}
 ═══ PRICE STRUCTURE & KEY LEVELS ═════════════════════════════════
 {sr_context}
 
+═══ MOMENTUM & PRICE-ACTION ══════════════════════════════════════
+{momentum_block}
+
 ═══ RECENT PRICE ACTION (last 30 min, 1-min bars) ════════════════
 {price_history_str}
 
-═══ TASK ══════════════════════════════════════════════════════════
-Determine if the trade is physically blocked by an immediate structural price wall (within 0.2% of current price).
-- If there is a massive resistance/support level within 0.2%, set "veto" to "TRUE" and state the level in "reason".
-- Otherwise, set "veto" to "FALSE" and "reason" to "No immediate wall within 0.2%".
-- Default bias is PASS (veto = FALSE). The ML model's statistics are preferred.
+═══ CHECK A — STRUCTURAL WALL (geometry only) ════════════════════
+Is there an immediate HARD structural price wall (Bollinger Bands, Donchian channels, SMAs, 52W High) within 0.2% of ₹{price} that physically blocks this {side}? If yes → veto=TRUE and name the level.
+
+═══ CHECK B — MOMENTUM TRAP (price action) ═══════════════════════
+{trap_check}
+
+═══ DECISION ═════════════════════════════════════════════════════
+- veto=TRUE if CHECK A finds a hard wall within 0.2% OR CHECK B identifies a live, still-running, volume-backed trap.
+- Otherwise veto=FALSE. Default bias is PASS — the ML model's statistics are preferred. A single elevated indicator is NOT enough; only block on a clear wall, or a clear trap where the move is steep, still running, AND volume-backed per the thresholds above.
 
 Output STRICT JSON only — no markdown, no extra text:
-{{"veto": "TRUE|FALSE", "reason": "concise explanation"}}
+{{"veto": "TRUE|FALSE", "reason": "name the CHECK A wall or the CHECK B trap; else 'No wall within 0.2%, no live trap'"}}
 """
 
         sent1, reason1, prob1 = "PASS", "N/A", "N/A"
         stage1_success = False
 
-        for current_model in self.s1_model_tiers:
+        s1_tiers = self._next_s1_tiers()
+        log(f"[S1] Model order this audit: {' -> '.join(s1_tiers)}")
+        for current_model in s1_tiers:
             try:
                 log(f"[S1] Attempting {current_model} via rotator for {ticker}...")
                 def run_s1(client):
@@ -456,12 +525,24 @@ RULE 2 — SOFT VETO (Tactical Conflict):
   • LONG + Bucket B shows: large block sell, negative headline → consider VETO if ML conviction < 0.25
   • SHORT + Bucket B shows: large block buy, positive headline → consider VETO if ML conviction < 0.25
 
-RULE 3 — BREAKOUT OVERRIDE (Do NOT veto):
-  • If RVOL > 3.0 AND Bucket A/B shows strong POSITIVE catalysts AND {side}=LONG:
-    Resistance levels are TARGETS in a genuine breakout, not walls. Do NOT veto.
+RULE 2.5 — MOMENTUM TRAP (price action contradicts the trade — applies even with NO news):
+  • SHORT into a live BREAKOUT — RECENT PRICE ACTION ripping to higher highs, price within ~{breakout_52h:.1f}% of
+    the 52-week high or breaking the upper Donchian/Bollinger band, RVOL >= {breakout_rvol} → VETO=TRUE.
+    Do not stand in front of a confirmed, volume-backed breakout.
+  • LONG into a live FALLING KNIFE — RECENT PRICE ACTION in a steep persistent decline still making lower lows,
+    price below SMA-6/SMA-12 in a daily downtrend, RVOL >= {knife_rvol} → VETO=TRUE.
+    Do not catch a volume-backed knife.
+  • EXCEPTION: if the move has clearly STALLED / rolled over / based in the last few bars (exhaustion), this rule
+    does NOT fire — a stabilizing knife or a stalling breakout is the valid mean-reversion entry.
+
+RULE 3 — GENUINE BREAKOUT / BREAKDOWN OVERRIDE (Do NOT veto on S/R proximity alone):
+  • LONG + RVOL > 3.0 + Bucket A/B strong POSITIVE catalyst: resistance levels are TARGETS in a real breakout,
+    not walls. Do NOT veto.
+  • SHORT + RVOL > 3.0 + Bucket A/B strong NEGATIVE catalyst: support levels are TARGETS in a real breakdown,
+    not floors. Do NOT veto.
 
 RULE 4 — NO NEWS = PASS:
-  • If no material news/governance issues are found, set veto_decision=FALSE.
+  • If no material news/governance issues are found AND RULE 2.5 did not fire, set veto_decision=FALSE.
 
 ════════════════════════════════════════════════════════════════
 STEP 3 — FINAL OUTPUT

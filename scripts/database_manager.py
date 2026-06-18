@@ -25,6 +25,7 @@ def init_db():
             exit_price REAL,
             peak_price REAL,
             peak_profit_pct REAL,
+            peak_adverse_pct REAL,
             final_profit_pct REAL,
             exit_time TEXT,
             status TEXT,
@@ -49,7 +50,9 @@ def init_db():
             score_30m REAL,
             score_1d REAL,
             strategy_id INTEGER,
-            is_ensemble INTEGER
+            is_ensemble INTEGER,
+            reject_stage TEXT,
+            reject_reason TEXT
         )
     ''')
     
@@ -95,6 +98,9 @@ def init_db():
         ('score_1d', 'REAL'),
         ('strategy_id', 'INTEGER'),
         ('is_ensemble', 'INTEGER'),
+        ('peak_adverse_pct', 'REAL'),
+        ('reject_stage', 'TEXT'),
+        ('reject_reason', 'TEXT'),
     ]:
         try:
             cursor.execute(f'ALTER TABLE trades ADD COLUMN {col} {col_type}')
@@ -104,7 +110,7 @@ def init_db():
             
     conn.close()
     print(f"Database initialized at {DB_PATH}")
-
+ 
 def log_trade(trade_data):
     """Inserts a new trade or updates an existing one."""
     conn = sqlite3.connect(DB_PATH, timeout=10)
@@ -114,13 +120,14 @@ def log_trade(trade_data):
     cursor.execute('''
         INSERT OR REPLACE INTO trades (
             trade_id, timestamp, ticker, side, tech_score, nlp_sentiment, 
-            entry_price, exit_price, peak_price, peak_profit_pct, 
+            entry_price, exit_price, peak_price, peak_profit_pct, peak_adverse_pct,
             final_profit_pct, exit_time, status, comment, one_hour_prob,
             quantity, net_pnl_amt, margin_used, tv_sentiment,
             pending_since, extension_count, extended_exit_time, extension_pending,
             stop_loss_pct, take_profit_pct, trailing_active, breakeven_locked, buy_brokerage,
-            long_score, short_score, score_15m, score_30m, score_1d, strategy_id, is_ensemble
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            long_score, short_score, score_15m, score_30m, score_1d, strategy_id, is_ensemble,
+            reject_stage, reject_reason
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         trade_data.get('trade_id'),
         trade_data.get('timestamp'),
@@ -132,6 +139,7 @@ def log_trade(trade_data):
         trade_data.get('exit_price'),
         trade_data.get('peak_price'),
         trade_data.get('peak_profit_pct'),
+        trade_data.get('peak_adverse_pct', 0.0),
         trade_data.get('final_profit_pct'),
         trade_data.get('exit_time'),
         trade_data.get('status'),
@@ -156,7 +164,9 @@ def log_trade(trade_data):
         trade_data.get('score_30m'),
         trade_data.get('score_1d'),
         trade_data.get('strategy_id'),
-        1 if trade_data.get('is_ensemble') else 0
+        1 if trade_data.get('is_ensemble') else 0,
+        trade_data.get('reject_stage'),
+        trade_data.get('reject_reason')
     ))
     
     conn.commit()
@@ -220,31 +230,37 @@ def get_performance_stats():
     
     # AI VETOED STATS (filtered from START_DATE_FILTER onwards)
     # Total Vetoed
-    cursor.execute('SELECT SUM(final_profit_pct - 0.06), COUNT(*) FROM trades WHERE (status="VETOED" OR status="VETOED_EXPIRED") AND timestamp >= ?', (START_DATE_FILTER,))
+    cursor.execute('SELECT SUM(final_profit_pct - 0.06), COUNT(*) FROM trades WHERE status IN ("VETOED", "VETOED_EXPIRED", "CANCELLED", "CANCELLED_EXPIRED") AND timestamp >= ?', (START_DATE_FILTER,))
     v_row = cursor.fetchone()
     total_vetoed_alpha = v_row[0] or 0.0
     total_vetoed_count = v_row[1]
     
     # Daily Vetoed
-    cursor.execute('SELECT SUM(final_profit_pct - 0.06), COUNT(*) FROM trades WHERE (status="VETOED" OR status="VETOED_EXPIRED") AND timestamp LIKE ?', (f'{today_str}%',))
+    cursor.execute('SELECT SUM(final_profit_pct - 0.06), COUNT(*) FROM trades WHERE status IN ("VETOED", "VETOED_EXPIRED", "CANCELLED", "CANCELLED_EXPIRED") AND timestamp LIKE ?', (f'{today_str}%',))
     dv_row = cursor.fetchone()
     daily_vetoed_alpha = dv_row[0] or 0.0
     daily_vetoed_count = dv_row[1]
     
     # S1 Daily Vetoed
-    cursor.execute('SELECT SUM(final_profit_pct - 0.06), COUNT(*) FROM trades WHERE (status="VETOED" OR status="VETOED_EXPIRED") AND comment LIKE "%[S1-%" AND timestamp LIKE ?', (f'{today_str}%',))
+    cursor.execute('SELECT SUM(final_profit_pct - 0.06), COUNT(*) FROM trades WHERE status IN ("VETOED", "VETOED_EXPIRED") AND comment LIKE "%[S1-%" AND timestamp LIKE ?', (f'{today_str}%',))
     dv_s1_row = cursor.fetchone()
     s1_vetoed_alpha = dv_s1_row[0] or 0.0
     s1_vetoed_count = dv_s1_row[1]
 
     # S2 Daily Vetoed
-    cursor.execute('SELECT SUM(final_profit_pct - 0.06), COUNT(*) FROM trades WHERE (status="VETOED" OR status="VETOED_EXPIRED") AND comment LIKE "%[S2-%" AND timestamp LIKE ?', (f'{today_str}%',))
+    cursor.execute('SELECT SUM(final_profit_pct - 0.06), COUNT(*) FROM trades WHERE status IN ("VETOED", "VETOED_EXPIRED") AND comment LIKE "%[S2-%" AND timestamp LIKE ?', (f'{today_str}%',))
     dv_s2_row = cursor.fetchone()
     s2_vetoed_alpha = dv_s2_row[0] or 0.0
     s2_vetoed_count = dv_s2_row[1]
     
+    # Candle Daily Vetoed
+    cursor.execute('SELECT SUM(final_profit_pct - 0.06), COUNT(*) FROM trades WHERE status IN ("VETOED", "VETOED_EXPIRED", "CANCELLED", "CANCELLED_EXPIRED") AND (reject_stage="candle" OR status IN ("CANCELLED", "CANCELLED_EXPIRED")) AND timestamp LIKE ?', (f'{today_str}%',))
+    dv_candle_row = cursor.fetchone()
+    candle_vetoed_alpha = dv_candle_row[0] or 0.0
+    candle_vetoed_count = dv_candle_row[1]
+    
     # Weekly Vetoed (clamped to baseline start)
-    cursor.execute('SELECT SUM(final_profit_pct - 0.06), COUNT(*) FROM trades WHERE (status="VETOED" OR status="VETOED_EXPIRED") AND timestamp >= ?', (weekly_start,))
+    cursor.execute('SELECT SUM(final_profit_pct - 0.06), COUNT(*) FROM trades WHERE status IN ("VETOED", "VETOED_EXPIRED", "CANCELLED", "CANCELLED_EXPIRED") AND timestamp >= ?', (weekly_start,))
     wv_row = cursor.fetchone()
     weekly_vetoed_alpha = wv_row[0] or 0.0
     weekly_vetoed_count = wv_row[1]
@@ -270,6 +286,7 @@ def get_performance_stats():
             'daily': {'alpha': round(daily_vetoed_alpha, 2), 'count': daily_vetoed_count},
             'daily_s1': {'alpha': round(s1_vetoed_alpha, 2), 'count': s1_vetoed_count},
             'daily_s2': {'alpha': round(s2_vetoed_alpha, 2), 'count': s2_vetoed_count},
+            'daily_candle': {'alpha': round(candle_vetoed_alpha, 2), 'count': candle_vetoed_count},
             'weekly': {'alpha': round(weekly_vetoed_alpha, 2), 'count': weekly_vetoed_count}
         }
     }

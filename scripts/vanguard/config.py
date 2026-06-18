@@ -72,13 +72,38 @@ HOLD_PERCENTILE = 0.95
 THRUST_VETO_RANGE_PCT = 2.5   # look-back candle high-low range as % of price
 THRUST_VETO_POS = 0.75        # close position in range (>= for SHORT, <= 1-x for LONG)
 
+# --- Fade-Entry Quality Guard (post-mortem 2026-06-16: 3 stop-losses in 2h) ---
+# When the look-back bar FAILS direction confirmation the engine still tries to fade
+# it with a pending-limit toward the bar extreme. That fade is a knife-catch and only
+# pays when the adverse move was noise that mean-reverts. The THRUST_VETO above only
+# fires on VIOLENT bars (>2.5% range); the three 2026-06-16 stop-losses printed small
+# bars (0.35-0.82% range) yet kept running because the move had VOLUME behind it.
+# Two volume-gated signatures separated the 3 losers from the 3 winners that day:
+#   1. SHORT into a heavy-volume breakout sitting on a fresh 52-week high
+#      (BRIGADE.NS rvol 2.42 @ -0.2% from 52wH; CHAMBLFERT.NS rvol 2.79 @ -0.2%).
+#   2. Fading a bar that closed in the adverse extreme on non-trivial volume
+#      (VBL.NS long bought a bar closing at range-pos 0.10 on rvol 0.64).
+# The control that proves it is volume (not bar shape): SUNDARMFIN.NS closed at its
+# very low (range-pos 0.00, worst possible) but on rvol 0.25 -> bounced -> +0.36%.
+# ⚠️ UNVERIFIED: thresholds are fitted to ONE session (5 fade trades). This WILL also
+# block some future winners; backtest over history before trusting. Disable via flag.
+FADE_QUALITY_GUARD = True
+FADE_BREAKOUT_52H_PROXIMITY = -0.005  # within 0.5% of 52-wk high == fresh breakout
+FADE_BREAKOUT_RVOL = 1.5              # heavy participation behind the breakout
+FADE_ADVERSE_POS = 0.70               # look-back close in worst 30% of range (against us)
+FADE_ADVERSE_MIN_RVOL = 0.5           # below this the adverse close is treated as noise
+
 # --- Gemini API Configuration ---
 GEMINI_ENABLED_DEFAULT = True
 GEMINI_STATE_FILE = "data/gemini_usage.json"
 MAX_GEMINI_KEYS = 3
 GEMINI_MAX_REQUESTS_PER_DAY = 20
-GEMINI_S1_MODEL_TIERS = ["gemini-3-flash-preview", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite"]
-GEMINI_S2_MODEL_TIERS = ["gemini-2.5-flash-lite"]
+GEMINI_S1_MODEL_TIERS = ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite"]
+GEMINI_S2_MODEL_TIERS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]
+# Round-robin the top-N S1 "primary" models per audit so one overloaded model
+# isn't always tried first (spreads load across gemini-3.5-flash / 3-flash-preview);
+# the -lite fallback tiers keep their fixed order at the tail. 1 = no rotation.
+GEMINI_S1_PRIMARY_ROTATE = 2
 GEMINI_MODEL_TIERS = ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-3.1-flash-lite", "gemini-2.5-flash", "gemini-2.5-flash-lite"]
 
 

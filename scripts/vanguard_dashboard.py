@@ -205,10 +205,13 @@ def get_vanguard_status():
         pending_trades = get_trades_by_status("PENDING_ENTRY", 20)
         closed_trades = get_trades_by_status(["CLOSED", "STOP_LOSS", "TAKE_PROFIT"], 50)
         
-        # Filter vetoed trades to remove overlaps with open trades
-        raw_vetoed = get_trades_by_status("VETOED", 200) + get_trades_by_status("VETOED_EXPIRED", 500)
+        # Filter vetoed/cancelled trades to remove overlaps with open trades
+        raw_vetoed = (
+            get_trades_by_status(["VETOED", "CANCELLED"], 200) + 
+            get_trades_by_status(["VETOED_EXPIRED", "CANCELLED_EXPIRED"], 500)
+        )
         open_tickers = {t['ticker'] for t in open_trades}
-        vetoed_trades = sorted([t for t in raw_vetoed if not (t['status'] == 'VETOED' and t['ticker'] in open_tickers)], 
+        vetoed_trades = sorted([t for t in raw_vetoed if not (t['status'] in ['VETOED', 'CANCELLED'] and t['ticker'] in open_tickers)], 
                                key=lambda x: x.get('timestamp') or '', reverse=True)
         stats = get_performance_stats()
         
