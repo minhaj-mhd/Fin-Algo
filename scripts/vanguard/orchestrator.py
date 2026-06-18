@@ -61,6 +61,8 @@ class VanguardOrchestrator:
         self._conviction_flip_checked = {}
 
         self._veto_stats_date = datetime.now().date()
+        self._daily_bars_cache: pd.DataFrame = pd.DataFrame()
+        self._daily_bars_cache_date = None  # date object; refreshed once per calendar day
         self.veto_stats = {
             "s1_vetoes":  0,
             "s2_vetoes":  0,
@@ -68,6 +70,15 @@ class VanguardOrchestrator:
             "s2_passes":  0,
             "s1_tickers": [],
             "s2_tickers": [],
+            "candle_confirmed": 0,
+            "candle_faded_filled": 0,
+            "candle_faded_expired": 0,
+            "candle_thrust_veto": 0,
+            "candle_breakout_veto": 0,
+            "candle_adverse_veto": 0,
+            "candle_live_reversal": 0,
+            "running_guard_value_sum": 0.0,
+            "running_guard_value_count": 0,
         }
 
         self.long_eligible_tickers = set(TICKERS)
@@ -351,7 +362,7 @@ class VanguardOrchestrator:
             log("[DAILY-SCAN] Fetching indices and macro data from yfinance...")
             macro_tickers = {
                 "Nifty50": "^NSEI",
-                "Nifty500": "NIFTY500.NS",
+                "Nifty500": "^CRSLDX",
                 "VIX": "^INDIAVIX",
                 "SP500": "^GSPC",
                 "NASDAQ": "^IXIC",
@@ -785,14 +796,32 @@ class VanguardOrchestrator:
         except Exception as e:
             print(f"[WARN] India VIX fetch failed: {e}")
 
-        daily_data = pd.DataFrame()
-        try:
-            daily_data = yf.download(
-                tickers, period="60d", interval="1d",
-                progress=False, auto_adjust=True, timeout=30
-            )
-        except Exception as e:
-            print(f"[WARN] Batch daily fetch failed: {e}")
+        # --- Daily bars cache (universe-wide, 60d/1d) ---
+        # The features derived from daily bars (Daily_RSI, Daily_SMA20_Dist,
+        # Daily_Trend, Daily_ATR_Pct) all use iloc[-2] — the previous completed
+        # day — so the underlying data never changes intraday.  We fetch once
+        # per calendar day and reuse the cached DataFrame for every scan cycle.
+        today = datetime.now().date()
+        if self._daily_bars_cache_date == today and not self._daily_bars_cache.empty:
+            daily_data = self._daily_bars_cache
+            print(f"[INFO] Daily bars cache hit ({today}), skipping re-download.")
+        else:
+            daily_data = pd.DataFrame()
+            try:
+                daily_data = yf.download(
+                    tickers, period="60d", interval="1d",
+                    progress=False, auto_adjust=True, timeout=30
+                )
+                if not daily_data.empty:
+                    self._daily_bars_cache = daily_data
+                    self._daily_bars_cache_date = today
+                    print(f"[INFO] Daily bars fetched and cached for {today}.")
+            except Exception as e:
+                print(f"[WARN] Batch daily fetch failed: {e}")
+                # Fall back to stale cache if available
+                if not self._daily_bars_cache.empty:
+                    daily_data = self._daily_bars_cache
+                    print(f"[WARN] Using stale daily bars cache from {self._daily_bars_cache_date}.")
 
         all_dfs = {}
         def _fetch_hist_data(ticker):
@@ -1088,7 +1117,8 @@ class VanguardOrchestrator:
     def start_shadow_trade(self, ticker, conviction, entry_price, side, reason, one_hour_prob,
                            nlp_sentiment=None, tv_sentiment=None,
                            long_score=None, short_score=None, strategy_id=None,
-                           score_15m=None, score_30m=None, score_1d=None, is_ensemble=False, size_multiplier=1.0):
+                           score_15m=None, score_30m=None, score_1d=None, is_ensemble=False, size_multiplier=1.0,
+                           rvol=None, dist_52h=None):
         now = datetime.now()
         
         # 1. Fetch look-back completed candle
@@ -1096,6 +1126,7 @@ class VanguardOrchestrator:
         
         # 2. Check if the completed candle matches our direction
         is_confirmed = False
+        live_reversal = False
         if candle is not None:
             from scripts.vanguard.trade_state import TradeStateManager
             is_confirmed = TradeStateManager.check_candle_direction(side, candle)
@@ -1108,10 +1139,12 @@ class VanguardOrchestrator:
                     live_confirmed = TradeStateManager.check_live_candle_not_reversing(side, latest_live)
                     if not live_confirmed:
                         is_confirmed = False
+                        live_reversal = True
                         log(f"[{ticker}] Entry vetoed! Live 1m candle reversing heavily against {side}.")
             
         if is_confirmed:
             # Entry confirmed on the spot!
+            self.veto_stats["candle_confirmed"] += 1
             stop_loss_pct, take_profit_pct = self.compute_15min_atr(ticker)
             base_qty = self.risk_manager.calculate_trade_quantity(entry_price, stop_loss_pct)
             qty = max(1, int(base_qty * size_multiplier))
@@ -1133,6 +1166,7 @@ class VanguardOrchestrator:
                 "stop_loss_pct":       stop_loss_pct,
                 "take_profit_pct":     take_profit_pct,
                 "peak_profit_pct":     0.0,
+                "peak_adverse_pct":    0.0,
                 "peak_price":          entry_price,
                 "timestamp":           now.isoformat(),
                 "exit_time":           (now + timedelta(hours=1)).isoformat(),
@@ -1154,6 +1188,18 @@ class VanguardOrchestrator:
                 "score_1d":            float(score_1d) if score_1d is not None else None,
                 "is_ensemble":         is_ensemble,
                 "net_pnl_amt":         0.0,
+                
+                # Structured fields
+                "reject_stage":        None,
+                "reject_reason":       None,
+                "rvol":                float(rvol) if rvol is not None else None,
+                "dist_52h":            float(dist_52h) if dist_52h is not None else None,
+                "close_pos":           None,
+                "range_pct":           None,
+                "adverse_pos":         None,
+                "market_entry_px":     entry_price,
+                "limit_px":            None,
+                "entry_mode":          "immediate",
             }
             
             with self.lock:
@@ -1163,8 +1209,28 @@ class VanguardOrchestrator:
                 
             print(f"[IMMEDIATE ENTRY] Confirmed {ticker} ({side}) at {entry_price} (Order: {order_id})")
         else:
-            # Entry failed look-back confirmation or candle was None
-            if candle:
+            # Entry failed look-back confirmation, candle was None, or live reversal vetoed it
+            reject_stage = "candle"
+            reject_reason = None
+            
+            # Retrieve ATR stop-loss and take-profit percentages for real-world simulation
+            stop_loss_pct, take_profit_pct = self.compute_15min_atr(ticker)
+            
+            # Initialize candle parameters
+            close_pos = None
+            rng_pct = None
+            adverse_pos = None
+            
+            if live_reversal:
+                comment_msg = f"[LIVE-REVERSAL] Entry vetoed! Live 1m candle reversing heavily against {side}. | {reason}"
+                status = "VETOED"
+                reject_reason = "LIVE_REVERSAL"
+                limit_price = entry_price
+                limit_expiry = (now + timedelta(hours=1)).isoformat()
+                qty = 0
+                self.veto_stats["candle_live_reversal"] += 1
+                c_str = ""
+            elif candle:
                 c_str = f" (Candle: O={candle.get('open')}, H={candle.get('high')}, L={candle.get('low')}, C={candle.get('close')})"
 
                 high = candle.get('high')
@@ -1172,11 +1238,6 @@ class VanguardOrchestrator:
                 close = candle.get('close')
 
                 # --- Violent adverse-thrust guard ---------------------------------
-                # The look-back bar already failed direction confirmation (it moved
-                # against this trade). If it is ALSO a violent bar closing in the
-                # extreme quartile against us, do NOT fade it: placing the pending
-                # limit on a strong rip/dump degrades to an instant market fill into
-                # the breakout (cf. BALKRISIND.NS 2026-06-15: 3.59% rip, -1.48% SL).
                 rng = (high - low) if (high is not None and low is not None) else 0.0
                 rng_pct = (rng / close * 100.0) if close else 0.0
                 close_pos = ((close - low) / rng) if rng > 1e-8 else 0.5
@@ -1185,30 +1246,46 @@ class VanguardOrchestrator:
                     (side == "LONG" and close_pos <= 1.0 - config.THRUST_VETO_POS)
                 )
 
-                if adverse_thrust:
-                    thrust_kind = "rip" if side == "SHORT" else "dump"
-                    comment_msg = (f"[THRUST-VETO] Look-back bar range {rng_pct:.2f}% > "
-                                   f"{config.THRUST_VETO_RANGE_PCT}% closing at pos {close_pos:.2f} — "
-                                   f"runaway {thrust_kind} against {side}; not fading.{c_str} | {reason}")
+                # --- Fade-Entry Quality Guard (see config; post-mortem 2026-06-16) -
+                adverse_pos = close_pos if side == "SHORT" else (1.0 - close_pos)
+                breakout_short = (
+                    config.FADE_QUALITY_GUARD and side == "SHORT"
+                    and dist_52h is not None and dist_52h >= config.FADE_BREAKOUT_52H_PROXIMITY
+                    and rvol is not None and rvol >= config.FADE_BREAKOUT_RVOL
+                )
+                vol_backed_adverse = (
+                    config.FADE_QUALITY_GUARD
+                    and adverse_pos >= config.FADE_ADVERSE_POS
+                    and rvol is not None and rvol >= config.FADE_ADVERSE_MIN_RVOL
+                )
+
+                if adverse_thrust or breakout_short or vol_backed_adverse:
+                    if adverse_thrust:
+                        thrust_kind = "rip" if side == "SHORT" else "dump"
+                        comment_msg = (f"[THRUST-VETO] Look-back bar range {rng_pct:.2f}% > "
+                                       f"{config.THRUST_VETO_RANGE_PCT}% closing at pos {close_pos:.2f} — "
+                                       f"runaway {thrust_kind} against {side}; not fading.{c_str} | {reason}")
+                        reject_reason = "THRUST_VETO"
+                        self.veto_stats["candle_thrust_veto"] += 1
+                    elif breakout_short:
+                        comment_msg = (f"[FADE-GUARD] Short into heavy-volume breakout: "
+                                       f"rvol {rvol:.2f} >= {config.FADE_BREAKOUT_RVOL}, "
+                                       f"{dist_52h*100:.2f}% from 52wH; not fading the breakout.{c_str} | {reason}")
+                        reject_reason = "FADE_BREAKOUT"
+                        self.veto_stats["candle_breakout_veto"] += 1
+                    else:
+                        comment_msg = (f"[FADE-GUARD] Volume-backed adverse close: bar closed at "
+                                       f"adverse pos {adverse_pos:.2f} on rvol {rvol:.2f} "
+                                       f">= {config.FADE_ADVERSE_MIN_RVOL}; move not noise, not fading.{c_str} | {reason}")
+                        reject_reason = "FADE_ADVERSE"
+                        self.veto_stats["candle_adverse_veto"] += 1
                     status = "VETOED"
                     limit_price = entry_price
                     limit_expiry = (now + timedelta(hours=1)).isoformat()
                     qty = 0
-                    stop_loss_pct = 0.50
-                    take_profit_pct = 1.00
                 else:
                     # Limit Order 25% strength logic — retrace toward the bar extreme.
-                    # The pending limit MUST be non-marketable for the entry side, else
-                    # the fill trigger (LONG: price<=limit, SHORT: price>=limit) is
-                    # already satisfied and fires instantly at market, giving no
-                    # patience. When the bar closed in the extreme quartile against us,
-                    # the 25% level lands on the wrong side of the close, so fall back
-                    # to the bar extreme (cf. BALKRISIND/SBILIFE 2026-06-15: short limit
-                    # placed below market -> instant fill into the breakout; one even
-                    # filled above the bar's high).
                     rng = high - low
-                    # eps covers bars that closed exactly at their extreme (pos 0/1),
-                    # where the bar-extreme fallback would still equal the close.
                     eps = 0.0005
                     if side == "LONG":
                         limit_price = round(low + 0.25 * rng, 2)
@@ -1221,22 +1298,20 @@ class VanguardOrchestrator:
 
                     comment_msg = f"PENDING_LIMIT at {limit_price} - Look-back candle failed{c_str} | {reason}"
                     status = "PENDING_LIMIT"
+                    reject_stage = None # Reset since it is not rejected yet (limit order placed)
 
                     # Calculate quantity for limit order, assuming limit_price as entry
-                    stop_loss_pct, take_profit_pct = self.compute_15min_atr(ticker)
                     base_qty = self.risk_manager.calculate_trade_quantity(limit_price, stop_loss_pct)
                     qty = max(1, int(base_qty * size_multiplier))
-
                     limit_expiry = (now + timedelta(minutes=15)).isoformat()
             else:
                 c_str = " (Candle data unavailable)"
                 comment_msg = f"Cancelled - Look-back candle confirmation failed{c_str} | {reason}"
                 status = "CANCELLED"
+                reject_reason = "CONFIRM_FAIL_FADED"
                 limit_price = entry_price
                 limit_expiry = (now + timedelta(hours=1)).isoformat()
                 qty = 0
-                stop_loss_pct = 0.50
-                take_profit_pct = 1.00
 
             trade = {
                 "size_multiplier":     size_multiplier,
@@ -1249,6 +1324,7 @@ class VanguardOrchestrator:
                 "stop_loss_pct":       stop_loss_pct,
                 "take_profit_pct":     take_profit_pct,
                 "peak_profit_pct":     0.0,
+                "peak_adverse_pct":    0.0,
                 "peak_price":          limit_price,
                 "timestamp":           now.isoformat(),
                 "exit_time":           limit_expiry if status == "PENDING_LIMIT" else (now + timedelta(hours=1)).isoformat(),
@@ -1270,6 +1346,18 @@ class VanguardOrchestrator:
                 "score_1d":            float(score_1d) if score_1d is not None else None,
                 "is_ensemble":         is_ensemble,
                 "net_pnl_amt":         0.0,
+                
+                # Structured fields
+                "reject_stage":        reject_stage,
+                "reject_reason":       reject_reason,
+                "rvol":                float(rvol) if rvol is not None else None,
+                "dist_52h":            float(dist_52h) if dist_52h is not None else None,
+                "close_pos":           float(close_pos) if close_pos is not None else None,
+                "range_pct":           float(rng_pct) if rng_pct is not None else None,
+                "adverse_pos":         float(adverse_pos) if adverse_pos is not None else None,
+                "market_entry_px":     entry_price, # Signal/market price
+                "limit_px":            limit_price if status == "PENDING_LIMIT" else None,
+                "entry_mode":          None,
             }
             
             if status == "PENDING_LIMIT":
@@ -1278,9 +1366,10 @@ class VanguardOrchestrator:
                 print(f"[IMMEDIATE CANCEL] {ticker} ({side}) - Look-back candle check failed{c_str}.")
             
             with self.lock:
-                if status == "PENDING_LIMIT":
+                if status in ("PENDING_LIMIT", "VETOED", "CANCELLED"):
                     self.active_shadow_trades.append(trade)
-                    self.risk_manager.used_margin += trade["margin_used"]
+                    if status == "PENDING_LIMIT":
+                        self.risk_manager.used_margin += trade["margin_used"]
             
         self.risk_manager.update_upstox_stats(self.active_shadow_trades)
         log_trade(trade)
@@ -1301,6 +1390,7 @@ class VanguardOrchestrator:
             "stop_loss_pct":       0.0,
             "take_profit_pct":     0.0,
             "peak_profit_pct":     0.0,
+            "peak_adverse_pct":    0.0,
             "peak_price":          entry_price,
             "timestamp":           now.isoformat(),
             "exit_time":           (now + timedelta(hours=1)).isoformat(),
@@ -1448,6 +1538,7 @@ class VanguardOrchestrator:
                         else:
                             trade["peak_price"] = min(trade.get("peak_price", 99999999.0), price)
                         trade["peak_profit_pct"] = max(trade["peak_profit_pct"], pnl)
+                        trade["peak_adverse_pct"] = min(trade.get("peak_adverse_pct", 0.0), pnl)
 
                         # PENDING_LIMIT tracking
                         if trade["status"] == "PENDING_LIMIT":
@@ -1474,6 +1565,8 @@ class VanguardOrchestrator:
                                 trade["buy_brokerage"] = config.BROKERAGE_PER_ORDER
                                 trade["exit_time"] = (now + timedelta(hours=1)).isoformat()
                                 trade["comment"] = trade.get("comment", "") + f" | Limit filled at {price} ({order_id})"
+                                trade["entry_mode"] = "fade_limit_filled"
+                                self.veto_stats["candle_faded_filled"] += 1
                                 
                                 with self.lock:
                                     self.risk_manager.realized_charges += config.BROKERAGE_PER_ORDER
@@ -1499,31 +1592,48 @@ class VanguardOrchestrator:
                                         trade["buy_brokerage"] = config.BROKERAGE_PER_ORDER
                                         trade["exit_time"] = (now + timedelta(hours=1)).isoformat()
                                         trade["comment"] = trade.get("comment", "") + f" | 15m wait confirmed new candle, filled at {price} ({order_id})"
+                                        trade["entry_mode"] = "limit_expired_market_fill"
+                                        self.veto_stats["candle_faded_filled"] += 1
                                         
                                         with self.lock:
                                             self.risk_manager.realized_charges += config.BROKERAGE_PER_ORDER
                                         log_trade(trade)
                                         print(f"[LIMIT EXPIRED -> MARKET FILL] {trade['ticker']} ({trade['side']}) new candle confirmed, filled at {price}")
                                     else:
-                                        # Cancel permanently
+                                        # Keep in active trades with quantity=0, margin=0 to track counterfactual return for 1 hour
                                         trade["status"] = "CANCELLED"
                                         trade["comment"] = trade.get("comment", "") + " | 15m wait expired, new candle failed confirmation."
+                                        trade["reject_stage"] = "candle"
+                                        trade["reject_reason"] = "LIMIT_EXPIRED"
+                                        trade["quantity"] = 0
+                                        trade["entry_price"] = trade["market_entry_px"]
+                                        trade_start = datetime.fromisoformat(trade["timestamp"])
+                                        trade["exit_time"] = (trade_start + timedelta(hours=1)).isoformat()
+                                        self.veto_stats["candle_faded_expired"] += 1
+                                        
                                         with self.lock:
                                             self.risk_manager.used_margin -= trade.get("margin_used", 0.0)
                                             trade["margin_used"] = 0.0
                                         log_trade(trade)
-                                        print(f"[LIMIT EXPIRED -> CANCELLED] {trade['ticker']} ({trade['side']}) new candle failed confirmation.")
+                                        print(f"[LIMIT EXPIRED -> CANCELLED] {trade['ticker']} ({trade['side']}) new candle failed confirmation. Counterfactual tracking started.")
                                 continue
 
-                        # Vetoed trade check EOD or 1H expiry
-                        if trade["status"] == "VETOED":
+                        # Vetoed or Cancelled trade check EOD or 1H expiry
+                        if trade["status"] in ["VETOED", "CANCELLED"]:
                             trade["exit_price"] = price
                             trade["final_profit_pct"] = round(pnl, 4)
                             veto_expiry = datetime.fromisoformat(trade["exit_time"])
                             if now >= veto_expiry or now.strftime("%H:%M") >= "15:15":
-                                trade["status"] = "VETOED_EXPIRED"
+                                old_status = trade["status"]
+                                trade["status"] = f"{old_status}_EXPIRED"
+                                
+                                # Record running guard value stats (only for candle-stage rejections/cancellations)
+                                if trade.get("reject_stage") == "candle":
+                                    self.veto_stats["running_guard_value_sum"] += (-pnl)
+                                    self.veto_stats["running_guard_value_count"] += 1
+                                
                                 log_trade(trade)
-                                print(f"[VETOED_EXPIRED] {trade['ticker']} {trade['side']} | 1h Close: Rs{price:.2f} | P&L if taken: {pnl:.2f}%")
+                                print(f"[{trade['status']}] {trade['ticker']} {trade['side']} | 1h Close: Rs{price:.2f} | P&L if taken: {pnl:.2f}%")
                             else:
                                 log_trade(trade)
                             continue
@@ -1662,7 +1772,7 @@ class VanguardOrchestrator:
                 with self.lock:
                     self.active_shadow_trades = [
                         t for t in self.active_shadow_trades 
-                        if t["status"] in ["OPEN", "PENDING_ENTRY", "PENDING_LIMIT", "VETOED"]
+                        if t["status"] in ["OPEN", "PENDING_ENTRY", "PENDING_LIMIT", "VETOED", "CANCELLED"]
                     ]
 
             except Exception as e:
@@ -1834,7 +1944,16 @@ class VanguardOrchestrator:
                                 self.veto_stats = {
                                     "s1_vetoes": 0, "s2_vetoes": 0,
                                     "s1_passes": 0, "s2_passes": 0,
-                                    "s1_tickers": [], "s2_tickers": []
+                                    "s1_tickers": [], "s2_tickers": [],
+                                    "candle_confirmed": 0,
+                                    "candle_faded_filled": 0,
+                                    "candle_faded_expired": 0,
+                                    "candle_thrust_veto": 0,
+                                    "candle_breakout_veto": 0,
+                                    "candle_adverse_veto": 0,
+                                    "candle_live_reversal": 0,
+                                    "running_guard_value_sum": 0.0,
+                                    "running_guard_value_count": 0,
                                 }
 
                             is_s1 = reason.startswith("[S1-")
@@ -1866,7 +1985,9 @@ class VanguardOrchestrator:
                                     score_30m=full_feature_row.get("score_30m"),
                                     score_1d=full_feature_row.get("score_1d"),
                                     is_ensemble=full_feature_row.get("is_ensemble", False),
-                                    size_multiplier=size_multiplier
+                                    size_multiplier=size_multiplier,
+                                    rvol=full_feature_row.get("rvol_raw"),
+                                    dist_52h=full_feature_row.get("dist_52h_model")
                                 )
                                 break
                             else:
@@ -1904,6 +2025,12 @@ class VanguardOrchestrator:
                 print("═"*70)
                 print(f" S1 (Technical) : VETOED={self.veto_stats['s1_vetoes']} | PASSED={self.veto_stats['s1_passes']}")
                 print(f" S2 (Governance): VETOED={self.veto_stats['s2_vetoes']} | PASSED={self.veto_stats['s2_passes']}")
+                
+                # Candle decisions & vetoes extended output
+                guard_val_avg = (self.veto_stats["running_guard_value_sum"] / self.veto_stats["running_guard_value_count"]) if self.veto_stats["running_guard_value_count"] > 0 else 0.0
+                print(f" Candle Entry   : CONFIRMED={self.veto_stats['candle_confirmed']} | FADED_FILLED={self.veto_stats['candle_faded_filled']} | FADED_EXPIRED={self.veto_stats['candle_faded_expired']}")
+                print(f" Candle Vetoes  : THRUST={self.veto_stats['candle_thrust_veto']} | BREAKOUT={self.veto_stats['candle_breakout_veto']} | ADVERSE={self.veto_stats['candle_adverse_veto']} | REVERSAL={self.veto_stats['candle_live_reversal']}")
+                print(f" Running Guard Value (Candle Stage Vetoes): {guard_val_avg:+.2f}% (N={self.veto_stats['running_guard_value_count']})")
                 print("═"*70 + "\n")
 
                 # Boundary Alignment Sleep

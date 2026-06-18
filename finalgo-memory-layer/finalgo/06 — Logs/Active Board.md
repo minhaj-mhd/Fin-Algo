@@ -13,6 +13,8 @@ tags: [board]
 
 ## 🔵 Current Focus
 
+* **Shadow tracking peak negative PnL (COMPLETED)** — Implemented tracking of peak negative PnL (drawdown/maximum adverse excursion) in `trades` table, orchestrator tracking loop, risk manager, and dashboard UI templates (`vanguard_v2.html`, `strategy_detail.html`, `ticker_detail.html`). Verified with unit tests. See [[06 — Logs/Conversations/Conv-2026-06-17-Shadow-Peak-Negative|Conversation Log]].
+* **Phase-1 Dual-Resolution Retrieval-based Hybrid model (COMPLETED)** — Implemented contrastive dual-resolution transformer pre-training, FAISS index with bucket-filtering, time-decay, and 12-D neighbor returns distribution feature extraction. Trained LightGBM Ranker with graded relevance labels. Diagnostics and walk-forward evaluations completed, showing significant Net PnL (+0.94 bps) and Sharpe (+1.17) uplifts for top-3 LONG picks. See [[06 — Logs/Conversations/Conv-2026-06-17-Transformer-Retrieval-Phase1|Conversation Log]].
 * **Memory layer restructure (IN PROGRESS)** — vault reorganized into the `00–09` taxonomy with
   per-doc front-matter and a generated index (`scripts/memory/build_index.py`). See
   [[06 — Logs/Memory Layer Restructure Plan|Restructure Plan]].
@@ -22,6 +24,8 @@ tags: [board]
 * **Intraday edge — strategic**: four independent lines (CST, DualRes, sided-transformer, gate) all
   confirm the 1h price/volume ceiling is **information**, not model/loss. Next real lever is
   order-flow / microstructure data, not another model.
+* **Performance tracking of candle-stage decisions (COMPLETED)** — Closed tracking gap for candle rejections, vetoes, and retracement limits. Structured terminal outcomes logged to JSONL for paired-difference and confirmation edge analysis. Verified with unit tests. See [[06 — Logs/Conversations/Conv-2026-06-18-Track-Candle-Rejections|Conversation Log]].
+* **v2 + Transformer 1-Day Hold Backtest (COMPLETED)**: Verified that shortening the hold period from 3 days to 1 day destroys the +32 bps `v2` edge (drops to ~7 bps net, losing significance), while the Transformer still adds zero value (+0.28 bps uplift). Conclusion stands: Deploy `v2-alone` on the 3-day holding period. See [[06 — Logs/Conversations/Conv-2026-06-12-v2-Transformer-1D-Backtest|Conversation Log]].
 
 ## Next Steps
 
@@ -50,6 +54,7 @@ Linked to: [[00 — Start Here/Welcome|Main Navigation Index]]
 
 Concluded conversations are archived into the dated Daily Logs below (originals removed from `Conversations/` per the teardown protocol):
 
+* [[06 — Logs/Daily Logs/2026-06-16|Daily Log 2026-06-16]] — Fixed Nifty 500 YFinance ticker issue.
 * [[06 — Logs/Daily Logs/2026-06-11|Daily Log 2026-06-11]] — V2 Daily Model details query.
 * [[06 — Logs/Daily Logs/2026-06-10|Daily Log 2026-06-10]] — Daily Gatekeeper V2/V3 rebuild, standalone Gauntlet v2 certification, downstream gating uplift certification, Gemini rate-limit & sentiment fixes, Vanguard refactor.
 * [[06 — Logs/Daily Logs/2026-06-09|Daily Log 2026-06-09]] — Jupyter MCP fix/clean-start, Gemini rotator + 503 handling, skipped-AI-trade tracking, holiday check, v17 tree print, V10/V18 query, TBM validation (⚠️ short "breakthrough" debunked as cost-sign bug), v19 CatBoost.
@@ -59,5 +64,6 @@ Concluded conversations are archived into the dated Daily Logs below (originals 
 * [[06 — Logs/Daily Logs/2026-06-05|Daily Log 2026-06-05]]
 * [[06 — Logs/Daily Logs/2026-06-04|Daily Log 2026-06-04]]
 
-**Currently active (not yet concluded):** Print-v10-Final-Tree (06-08); API-Keys-Performance, Hybrid-Optimization, Hybrid-v10-v17, Test-Jupyter-MCP, v17-Random-Forest, v18-Directional-Random-Forest (06-09).
+**Currently active (not yet concluded):** Print-v10-Final-Tree (06-08); API-Keys-Performance, Hybrid-Optimization, Hybrid-v10-v17, Test-Jupyter-MCP, v17-Random-Forest, v18-Directional-Random-Forest (06-09); [[06 — Logs/Conversations/Conv-2026-06-17-Check-Tuning-Progress|Check-Tuning-Progress (06-17)]]; [[06 — Logs/Conversations/Conv-2026-06-17-Shadow-Peak-Negative|Shadow-Peak-Negative (06-17)]].
+
 

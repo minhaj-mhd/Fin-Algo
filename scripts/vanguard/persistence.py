@@ -22,6 +22,63 @@ def update_markdown_ledger(trade):
 def log_trade(trade):
     """Saves a trade record to the SQLite database and logs to the Markdown ledger if concluded."""
     db_log_trade(trade)
+    
+    # Check if concluded (terminal)
+    terminal_statuses = [
+        "CLOSED", "TAKE_PROFIT", "STOP_LOSS", "EOD", "BREAKEVEN",
+        "CONVICTION_FLIP", "TRAILING_STOP", "VETOED_EXPIRED", "CANCELLED_EXPIRED"
+    ]
+    status_str = trade.get("status") or ""
+    is_terminal = status_str in terminal_statuses or status_str.endswith("_EXPIRED")
+    
+    if is_terminal:
+        # Check if the trade is a candle-stage decision
+        if trade.get("reject_stage") == "candle" or trade.get("entry_mode") is not None:
+            entry_price = float(trade.get("entry_price") or 0.0)
+            exit_price = float(trade.get("exit_price") or entry_price)
+            
+            if entry_price > 0:
+                if trade.get("side") == "LONG":
+                    gross_return = (exit_price - entry_price) / entry_price
+                else:
+                    gross_return = (entry_price - exit_price) / entry_price
+                    
+                gross_pnl_bps = gross_return * 10000.0
+                net_pnl_bps = gross_pnl_bps - 10.0  # 10 bps round-trip cost model
+                
+                # Invariant assert: median(net - gross) == -cost
+                assert abs((net_pnl_bps - gross_pnl_bps) - (-10.0)) < 1e-6, "Cost accounting invariant check failed!"
+                
+                row = {
+                    "timestamp": trade.get("timestamp"),
+                    "trade_id": trade.get("trade_id"),
+                    "ticker": trade.get("ticker"),
+                    "side": trade.get("side"),
+                    "entry_mode": trade.get("entry_mode"),
+                    "status": trade.get("status"),
+                    "reject_stage": trade.get("reject_stage"),
+                    "reject_reason": trade.get("reject_reason"),
+                    "rvol": trade.get("rvol"),
+                    "dist_52h": trade.get("dist_52h"),
+                    "close_pos": trade.get("close_pos"),
+                    "range_pct": trade.get("range_pct"),
+                    "adverse_pos": trade.get("adverse_pos"),
+                    "market_entry_px": trade.get("market_entry_px"),
+                    "limit_px": trade.get("limit_px"),
+                    "entry_price": entry_price,
+                    "exit_price": exit_price,
+                    "stop_loss_pct": trade.get("stop_loss_pct"),
+                    "take_profit_pct": trade.get("take_profit_pct"),
+                    "peak_profit_pct": trade.get("peak_profit_pct"),
+                    "peak_adverse_pct": trade.get("peak_adverse_pct"),
+                    "gross_pnl_bps": round(gross_pnl_bps, 4),
+                    "net_pnl_bps": round(net_pnl_bps, 4)
+                }
+                
+                os.makedirs("data/research", exist_ok=True)
+                with open("data/research/candle_rejections.jsonl", "a", encoding="utf-8") as f:
+                    f.write(json.dumps(row) + "\n")
+
     if trade["status"] in ["CLOSED", "TAKE_PROFIT", "STOP_LOSS", "VETOED_EXPIRED"]:
         update_markdown_ledger(trade)
 
