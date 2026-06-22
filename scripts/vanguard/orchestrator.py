@@ -22,7 +22,6 @@ from scripts.vanguard.persistence import log_trade, save_latest_scores
 
 from scripts.database_manager import init_db, get_trades_by_status
 from scripts.tv_ta import get_tv_sentiment
-from scripts.strategy_filters import StrategyFilters
 from scripts.terminal_utils import log
 from scripts.tickers import TICKERS
 
@@ -37,15 +36,16 @@ class VanguardOrchestrator:
         wait_for_network(label="STARTUP")
 
         # 1. Initialize Components
-        self.strategy_filters = StrategyFilters()
+        #    Pipeline 2 (Structural Strategies S1-S50) is retired — the live engine
+        #    generates signals exclusively from Pipeline 1 (Pure AI Signals).
         self.broker = BrokerAdapter()
-        
+
         self.model_manager = ModelManager()
         self.model_manager.load_active_models(model_path, scaler_path, meta_path)
         self.model_manager.load_daily_gatekeepers()
         self.model_manager.load_multi_tf_models()
 
-        self.signal_generator = SignalGenerator(self.strategy_filters)
+        self.signal_generator = SignalGenerator()
         self.risk_manager = RiskManager()
         self.ai_veto_manager = AIVetoManager()
 

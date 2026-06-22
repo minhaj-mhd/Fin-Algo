@@ -2,18 +2,21 @@
 title: "Strategy Catalog & Execution Pipelines"
 type: report
 status: active
-updated: 2026-06-12
+updated: 2026-06-22
 tags: []
 ---
 # 📈 Strategy Catalog & Execution Pipelines
 
-The Vanguard engine supports dual execution pipelines: **Pipeline 1 (Pure AI Signals)** and **Pipeline 2 (Structural Strategies S1-S50)**. While strategies specify standard backtested exit anchors, the active production engine (V2.3) overrides standard risk boundaries at entry with **Dynamic Volatility-Adjusted ATR Brackets** (Stop Loss and Take Profit calculated in real time).
+The Vanguard engine generates live signals from a **single execution pipeline: Pipeline 1 (Pure AI Signals)**. While historical strategies specified standard backtested exit anchors, the active production engine (V2.3) overrides standard risk boundaries at entry with **Dynamic Volatility-Adjusted ATR Brackets** (Stop Loss and Take Profit calculated in real time).
+
+> [!WARNING]
+> **PIPELINE 2 RETIRED (2026-06-22).** The Structural Strategy pipeline (Strategies S1-S50) and the merge / ensemble-overlap stage have been **removed from the live engine**. `SignalGenerator.generate_candidate_signals` now emits **only Pipeline 1** signals; every signal carries `strategy_id=None`, `is_ensemble=False`, and a `source` of `AI_Net` or `AI_Raw`. `scripts/strategy_filters.py` is no longer wired into [`orchestrator.py`](file:///c:/Users/loq/Desktop/Trading/finalgo/scripts/vanguard/orchestrator.py) and is retained only as a historical/backtest reference. The strategy backtests in the table below are **historical only and no longer executed in production.**
 
 ---
 
-## 📊 Live Signal Generation Pipelines
+## 📊 Live Signal Generation Pipeline
 
-The engine runs a two-pronged scanning process during the active session:
+The engine runs a single AI scanning process during the active session:
 
 ```mermaid
 graph TD
@@ -23,46 +26,29 @@ graph TD
         A2 --> A4
         A4 -->|v8_upstox_3y hourly ranker| A5[Dual-Model Prediction Scores]
         A5 -->|Conviction: long - short| A6[Net Conviction Ranks]
-        A6 -->|Filter: Long_Rank / Short_Rank <= 2 & Conv >= 0.10| A7[AI Hybrid Net Candidates (AI_Net)]
-        A6 -->|Exclude Hybrid Net & filter: raw_score >= 0.12| A8[AI Pure Directional Candidates (AI_Raw)]
+        A6 -->|Top-K by Long_Rank / Short_Rank| A7[AI Hybrid Net Candidates (AI_Net)]
+        A6 -->|Exclude Hybrid Net, Top-K by raw_score| A8[AI Pure Directional Candidates (AI_Raw)]
         A7 --> A9[AI Signals List]
         A8 --> A9
     end
 
-    subgraph Pipeline 2: Strategy Signals (Rule Filters)
-        B1[Live Candlestick data] -->|Feature Generator| B2[1-Hour features scores_df]
-        B3[Daily Macro XGBoost Gatekeeper] -->|Eligible Filters| B4{Eligible Pool}
-        B2 --> B4
-        B4 -->|scripts.strategy_filters.apply_filters| B5[Strategy S1-S50 custom rules]
-        B5 -->|Verify daily gatekeeper eligibility| B6[Strategy Signals List]
-    end
-
-    A9 --> M[MERGE & ENSEMBLE OVERLAP CHECK <br> If ticker triggers in both AI & Strategy, flag as Ensemble]
-    B6 --> M
-    M --> V[HIERARCHICAL DUAL-STAGE AI VETO <br> Triage S1 flash + news CRO audit S2]
+    A9 --> V[HIERARCHICAL DUAL-STAGE AI VETO <br> Triage S1 flash + news CRO audit S2]
 ```
 
-### 1. Pipeline 1: Pure AI Signals
+### 1. Pipeline 1: Pure AI Signals (the only live pipeline)
 *   **The Eligible Pool**: Filters the universe to symbols in the daily macro `long_eligible` or `short_eligible` sets, excluding tickers currently in 30-minute entry or veto cooldowns.
-*   **AI Hybrid Net Candidates**: Selects the top 2 tickers meeting `min_conviction = 0.10`, sorted by relative conviction rank (`Long_Rank` / `Short_Rank` ascending). Trigger source is logged as `AI_Net`.
-*   **AI Pure Directional Candidates**: Excludes the hybrid net candidates, then selects the top 2 remaining tickers meeting `min_raw_score = 0.12`, sorted by raw direction scores (`long_score` / `short_score` descending). Trigger source is logged as `AI_Raw`.
+*   **AI Hybrid Net Candidates**: Selects the top `entry_top_k` tickers per side, sorted by relative conviction rank (`Long_Rank` / `Short_Rank` ascending). Trigger source is logged as `AI_Net`.
+*   **AI Pure Directional Candidates**: Excludes the hybrid net candidates, then selects the top `entry_top_k` remaining tickers per side, sorted by raw direction scores (`long_score` / `short_score` descending). Trigger source is logged as `AI_Raw`.
 
-### 2. Pipeline 2: Structural Strategy Signals
-*   **The Eligible Pool**: Filters the universe to symbols in daily macro eligible sets and not in active cooldowns.
-*   **Rule Filters**: Passes the filtered universe through `scripts/strategy_filters.py` to evaluate Strategy 1 through 50 rules (e.g. Opening Range Breakout boundaries or Quad-TF unanimity).
-*   **Validation**: Double-checks each strategy signal explicitly against daily macro gatekeepers for the trade side before processing.
+### 2. ~~Pipeline 2: Structural Strategy Signals~~ — 🔴 RETIRED (2026-06-22)
+*Removed from the live engine.* The former rule-filter pipeline (`scripts/strategy_filters.py`, Strategies S1-S50) and its daily-gatekeeper re-validation no longer run in production. The strategy definitions below are kept for historical reference only.
 
-### 3. Pipeline Merging & Ensemble Overlaps
-*   **The Merge**: Combines signals generated from both pipelines.
-*   **Ensemble Overlap Check**: If a symbol and side are triggered concurrently by both a structural strategy (e.g. Strategy 8) and a pure AI signal (e.g. `AI_Net`), the engine flags the trade as an **Ensemble** and updates its source log:
-    ```text
-    [ENSEMBLE MATCH] Ticker RELIANCE.NS (LONG) triggered by both Strategy S8 and AI_Net!
-    Source updated to: Ensemble_S8+AI_Net
-    ```
+### 3. ~~Pipeline Merging & Ensemble Overlaps~~ — 🔴 RETIRED (2026-06-22)
+*Removed from the live engine.* With Pipeline 2 gone there is nothing to merge against; the engine no longer produces `Ensemble_*` sources. All live signals are pure AI.
 
 ---
 
-## 🏆 Key Backtested Strategies Reference
+## 🏆 Historical Backtested Strategies Reference (Retired — not executed in production)
 
 All figures below represent historic backtest baselines under a **strict 0.06% round-trip transaction and slippage fee** (calculated on a ₹10 Buy + ₹10 Sell order brokerage, plus Securities Transaction Tax [STT] on sales):
 
