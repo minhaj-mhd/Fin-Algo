@@ -104,6 +104,12 @@ GEMINI_S2_MODEL_TIERS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]
 # isn't always tried first (spreads load across gemini-3.5-flash / 3-flash-preview);
 # the -lite fallback tiers keep their fixed order at the tail. 1 = no rotation.
 GEMINI_S1_PRIMARY_ROTATE = 2
+# Master switch for the Stage-1 "flash" veto (structural-wall + momentum-trap
+# checks). When False, S1 is skipped entirely: trades go straight to the Stage-2
+# news/governance audit (which can still veto), and the S1 Gemini call is saved.
+# Used to A/B test whether S1 is blocking too many good trades. Flip at runtime
+# (no code edit) with GEMINI_S1_VETO_ENABLED=0 in the environment/.env.
+GEMINI_S1_VETO_ENABLED = os.getenv("GEMINI_S1_VETO_ENABLED", "1").strip().lower() not in ("0", "false", "no", "off")
 GEMINI_MODEL_TIERS = ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-3.1-flash-lite", "gemini-2.5-flash", "gemini-2.5-flash-lite"]
 
 

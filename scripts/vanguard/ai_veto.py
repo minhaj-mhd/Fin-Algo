@@ -404,8 +404,18 @@ Output STRICT JSON only — no markdown, no extra text:
         sent1, reason1, prob1 = "PASS", "N/A", "N/A"
         stage1_success = False
 
-        s1_tiers = self._next_s1_tiers()
-        log(f"[S1] Model order this audit: {' -> '.join(s1_tiers)}")
+        # --- S1 master switch (A/B test: is the flash veto killing good trades?) ---
+        # When disabled, skip the Stage-1 model call entirely and fall through to the
+        # Stage-2 news/governance audit (which can still veto). S1 verdict is treated
+        # as PASS so S2 runs its independent check; the saved call also eases key load.
+        if not getattr(config, "GEMINI_S1_VETO_ENABLED", True):
+            log(f"[S1-BYPASS] Stage 1 flash veto DISABLED (GEMINI_S1_VETO_ENABLED=0) — {ticker} {side} routed straight to Stage 2.")
+            sent1, reason1, prob1 = "PASS", "S1 bypassed (flash veto disabled)", "N/A"
+            stage1_success = True
+            s1_tiers = []
+        else:
+            s1_tiers = self._next_s1_tiers()
+            log(f"[S1] Model order this audit: {' -> '.join(s1_tiers)}")
         for current_model in s1_tiers:
             try:
                 log(f"[S1] Attempting {current_model} via rotator for {ticker}...")
