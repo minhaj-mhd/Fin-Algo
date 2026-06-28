@@ -197,11 +197,24 @@ def build_rolling_1h_ohlcv(df15):
     return win
 
 
-def compute_features(df, legacy=True):
+def compute_features(df, legacy=True, clean_v21=False):
     """Given a dataframe with columns Open/High/Low/Close/Volume indexed by datetime,
     compute all features used by the ranking model and return the augmented dataframe.
+
+    clean_v21=True (v21 rolling-1h only) applies two cleanliness changes; with the default
+    clean_v21=False the output is byte-identical to before (all existing models unaffected):
+      • wall-clock lookback parity — the rolling-1h grid is stepped every 15 min, so a fixed
+        BAR-COUNT window spans 1/4 the wall-clock of v10's native-1h bars. S() scales every
+        multi-bar lookback by STEP_RATIO=4 so v21 features span the same wall-clock as v10.
+        Single-step returns/accelerations stay at the native 15-min step.
+      • mask-not-fill — warmup/degenerate values are left NaN (dropped downstream by the
+        panel's dropna) instead of filled with 0.0/0.5 that would z-score into fake signal.
     """
     df = df.copy()
+    STEP_RATIO = 4
+    S = (lambda n: int(round(n * STEP_RATIO))) if clean_v21 else (lambda n: n)
+    def _fz(series, val):  # fill-zero unless v21 (then keep NaN so the row is dropped)
+        return series if clean_v21 else series.fillna(val)
 
     # ── BASIC ─────────────────────────────────────────────────────────────────
     df['Return']     = df['Close'].pct_change()
@@ -210,100 +223,100 @@ def compute_features(df, legacy=True):
     df['OC_Range']   = (df['Close']-df['Open'])/df['Open']
 
     # ── TREND / MOMENTUM ──────────────────────────────────────────────────────
-    df['Dist_SMA_6']  = (df['Close'] - SMA(df['Close'],6))  / df['Close']
-    df['Dist_SMA_12'] = (df['Close'] - SMA(df['Close'],12)) / df['Close']
-    df['Dist_SMA_50'] = (df['Close'] - SMA(df['Close'],50)) / df['Close']
-    df['Dist_EMA_12'] = (df['Close'] - EMA(df['Close'],12)) / df['Close']
-    df['Dist_EMA_24'] = (df['Close'] - EMA(df['Close'],24)) / df['Close']
-    df['Dist_HMA_12'] = (df['Close'] - HMA(df['Close'],12)) / df['Close']
-    df['RSI_14']      = RSI(df['Close'],14)
-    df['ROC_12']      = ROC(df['Close'],12)
-    df['MOM_12_pct']  = df['Close'].pct_change(12)
+    df['Dist_SMA_6']  = (df['Close'] - SMA(df['Close'],S(6)))  / df['Close']
+    df['Dist_SMA_12'] = (df['Close'] - SMA(df['Close'],S(12))) / df['Close']
+    df['Dist_SMA_50'] = (df['Close'] - SMA(df['Close'],S(50))) / df['Close']
+    df['Dist_EMA_12'] = (df['Close'] - EMA(df['Close'],S(12))) / df['Close']
+    df['Dist_EMA_24'] = (df['Close'] - EMA(df['Close'],S(24))) / df['Close']
+    df['Dist_HMA_12'] = (df['Close'] - HMA(df['Close'],S(12))) / df['Close']
+    df['RSI_14']      = RSI(df['Close'],S(14))
+    df['ROC_12']      = ROC(df['Close'],S(12))
+    df['MOM_12_pct']  = df['Close'].pct_change(S(12))
     if legacy:
-        df['CCI_20']      = CCI_legacy(df, 20)
+        df['CCI_20']      = CCI_legacy(df, S(20))
     else:
-        df['CCI_20']      = CCI(df, 20)
-    df['WPR_14']      = WPR(df,14)
-    df['TRIX_15']     = TRIX(df['Close'],15)
+        df['CCI_20']      = CCI(df, S(20))
+    df['WPR_14']      = WPR(df,S(14))
+    df['TRIX_15']     = TRIX(df['Close'],S(15))
 
-    df['PPO']        = PPO(df['Close'])
-    df['PPO_Signal'] = EMA(df['PPO'], 9)
+    df['PPO']        = PPO(df['Close'], S(12), S(26))
+    df['PPO_Signal'] = EMA(df['PPO'], S(9))
     df['PPO_Hist']   = df['PPO'] - df['PPO_Signal']
-    df['Dist_DPO_20']  = DPO(df['Close']) / df['Close']
+    df['Dist_DPO_20']  = DPO(df['Close'], S(20)) / df['Close']
     if legacy:
-        df['Ultimate_Osc'] = Ultimate_Oscillator_legacy(df)
+        df['Ultimate_Osc'] = Ultimate_Oscillator_legacy(df, S(7), S(14), S(28))
     else:
-        df['Ultimate_Osc'] = Ultimate_Oscillator(df)
+        df['Ultimate_Osc'] = Ultimate_Oscillator(df, S(7), S(14), S(28))
 
     # ── VOLATILITY / CHANNELS ─────────────────────────────────────────────────
-    bb_upper, bb_lower, bb_width = Bollinger_Bands(df['Close'],20)
+    bb_upper, bb_lower, bb_width = Bollinger_Bands(df['Close'],S(20))
     df['PercentB']       = (df['Close'] - bb_lower) / (bb_upper - bb_lower + 1e-8)
     df['Dist_BB_Upper']  = (bb_upper - df['Close']) / df['Close']
     df['Dist_BB_Lower']  = (df['Close'] - bb_lower) / df['Close']
     df['BB_Width']       = bb_width / df['Close']
 
-    dc_upper, dc_lower, dc_width = Donchian_Channel(df,20)
+    dc_upper, dc_lower, dc_width = Donchian_Channel(df,S(20))
     df['Dist_Donchian_Upper'] = (dc_upper - df['Close']) / df['Close']
     df['Dist_Donchian_Lower'] = (df['Close'] - dc_lower) / df['Close']
     df['Donchian_Width']      = dc_width / df['Close']
 
-    keltner_upper, keltner_lower, keltner_width = Keltner_Channel(df,20)
+    keltner_upper, keltner_lower, keltner_width = Keltner_Channel(df,S(20))
     df['Dist_Keltner_Upper'] = (keltner_upper - df['Close']) / df['Close']
     df['Dist_Keltner_Lower'] = (df['Close'] - keltner_lower) / df['Close']
     df['Keltner_Width']      = keltner_width / df['Close']
 
     # ── VOLUME ────────────────────────────────────────────────────────────────
     obv = OBV(df)
-    obv_sma = SMA(obv, 20)
+    obv_sma = SMA(obv, S(20))
     df['OBV_Dist']      = (obv - obv_sma) / (obv_sma.abs() + 1e-8)
-    df['CMF_20']        = CMF(df,20)
+    df['CMF_20']        = CMF(df,S(20))
     df['Volume_Change'] = df['Volume'].pct_change()
-    df['Volume_Zscore'] = (df['Volume']-df['Volume'].rolling(24).mean())/df['Volume'].rolling(24).std()
-    df['PVO']           = PVO(df['Volume'])
+    df['Volume_Zscore'] = (df['Volume']-df['Volume'].rolling(S(24)).mean())/df['Volume'].rolling(S(24)).std()
+    df['PVO']           = PVO(df['Volume'], S(12), S(26))
 
     # ── STOCHASTIC / OSCILLATORS ──────────────────────────────────────────────
-    stoch_k, stoch_d = Stochastic(df)
+    stoch_k, stoch_d = Stochastic(df, S(14), S(3))
     df['Stoch_K'] = stoch_k
     df['Stoch_D'] = stoch_d
 
-    elder_bull, elder_bear = Elder_Ray(df)
+    elder_bull, elder_bear = Elder_Ray(df, S(13))
     df['Elder_Bull'] = elder_bull / df['Close']
     df['Elder_Bear'] = elder_bear / df['Close']
 
     if legacy:
-        vi_plus, vi_minus = Vortex_legacy(df)
+        vi_plus, vi_minus = Vortex_legacy(df, S(14))
     else:
-        vi_plus, vi_minus = Vortex(df)
+        vi_plus, vi_minus = Vortex(df, S(14))
     df['Vortex_Plus']  = vi_plus
     df['Vortex_Minus'] = vi_minus
 
     # ── STATISTICAL / TEMPORAL ────────────────────────────────────────────────
-    df['Price_Zscore']  = (df['Close']-df['Close'].rolling(24).mean())/df['Close'].rolling(24).std()
-    df['Rolling_Skew']  = df['Close'].rolling(24).skew()
-    df['Rolling_Kurt']  = df['Close'].rolling(24).kurt()
+    df['Price_Zscore']  = (df['Close']-df['Close'].rolling(S(24)).mean())/df['Close'].rolling(S(24)).std()
+    df['Rolling_Skew']  = df['Close'].rolling(S(24)).skew()
+    df['Rolling_Kurt']  = df['Close'].rolling(S(24)).kurt()
     df['Price_Accel']   = df['Return'].diff()  # Fixed: acceleration of return, not price
     df['Hour']          = df.index.hour
     df['DayOfWeek']     = df.index.dayofweek
 
     # ── LIQUIDITY / RANKING ANCHORS ───────────────────────────────────────────
     df['Dollar_Volume'] = df['Close'] * df['Volume']
-    df['RVOL']          = df['Volume'] / (df['Volume'].rolling(20).mean() + 1e-8)
+    df['RVOL']          = df['Volume'] / (df['Volume'].rolling(S(20)).mean() + 1e-8)
 
     # FIX: 52-Week High/Low — 52 weeks × 5 days × 6.25 hours ≈ 1625 hourly bars
     # (was incorrectly set to 250, which is only ~10 trading days)
-    W52 = 1625
-    high_52w = df['High'].rolling(W52, min_periods=50).max()
-    low_52w  = df['Low'].rolling(W52,  min_periods=50).min()
+    W52 = S(1625)
+    high_52w = df['High'].rolling(W52, min_periods=S(50)).max()
+    low_52w  = df['Low'].rolling(W52,  min_periods=S(50)).min()
     df['Dist_52W_High'] = (df['Close'] - high_52w) / (high_52w + 1e-8)
     df['Dist_52W_Low']  = (df['Close'] - low_52w)  / (low_52w  + 1e-8)  # NEW
 
     # ── LAG FEATURES (3-bar memory for momentum continuation/reversal) ─────────
     # These give the model temporal context without look-ahead
     for lag in [1, 2, 3]:
-        df[f'Return_lag{lag}']        = df['Return'].shift(lag)
-        df[f'RSI_lag{lag}']           = df['RSI_14'].shift(lag)
-        df[f'Volume_Zscore_lag{lag}'] = df['Volume_Zscore'].shift(lag)
-        df[f'OC_Range_lag{lag}']      = df['OC_Range'].shift(lag)
+        df[f'Return_lag{lag}']        = df['Return'].shift(S(lag))
+        df[f'RSI_lag{lag}']           = df['RSI_14'].shift(S(lag))
+        df[f'Volume_Zscore_lag{lag}'] = df['Volume_Zscore'].shift(S(lag))
+        df[f'OC_Range_lag{lag}']      = df['OC_Range'].shift(S(lag))
 
     # ── MOMENTUM STREAK (consecutive up/down bars) ────────────────────────────
     up_flag   = (df['Return'] > 0).astype(int)
@@ -347,7 +360,7 @@ def compute_features(df, legacy=True):
 
         # Distance from VWAP, capped at +-3% (realistic max for liquid NSE hourly bar)
         vwap_dist_raw = (df['Close'] - vwap) / (vwap.abs() + 1e-8)
-        df['VWAP_Dist'] = vwap_dist_raw.clip(-0.03, 0.03).fillna(0.0)  # +ve = above VWAP
+        df['VWAP_Dist'] = _fz(vwap_dist_raw.clip(-0.03, 0.03), 0.0)  # +ve = above VWAP
     except Exception as e:
         df['VWAP_Dist'] = 0.0
 
@@ -366,33 +379,33 @@ def compute_features(df, legacy=True):
         try:
             # 1. IBS (Internal Bar Strength)
             df['IBS'] = (df['Close'] - df['Low']) / (df['High'] - df['Low'] + 1e-8)
-            df['IBS_3'] = df['IBS'].rolling(3).mean().fillna(0.5)
-            
+            df['IBS_3'] = _fz(df['IBS'].rolling(S(3)).mean(), 0.5)
+
             # 2. Buy Pressure (IBS * RVOL)
             df['Buy_Pressure'] = df['IBS'] * df['RVOL']
-            
+
             # 3. Direction Consistency
-            direction = np.sign(df['Return'].fillna(0.0))
-            df['Direction_Consistency_3'] = direction.rolling(3).sum() / 3
-            df['Direction_Consistency_5'] = direction.rolling(5).sum() / 5
-            df['Direction_Consistency_3'] = df['Direction_Consistency_3'].fillna(0.0)
-            df['Direction_Consistency_5'] = df['Direction_Consistency_5'].fillna(0.0)
-            
+            direction = np.sign(_fz(df['Return'], 0.0))
+            df['Direction_Consistency_3'] = direction.rolling(S(3)).sum() / S(3)
+            df['Direction_Consistency_5'] = direction.rolling(S(5)).sum() / S(5)
+            df['Direction_Consistency_3'] = _fz(df['Direction_Consistency_3'], 0.0)
+            df['Direction_Consistency_5'] = _fz(df['Direction_Consistency_5'], 0.0)
+
             # 4. RSI Momentum
-            df['RSI_Momentum'] = (df['RSI_14'] - df['RSI_14'].shift(3)).fillna(0.0)
-            
+            df['RSI_Momentum'] = _fz(df['RSI_14'] - df['RSI_14'].shift(S(3)), 0.0)
+
             # 5. Return Acceleration
-            df['Return_Accel'] = (df['Return'] - df['Return'].shift(1)).fillna(0.0)
-            
+            df['Return_Accel'] = _fz(df['Return'] - df['Return'].shift(1), 0.0)
+
             # 6. Shadows
             df['Lower_Shadow'] = (np.minimum(df['Close'], df['Open']) - df['Low']) / (df['High'] - df['Low'] + 1e-8)
             df['Upper_Shadow'] = (df['High'] - np.maximum(df['Close'], df['Open'])) / (df['High'] - df['Low'] + 1e-8)
-            
+
             # 7. Alpha Persistence
-            rolling_mean_ret = df['Return'].rolling(20).mean().fillna(0.0)
-            alpha = df['Return'].fillna(0.0) - rolling_mean_ret
-            df['Alpha_3H'] = alpha.rolling(3).sum().fillna(0.0)
-            df['Alpha_6H'] = alpha.rolling(6).sum().fillna(0.0)
+            rolling_mean_ret = _fz(df['Return'].rolling(S(20)).mean(), 0.0)
+            alpha = _fz(df['Return'], 0.0) - rolling_mean_ret
+            df['Alpha_3H'] = _fz(alpha.rolling(S(3)).sum(), 0.0)
+            df['Alpha_6H'] = _fz(alpha.rolling(S(6)).sum(), 0.0)
         except Exception as e:
             for col in ['IBS', 'IBS_3', 'Buy_Pressure', 'Direction_Consistency_3', 'Direction_Consistency_5',
                         'RSI_Momentum', 'Return_Accel', 'Lower_Shadow', 'Upper_Shadow', 'Alpha_3H', 'Alpha_6H']:

@@ -2,7 +2,7 @@
 title: "Active Board"
 type: reference
 status: active
-updated: 2026-06-18
+updated: 2026-06-28
 tags: [board]
 ---
 # 🎯 Active Board
@@ -13,6 +13,10 @@ tags: [board]
 
 ## 🔵 Current Focus
 
+* **v21 "cleanest" rolling-1h rebuild (COMPLETED — research, NOT promoted)** — Parallel clean rebuild of live v20 (liquidity universe, bar hygiene, mask-not-fill, wall-clock lookback fix, session-boundary candles + gap features). Verified **no-leak** (shuffle ρ≈0). **Only real lever = the wall-clock lookback fix (+0.0048 long ρ)**; robust MAD scoring + sector-graph feature **DROPPED** (neutral-to-negative); the first eval's "+22% long" was a **feature-set artifact** (corrected = wash). Corp-action adjustment unnecessary — Upstox cache already split-adjusted (verified). Lean v21 saved to `models/research/v21_rolling_1h/` (WF Long ρ 0.0312 / Short 0.0291, **still sub-cost**). **v20 stays LIVE; no Gauntlet.** Reconfirms the 1h info-ceiling: cleanliness ≠ edge. See [[06 — Logs/Conversations/Conv-2026-06-28-v21-Clean-Rolling-1h|Conversation Log]].
+
+* **v20 1H + v3 15min True OOS Backtest Jun 17-18 (COMPLETED)** — Ran true out-of-sample backtest for June 17-18, 2026 using v20 rolling 1H model with v3 15m top-10% gate filter. Generated 36 trades on Jun 17 with Rs. -3,813.72 net PnL (-3.832% ROC), 0.53 Profit Factor, and 52.8% win rate. Data for June 18 was either unavailable in cache or not parsed. See [[06 — Logs/Conversations/Conv-2026-06-19-V20-V3-OOS-Backtest|Conversation Log]].
+* **v20 1H + v3 15min True OOS Backtest (COMPLETED)** — Ran true out-of-sample backtest for June 5–18, 2026 using v20 rolling 1H model with v3 15m top-10% gate filter. Generated 270 trades with Rs. +15,622.01 net PnL (+15.698% ROC), 1.24 Profit Factor, and 48.1% win rate. Hourly analysis reveals severe mid-day decay (Rs. -11,268 loss at 12:15/13:15) but highly profitable openings and closes (Rs. +26,287 gain at 09:15, 10:15, and 14:15). See [[06 — Context & Logs/Conversations/Conv-2026-06-18-OOS-Dual-Model-Backtest|Conversation Log]].
 * **Daily Macro Scan Test Pollution Fix (COMPLETED)** — Resolved test suite runs overwriting the production `daily_gatekeepers.json` file with `MagicMock` failures. Prevented tests from executing the daily macro scan by checking if `pytest` is in `sys.modules` or `PYTEST_CURRENT_TEST` is in the environment. Re-ran the scan to restore valid long and short tickers in the live system. See [[06 — Logs/Conversations/Conv-2026-06-18-Daily-Macro-Gatekeeper-Mock-Pollution|Conversation Log]].
 * **Shadow tracking peak negative PnL (COMPLETED)** — Implemented tracking of peak negative PnL (drawdown/maximum adverse excursion) in `trades` table, orchestrator tracking loop, risk manager, and dashboard UI templates (`vanguard_v2.html`, `strategy_detail.html`, `ticker_detail.html`). Verified with unit tests. See [[06 — Logs/Conversations/Conv-2026-06-17-Shadow-Peak-Negative|Conversation Log]].
 * **Phase-1 Dual-Resolution Retrieval-based Hybrid model (COMPLETED)** — Implemented contrastive dual-resolution transformer pre-training, FAISS index with bucket-filtering, time-decay, and 12-D neighbor returns distribution feature extraction. Trained LightGBM Ranker with graded relevance labels. Diagnostics and walk-forward evaluations completed, showing significant Net PnL (+0.94 bps) and Sharpe (+1.17) uplifts for top-3 LONG picks. See [[06 — Logs/Conversations/Conv-2026-06-17-Transformer-Retrieval-Phase1|Conversation Log]].
