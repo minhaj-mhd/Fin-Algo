@@ -58,10 +58,21 @@ CFG = {
              'overlapping windows inflate significance (effective N ~1/4 rows) — point estimates only.',
         params=dict(max_depth=5, min_child_weight=10),
     ),
+    '1h_roll_v21': dict(
+        data='data/research/v21_rolling_1h/panel.parquet',
+        ret_col='Next_Hour_Return',
+        model_dir='models/research/v21_rolling_1h',
+        desc='RESEARCH v21 (LEAN): cleanest rolling-1h ranker — liquidity universe + bar hygiene + '
+             'mask-not-fill + WALL-CLOCK LOOKBACK FIX (the only ablation-positive lever, +0.0048 long rho) '
+             '+ causal session-boundary gap representation. Mean/std scoring and the sector-graph feature '
+             'were DROPPED (ablation: neutral-to-negative). Same XGB recipe as v20/v10. NOT Gauntlet-certified; '
+             'overlapping windows inflate significance (effective N ~1/4 rows) — point estimates only.',
+        params=dict(max_depth=5, min_child_weight=10),
+    ),
 }
 
 ap = argparse.ArgumentParser()
-ap.add_argument('--tf', required=True, choices=['15min', '1h', '1h_v3', '1h_v3_d4', '1h_roll'])
+ap.add_argument('--tf', required=True, choices=['15min', '1h', '1h_v3', '1h_v3_d4', '1h_roll', '1h_roll_v21'])
 args = ap.parse_args()
 c = CFG[args.tf]
 DATA_FILE, RET_COL, MODEL_DIR = c['data'], c['ret_col'], c['model_dir']

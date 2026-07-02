@@ -34,6 +34,11 @@ scratch/
 # Root-level research notebooks
 /*.ipynb
 
+# >50 MB artifacts stripped from git history (kept on disk; exceed GitHub's file-size limit)
+data/structural_panel_15m.parquet
+data/tbm_feature_views/
+data/strategy_1030/dataset_stocks.csv
+
 # Gauntlet cache and predictions
 data/gauntlet/_cache/
 data/gauntlet/*/preds.npz
