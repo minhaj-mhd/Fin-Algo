@@ -1,0 +1,207 @@
+{
+ "cutoff": "2025-09-09",
+ "tags": {
+  "base": {
+   "merged": 5430,
+   "post_n": 5430,
+   "p_up_mean": 0.4635,
+   "windows": {
+    "long": {
+     "keep70_10bps": {
+      "n_all": 2715,
+      "n_kept": 1926,
+      "net_all": -7.84,
+      "net_kept": -6.65,
+      "delta": 1.2,
+      "boot_t": 1.87,
+      "ci_lo": -0.11,
+      "ci_hi": 2.48
+     },
+     "keep70_6bps": {
+      "n_all": 2715,
+      "n_kept": 1926,
+      "net_all": -3.84,
+      "net_kept": -2.65,
+      "delta": 1.2,
+      "boot_t": 1.91,
+      "ci_lo": 0.01,
+      "ci_hi": 2.44
+     },
+     "keep50_10bps": {
+      "n_all": 2715,
+      "n_kept": 1420,
+      "net_all": -7.84,
+      "net_kept": -6.32,
+      "delta": 1.52,
+      "boot_t": 1.53,
+      "ci_lo": -0.44,
+      "ci_hi": 3.42
+     },
+     "keep50_6bps": {
+      "n_all": 2715,
+      "n_kept": 1420,
+      "net_all": -3.84,
+      "net_kept": -2.32,
+      "delta": 1.52,
+      "boot_t": 1.47,
+      "ci_lo": -0.5,
+      "ci_hi": 3.54
+     },
+     "neg_control_keep70_10bps": {
+      "null_mean": 0.45,
+      "null_lo": -0.43,
+      "null_hi": 1.42
+     }
+    },
+    "short": {
+     "keep70_10bps": {
+      "n_all": 2715,
+      "n_kept": 1993,
+      "net_all": -7.0,
+      "net_kept": -7.01,
+      "delta": -0.01,
+      "boot_t": -0.01,
+      "ci_lo": -1.82,
+      "ci_hi": 1.84
+     },
+     "keep70_6bps": {
+      "n_all": 2715,
+      "n_kept": 1993,
+      "net_all": -3.0,
+      "net_kept": -3.01,
+      "delta": -0.01,
+      "boot_t": -0.01,
+      "ci_lo": -1.84,
+      "ci_hi": 1.81
+     },
+     "keep50_10bps": {
+      "n_all": 2715,
+      "n_kept": 1455,
+      "net_all": -7.0,
+      "net_kept": -7.73,
+      "delta": -0.73,
+      "boot_t": -0.47,
+      "ci_lo": -3.98,
+      "ci_hi": 2.16
+     },
+     "keep50_6bps": {
+      "n_all": 2715,
+      "n_kept": 1455,
+      "net_all": -3.0,
+      "net_kept": -3.73,
+      "delta": -0.73,
+      "boot_t": -0.48,
+      "ci_lo": -3.91,
+      "ci_hi": 2.26
+     },
+     "neg_control_keep70_10bps": {
+      "null_mean": -0.68,
+      "null_lo": -2.03,
+      "null_hi": 0.71
+     }
+    }
+   }
+  },
+  "lora": {
+   "merged": 5430,
+   "post_n": 5430,
+   "p_up_mean": 0.4854,
+   "windows": {
+    "long": {
+     "keep70_10bps": {
+      "n_all": 2715,
+      "n_kept": 1972,
+      "net_all": -7.84,
+      "net_kept": -7.21,
+      "delta": 0.63,
+      "boot_t": 1.0,
+      "ci_lo": -0.72,
+      "ci_hi": 1.86
+     },
+     "keep70_6bps": {
+      "n_all": 2715,
+      "n_kept": 1972,
+      "net_all": -3.84,
+      "net_kept": -3.21,
+      "delta": 0.63,
+      "boot_t": 1.03,
+      "ci_lo": -0.54,
+      "ci_hi": 1.85
+     },
+     "keep50_10bps": {
+      "n_all": 2715,
+      "n_kept": 1402,
+      "net_all": -7.84,
+      "net_kept": -7.32,
+      "delta": 0.52,
+      "boot_t": 0.49,
+      "ci_lo": -1.54,
+      "ci_hi": 2.52
+     },
+     "keep50_6bps": {
+      "n_all": 2715,
+      "n_kept": 1402,
+      "net_all": -3.84,
+      "net_kept": -3.32,
+      "delta": 0.52,
+      "boot_t": 0.51,
+      "ci_lo": -1.39,
+      "ci_hi": 2.38
+     },
+     "neg_control_keep70_10bps": {
+      "null_mean": 0.4,
+      "null_lo": -0.74,
+      "null_hi": 1.43
+     }
+    },
+    "short": {
+     "keep70_10bps": {
+      "n_all": 2715,
+      "n_kept": 1938,
+      "net_all": -7.0,
+      "net_kept": -6.69,
+      "delta": 0.31,
+      "boot_t": 0.29,
+      "ci_lo": -1.74,
+      "ci_hi": 2.36
+     },
+     "keep70_6bps": {
+      "n_all": 2715,
+      "n_kept": 1938,
+      "net_all": -3.0,
+      "net_kept": -2.69,
+      "delta": 0.31,
+      "boot_t": 0.31,
+      "ci_lo": -1.7,
+      "ci_hi": 2.41
+     },
+     "keep50_10bps": {
+      "n_all": 2715,
+      "n_kept": 1430,
+      "net_all": -7.0,
+      "net_kept": -7.48,
+      "delta": -0.47,
+      "boot_t": -0.3,
+      "ci_lo": -3.83,
+      "ci_hi": 2.71
+     },
+     "keep50_6bps": {
+      "n_all": 2715,
+      "n_kept": 1430,
+      "net_all": -3.0,
+      "net_kept": -3.48,
+      "delta": -0.47,
+      "boot_t": -0.27,
+      "ci_lo": -3.85,
+      "ci_hi": 2.89
+     },
+     "neg_control_keep70_10bps": {
+      "null_mean": 0.14,
+      "null_lo": -1.37,
+      "null_hi": 1.85
+     }
+    }
+   }
+  }
+ }
+}
