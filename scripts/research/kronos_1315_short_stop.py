@@ -1,4 +1,8 @@
-"""Honest 2xATR (and sweep) stop-loss sim on the 13:15-short top-1 cell.
+"""⚠️ VOID / SUPERSEDED — the 13:15-short "top-1" cell here used a BUGGY selection (min rkS_0,
+the 15m rank) not the host ranker's #1 short (max sS). The underlying edge is an artifact
+(see the vault note "Kronos LoRA NSE Fine-Tune" correction). Kept only as a record.
+
+Honest 2xATR (and sweep) stop-loss sim on the 13:15-short top-1 cell.
 
 Stop MUST trigger on the intra-hour HIGH (max adverse excursion for a short), not the
 close -- else it's the resolution artifact prior stop research already debunked. We take

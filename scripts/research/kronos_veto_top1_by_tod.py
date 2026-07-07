@@ -1,8 +1,9 @@
 """Top-1 (per side, per decision) of the 1h host book, vetoed by Kronos base vs LoRA,
 broken down by entry time-of-day.
 
-Top-1 = the single best long (min rkL_0) and best short (min rkS_0) at each dt1 -- the
-highest-conviction pick actually traded. We then apply the DEPLOYED Kronos veto rule
+Top-1 = the host ranker's #1 pick per side per dt1 = MAX host score (sL long / sS short).
+(FIXED: an earlier version wrongly used the 15m model's rkL_0/rkS_0 MIN.) We then apply the
+DEPLOYED Kronos veto rule
 (keep LONG iff p_up>=0.50; keep SHORT iff 1-p_up>=0.70) with base vs LoRA p_up, and
 report net bps/trade of all vs kept (survived) vs vetoed (dropped), overall and per
 entry hour (dt1+60 = 10:15..14:15). Post-cutoff (>=2025-09-09) honest window.
@@ -22,15 +23,17 @@ COST = {"6bps": 0.0006, "10bps": 0.0010}
 
 
 def top1_book(panel):
-    longs = panel[panel.dir == "long"].dropna(subset=["rkL_0"])
-    shorts = panel[panel.dir == "short"].dropna(subset=["rkS_0"])
-    tl = longs.loc[longs.groupby("dt1")["rkL_0"].idxmin()]
-    ts = shorts.loc[shorts.groupby("dt1")["rkS_0"].idxmin()]
+    # top-1 = the host ranker's #1 pick per side per dt1 = MAX host score (sL long / sS short).
+    # (Earlier bug: selected by the 15m model's rkL_0/rkS_0 MIN — wrong model AND wrong sign.)
+    longs = panel[panel.dir == "long"].dropna(subset=["sL"])
+    shorts = panel[panel.dir == "short"].dropna(subset=["sS"])
+    tl = longs.loc[longs.groupby("dt1")["sL"].idxmax()]
+    ts = shorts.loc[shorts.groupby("dt1")["sS"].idxmax()]
     return pd.concat([tl, ts], ignore_index=True)
 
 
 def load():
-    panel = pd.read_csv(PANEL, usecols=["dt1", "ticker", "dir", "nhr", "rkL_0", "rkS_0"],
+    panel = pd.read_csv(PANEL, usecols=["dt1", "ticker", "dir", "nhr", "sL", "sS"],
                         parse_dates=["dt1"])
     t1 = top1_book(panel)
     base = pd.read_csv(os.path.join(SDIR, "scores_1h_base.csv"), parse_dates=["dt1"])[["ticker", "dt1", "p_up"]]

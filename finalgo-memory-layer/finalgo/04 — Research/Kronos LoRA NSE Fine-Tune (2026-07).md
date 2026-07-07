@@ -6,7 +6,7 @@ updated: 2026-07-07
 model: kronos-lora
 ---
 
-# Kronos LoRA NSE Fine-Tune — veto is a dead-end; 13:15-short is an in-sample lead
+# Kronos LoRA NSE Fine-Tune — veto is a dead-end (13:15-short "lead" was a bug)
 
 **Verdict (⚠️ UNVERIFIED — no Gauntlet):** LoRA-fine-tuning Kronos on NSE candles gave a real
 **model-quality** gain but **no trading edge**. Keep the live veto on **zero-shot base**.
@@ -24,21 +24,25 @@ vendored Kronos MIT). Two predictor-only LoRA adapters (tokenizer frozen, r16/α
 t1.00; short dead both; **both inside the shuffle neg-control band**. rank-IC nudged (long
 0.032→0.039) but did not convert to net-bps. **CE↓ ≠ tradeable edge; 1h info-ceiling reconfirmed.**
 
-## 13:15-short deep-dive (grid-search standout, POST-HOC)
-Top-1 short, entry 13:15 (dt1 12:15), post-cutoff n=160:
-- **Raw book** (no Kronos): +11.10 bps@6 t1.99, **8/10 months positive** (consistent) — BUT
-  **−4.04 pre-cutoff** (sign flip → period-specific regime, not structural) and **t1.26 @10bps**.
-- **LoRA veto** on the cell: kept +25.98@6 t2.85, beats neg-control **p=0.007**, holds in both
-  halves — BUT at monthly resolution it is **erratic** (Jan −15.00 vs book +5.02; big wins ride
-  on n=1–6 months) and **fails multiple-comparison correction** (0.007 × 20 cells ≈ 0.14).
-- **2×ATR stop** (intrabar high-triggered): adds only +1.7 bps (tighter 1×ATR +3.1); pure
-  tail-cap (worst −260.95 → −133 bps), WR unchanged → deleveraging, not alpha (cf.
-  [[project_stop_loss_research]]).
+## ⚠️ CORRECTION — the "13:15-short lead" was a top-1 mis-selection (RETRACTED)
+An earlier pass (`kronos_veto_top1_by_tod.py`, `kronos_1315_short_deepdive.py`,
+`kronos_1315_short_stop.py`) reported a 13:15-short edge (+11 raw, +26 LoRA-kept, split-half
+stable, p=0.007). **It was a bug:** "top-1" was selected by the **15-minute model's rank
+`rkS_0` (min)** instead of the **host ranker's short score `sS` (max)** — wrong model AND wrong
+sign. Corrected results:
+- **Correct top-1 (host #1 = max `sS`), post-cutoff n=905/side:** LONG no-veto −5.89 (t−2.9);
+  SHORT no-veto −2.99. Kronos veto is **neutral on longs** (dNET +0.8/+1.1) and
+  **INVERTED/harmful on shorts** (dNET −5: keeps losers −8, vetoes winners +2 = Kronos
+  "conviction inverts"). 13:15-short under correct top-1: +4.56@6 but **+0.56@10** (nothing).
+- **min-`rkS_0` is itself an ENTRY-PRINT ARTIFACT** (dual-TF rank-lag collapse): lag test picks
+  short by min `rkS_m` — edge lives ONLY at `rkS_60` (the entry-price rank, +19.5 t6.3) and is
+  −7.9 at `rkS_45` (one bar earlier), −3.2 at `rkS_0`; pre-cutoff min-`rkS_0` = −9.3 t−3.9.
+  Selecting on `rkS_60` = selecting on the entry price itself → not tradeable
+  (cf. [[Dual-TF entry/exit research]], "rank-lag collapse" screen).
 
-**Durable piece = "13:15 is a good hour to be short (post-cutoff regime)"**; the LoRA adapter is
-a noisy sharpener at best. Not deployable; needs a **forward test** (unlevered, shadow). Do NOT
-5x-leverage a triple-selected in-sample cell; S2 can't be relied on ([[project_s2_veto_live_falsified]]
-— S2's live veto cut winners).
+**Net: no tradeable edge from either route** — host #1 (veto inverted on shorts) or min-`rkS`
+(entry-print artifact). The 5x-leverage / stop-loss / split-half analyses were all built on the
+mis-selection and are **void**. Main verdict (LoRA = better model, no veto edge) is reinforced.
 
 ## Scripts (finalgo)
 `scripts/research/kronos_veto_score_1h.py` (1h-native scorer, `--adapter`/`--post-only`),

@@ -1,4 +1,9 @@
-"""Rigorous deep-dive on the grid-search standout: TOP-1 SHORT, entry 13:15
+"""⚠️ VOID / SUPERSEDED — used a BUGGY top-1 (min rkS_0 = 15m rank) instead of the host
+ranker's #1 short (max sS). Under the correct top-1 the 13:15-short edge is +4.56@6 / +0.56@10
+(nothing), and min-rkS_0 is an entry-print artifact (lag test). Kept only as a record; see the
+vault note "Kronos LoRA NSE Fine-Tune" correction section.
+
+Rigorous deep-dive on the grid-search standout: TOP-1 SHORT, entry 13:15
 (decision dt1=12:15, hold 13:15->14:15).
 
 This cell was picked from a 2-side x 5-hour x 2-model grid, so it is POST-HOC. We
