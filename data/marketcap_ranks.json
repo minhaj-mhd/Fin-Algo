@@ -1,0 +1,870 @@
+{
+  "fetched_at": "2026-07-10T10:25:10",
+  "week": "2026-W28",
+  "source": "yfinance",
+  "count": 172,
+  "ranked": 172,
+  "missing": [],
+  "tickers": {
+    "RELIANCE.NS": {
+      "name": "Reliance Industries Limited",
+      "market_cap": 17601686142976,
+      "rank": 1
+    },
+    "TCS.NS": {
+      "name": "Tata Consultancy Services Limited",
+      "market_cap": 7544797921280,
+      "rank": 6
+    },
+    "HDFCBANK.NS": {
+      "name": "HDFC Bank Limited",
+      "market_cap": 12675192979456,
+      "rank": 2
+    },
+    "ICICIBANK.NS": {
+      "name": "ICICI Bank Limited",
+      "market_cap": 10072155488256,
+      "rank": 4
+    },
+    "INFY.NS": {
+      "name": "Infosys Limited",
+      "market_cap": 4325874860032,
+      "rank": 13
+    },
+    "BHARTIARTL.NS": {
+      "name": "Bharti Airtel Limited",
+      "market_cap": 11937048952832,
+      "rank": 3
+    },
+    "HINDUNILVR.NS": {
+      "name": "Hindustan Unilever Limited",
+      "market_cap": 5089449738240,
+      "rank": 9
+    },
+    "ITC.NS": {
+      "name": "ITC Limited",
+      "market_cap": 3545213173760,
+      "rank": 19
+    },
+    "SBIN.NS": {
+      "name": "State Bank of India",
+      "market_cap": 9501997531136,
+      "rank": 5
+    },
+    "LT.NS": {
+      "name": "Larsen & Toubro Limited",
+      "market_cap": 5406202527744,
+      "rank": 8
+    },
+    "BAJFINANCE.NS": {
+      "name": "Bajaj Finance Limited",
+      "market_cap": 6273837301760,
+      "rank": 7
+    },
+    "AXISBANK.NS": {
+      "name": "Axis Bank Limited",
+      "market_cap": 4100808769536,
+      "rank": 16
+    },
+    "HCLTECH.NS": {
+      "name": "HCL Technologies Limited",
+      "market_cap": 3164123693056,
+      "rank": 22
+    },
+    "MARUTI.NS": {
+      "name": "Maruti Suzuki India Limited",
+      "market_cap": 4369566662656,
+      "rank": 12
+    },
+    "SUNPHARMA.NS": {
+      "name": "Sun Pharmaceutical Industries Limited",
+      "market_cap": 4662147678208,
+      "rank": 10
+    },
+    "TITAN.NS": {
+      "name": "Titan Company Limited",
+      "market_cap": 4068965351424,
+      "rank": 17
+    },
+    "TATASTEEL.NS": {
+      "name": "Tata Steel Limited",
+      "market_cap": 2396590440448,
+      "rank": 34
+    },
+    "ULTRACEMCO.NS": {
+      "name": "UltraTech Cement Limited",
+      "market_cap": 3434136207360,
+      "rank": 20
+    },
+    "NTPC.NS": {
+      "name": "NTPC Limited",
+      "market_cap": 3372985614336,
+      "rank": 21
+    },
+    "M&M.NS": {
+      "name": "Mahindra & Mahindra Limited",
+      "market_cap": 3746378285056,
+      "rank": 18
+    },
+    "POWERGRID.NS": {
+      "name": "Power Grid Corporation of India Limited",
+      "market_cap": 2634860986368,
+      "rank": 31
+    },
+    "BAJAJFINSV.NS": {
+      "name": "Bajaj Finserv Ltd.",
+      "market_cap": 3047185711104,
+      "rank": 25
+    },
+    "ADANIENT.NS": {
+      "name": "Adani Enterprises Limited",
+      "market_cap": 4503568384000,
+      "rank": 11
+    },
+    "COALINDIA.NS": {
+      "name": "Coal India Limited",
+      "market_cap": 2657984708608,
+      "rank": 30
+    },
+    "ONGC.NS": {
+      "name": "Oil and Natural Gas Corporation Limited",
+      "market_cap": 3078142558208,
+      "rank": 23
+    },
+    "JSWSTEEL.NS": {
+      "name": "JSW Steel Limited",
+      "market_cap": 3068119482368,
+      "rank": 24
+    },
+    "ADANIPORTS.NS": {
+      "name": "Adani Ports and Special Economic Zone Limited",
+      "market_cap": 4248500436992,
+      "rank": 14
+    },
+    "GRASIM.NS": {
+      "name": "Grasim Industries Limited",
+      "market_cap": 2195719979008,
+      "rank": 35
+    },
+    "HINDALCO.NS": {
+      "name": "Hindalco Industries Limited",
+      "market_cap": 2183209811968,
+      "rank": 36
+    },
+    "DRREDDY.NS": {
+      "name": "Dr. Reddy's Laboratories Limited",
+      "market_cap": 1037140557824,
+      "rank": 78
+    },
+    "CIPLA.NS": {
+      "name": "Cipla Limited",
+      "market_cap": 1172183580672,
+      "rank": 67
+    },
+    "INDUSINDBK.NS": {
+      "name": "IndusInd Bank Limited",
+      "market_cap": 800948420608,
+      "rank": 94
+    },
+    "TATACONSUM.NS": {
+      "name": "Tata Consumer Products Limited",
+      "market_cap": 1103462006784,
+      "rank": 74
+    },
+    "WIPRO.NS": {
+      "name": "Wipro Limited",
+      "market_cap": 1742076248064,
+      "rank": 42
+    },
+    "NESTLEIND.NS": {
+      "name": "Nestlé India Limited",
+      "market_cap": 2830186840064,
+      "rank": 29
+    },
+    "TECHM.NS": {
+      "name": "Tech Mahindra Limited",
+      "market_cap": 1286745489408,
+      "rank": 59
+    },
+    "DIVISLAB.NS": {
+      "name": "Divi's Laboratories Limited",
+      "market_cap": 1819919777792,
+      "rank": 41
+    },
+    "BRITANNIA.NS": {
+      "name": "Britannia Industries Limited",
+      "market_cap": 1299484377088,
+      "rank": 57
+    },
+    "BAJAJ-AUTO.NS": {
+      "name": "Bajaj Auto Limited",
+      "market_cap": 2847315066880,
+      "rank": 28
+    },
+    "EICHERMOT.NS": {
+      "name": "Eicher Motors Limited",
+      "market_cap": 2025929048064,
+      "rank": 38
+    },
+    "SBILIFE.NS": {
+      "name": "SBI Life Insurance Company Limited",
+      "market_cap": 1858039447552,
+      "rank": 40
+    },
+    "APOLLOHOSP.NS": {
+      "name": "Apollo Hospitals Enterprise Limited",
+      "market_cap": 1271415832576,
+      "rank": 60
+    },
+    "HDFCLIFE.NS": {
+      "name": "HDFC Life Insurance Company Limited",
+      "market_cap": 1220519002112,
+      "rank": 65
+    },
+    "HEROMOTOCO.NS": {
+      "name": "Hero MotoCorp Limited",
+      "market_cap": 985437700096,
+      "rank": 82
+    },
+    "BPCL.NS": {
+      "name": "Bharat Petroleum Corporation Limited",
+      "market_cap": 1328773857280,
+      "rank": 56
+    },
+    "HAL.NS": {
+      "name": "Hindustan Aeronautics Limited",
+      "market_cap": 2994974752768,
+      "rank": 27
+    },
+    "BEL.NS": {
+      "name": "Bharat Electronics Limited",
+      "market_cap": 3014552715264,
+      "rank": 26
+    },
+    "VBL.NS": {
+      "name": "Varun Beverages Limited",
+      "market_cap": 1632039206912,
+      "rank": 46
+    },
+    "CHOLAFIN.NS": {
+      "name": "Cholamandalam Investment and Finance Company Limited",
+      "market_cap": 1558915448832,
+      "rank": 49
+    },
+    "SIEMENS.NS": {
+      "name": "Siemens Limited",
+      "market_cap": 1258173759488,
+      "rank": 61
+    },
+    "TRENT.NS": {
+      "name": "Trent Limited",
+      "market_cap": 1556505034752,
+      "rank": 50
+    },
+    "SBICARD.NS": {
+      "name": "SBI Cards and Payment Services Limited",
+      "market_cap": 576963870720,
+      "rank": 115
+    },
+    "DLF.NS": {
+      "name": "DLF Limited",
+      "market_cap": 1696826130432,
+      "rank": 44
+    },
+    "IOC.NS": {
+      "name": "Indian Oil Corporation Limited",
+      "market_cap": 1964829179904,
+      "rank": 39
+    },
+    "VEDL.NS": {
+      "name": "Vedanta Limited",
+      "market_cap": 1076749074432,
+      "rank": 76
+    },
+    "PAYTM.NS": {
+      "name": "One97 Communications Limited",
+      "market_cap": 843781439488,
+      "rank": 88
+    },
+    "NAUKRI.NS": {
+      "name": "Info Edge (India) Limited",
+      "market_cap": 783082127360,
+      "rank": 96
+    },
+    "SHREECEM.NS": {
+      "name": "Shree Cement Limited",
+      "market_cap": 962634383360,
+      "rank": 83
+    },
+    "AMBUJACEM.NS": {
+      "name": "Ambuja Cements Limited",
+      "market_cap": 1086983307264,
+      "rank": 75
+    },
+    "HAVELLS.NS": {
+      "name": "Havells India Limited",
+      "market_cap": 752143630336,
+      "rank": 100
+    },
+    "GAIL.NS": {
+      "name": "GAIL (India) Limited",
+      "market_cap": 1144063787008,
+      "rank": 70
+    },
+    "PIDILITIND.NS": {
+      "name": "Pidilite Industries Limited",
+      "market_cap": 1627117453312,
+      "rank": 47
+    },
+    "ABB.NS": {
+      "name": "ABB India Limited",
+      "market_cap": 1459200983040,
+      "rank": 52
+    },
+    "GODREJCP.NS": {
+      "name": "Godrej Consumer Products Limited",
+      "market_cap": 1116630286336,
+      "rank": 71
+    },
+    "DABUR.NS": {
+      "name": "Dabur India Limited",
+      "market_cap": 789320105984,
+      "rank": 95
+    },
+    "BANKBARODA.NS": {
+      "name": "Bank of Baroda Limited",
+      "market_cap": 1287152074752,
+      "rank": 58
+    },
+    "CANBK.NS": {
+      "name": "Canara Bank",
+      "market_cap": 1149614292992,
+      "rank": 68
+    },
+    "PNB.NS": {
+      "name": "Punjab National Bank",
+      "market_cap": 1199288614912,
+      "rank": 66
+    },
+    "SRF.NS": {
+      "name": "SRF Limited",
+      "market_cap": 824720097280,
+      "rank": 90
+    },
+    "MOTHERSON.NS": {
+      "name": "Samvardhana Motherson International Limited",
+      "market_cap": 1521236180992,
+      "rank": 51
+    },
+    "ICICIGI.NS": {
+      "name": "ICICI Lombard General Insurance Company Limited",
+      "market_cap": 901439946752,
+      "rank": 87
+    },
+    "MARICO.NS": {
+      "name": "Marico Limited",
+      "market_cap": 1111221469184,
+      "rank": 72
+    },
+    "TVSMOTOR.NS": {
+      "name": "TVS Motor Company Limited",
+      "market_cap": 1729966112768,
+      "rank": 43
+    },
+    "INDIGO.NS": {
+      "name": "InterGlobe Aviation Limited",
+      "market_cap": 2063639642112,
+      "rank": 37
+    },
+    "JINDALSTEL.NS": {
+      "name": "Jindal Steel Limited",
+      "market_cap": 1072432480256,
+      "rank": 77
+    },
+    "ICICIPRULI.NS": {
+      "name": "ICICI Prudential Life Insurance Company Limited",
+      "market_cap": 728065703936,
+      "rank": 103
+    },
+    "BERGEPAINT.NS": {
+      "name": "Berger Paints India Limited",
+      "market_cap": 585391669248,
+      "rank": 113
+    },
+    "BOSCHLTD.NS": {
+      "name": "Bosch Limited",
+      "market_cap": 1244145516544,
+      "rank": 63
+    },
+    "UNITDSPR.NS": {
+      "name": "UNITED SPIRITS LIMITED",
+      "market_cap": 1007450652672,
+      "rank": 80
+    },
+    "ALKEM.NS": {
+      "name": "Alkem Laboratories Limited",
+      "market_cap": 681699835904,
+      "rank": 107
+    },
+    "LUPIN.NS": {
+      "name": "Lupin Limited",
+      "market_cap": 1144916148224,
+      "rank": 69
+    },
+    "AUROPHARMA.NS": {
+      "name": "Aurobindo Pharma Limited",
+      "market_cap": 901444534272,
+      "rank": 86
+    },
+    "BIOCON.NS": {
+      "name": "Biocon Limited",
+      "market_cap": 671996837888,
+      "rank": 108
+    },
+    "TORNTPHARM.NS": {
+      "name": "Torrent Pharmaceuticals Limited",
+      "market_cap": 1655979638784,
+      "rank": 45
+    },
+    "ADANIPOWER.NS": {
+      "name": "Adani Power Limited",
+      "market_cap": 4217370050560,
+      "rank": 15
+    },
+    "ATGL.NS": {
+      "name": "Adani Total Gas Limited",
+      "market_cap": 824637587456,
+      "rank": 91
+    },
+    "ADANIGREEN.NS": {
+      "name": "Adani Green Energy Limited",
+      "market_cap": 2536651358208,
+      "rank": 32
+    },
+    "AWL.NS": {
+      "name": "AWL Agri Business Limited",
+      "market_cap": 245917040640,
+      "rank": 147
+    },
+    "ABCAPITAL.NS": {
+      "name": "Aditya Birla Capital Limited",
+      "market_cap": 1109236776960,
+      "rank": 73
+    },
+    "IRCTC.NS": {
+      "name": "Indian Railway Catering & Tourism Corporation Limited",
+      "market_cap": 402519982080,
+      "rank": 131
+    },
+    "CONCOR.NS": {
+      "name": "Container Corporation of India Limited",
+      "market_cap": 354761605120,
+      "rank": 138
+    },
+    "BHEL.NS": {
+      "name": "Bharat Heavy Electricals Limited",
+      "market_cap": 1366709895168,
+      "rank": 54
+    },
+    "SAIL.NS": {
+      "name": "Steel Authority of India Limited",
+      "market_cap": 707352461312,
+      "rank": 104
+    },
+    "NMDC.NS": {
+      "name": "NMDC Limited",
+      "market_cap": 753194958848,
+      "rank": 99
+    },
+    "RECLTD.NS": {
+      "name": "REC Limited",
+      "market_cap": 934399508480,
+      "rank": 85
+    },
+    "PFC.NS": {
+      "name": "Power Finance Corporation Limited",
+      "market_cap": 1351721680896,
+      "rank": 55
+    },
+    "PETRONET.NS": {
+      "name": "Petronet LNG Limited",
+      "market_cap": 423225032704,
+      "rank": 129
+    },
+    "PIIND.NS": {
+      "name": "PI Industries Limited",
+      "market_cap": 398023753728,
+      "rank": 132
+    },
+    "UPL.NS": {
+      "name": "UPL Limited",
+      "market_cap": 505902563328,
+      "rank": 121
+    },
+    "COLPAL.NS": {
+      "name": "Colgate-Palmolive (India) Limited",
+      "market_cap": 561895112704,
+      "rank": 117
+    },
+    "IGL.NS": {
+      "name": "Indraprastha Gas Limited",
+      "market_cap": 212940242944,
+      "rank": 153
+    },
+    "MPHASIS.NS": {
+      "name": "Mphasis Limited",
+      "market_cap": 442886389760,
+      "rank": 125
+    },
+    "OFSS.NS": {
+      "name": "Oracle Financial Services Software Limited",
+      "market_cap": 999588102144,
+      "rank": 81
+    },
+    "PERSISTENT.NS": {
+      "name": "Persistent Systems Limited",
+      "market_cap": 775780892672,
+      "rank": 97
+    },
+    "COFORGE.NS": {
+      "name": "Coforge Limited",
+      "market_cap": 669171449856,
+      "rank": 109
+    },
+    "LTTS.NS": {
+      "name": "L&T Technology Services Limited",
+      "market_cap": 345836650496,
+      "rank": 139
+    },
+    "TATACHEM.NS": {
+      "name": "Tata Chemicals Limited",
+      "market_cap": 185462571008,
+      "rank": 155
+    },
+    "TATAPOWER.NS": {
+      "name": "The Tata Power Company Limited",
+      "market_cap": 1221738102784,
+      "rank": 64
+    },
+    "TATACOMM.NS": {
+      "name": "Tata Communications Limited",
+      "market_cap": 529817632768,
+      "rank": 120
+    },
+    "VOLTAS.NS": {
+      "name": "Voltas Limited",
+      "market_cap": 425087598592,
+      "rank": 128
+    },
+    "WHIRLPOOL.NS": {
+      "name": "Whirlpool of India Limited",
+      "market_cap": 101510889472,
+      "rank": 166
+    },
+    "CROMPTON.NS": {
+      "name": "Crompton Greaves Consumer Electricals Limited",
+      "market_cap": 169156444160,
+      "rank": 160
+    },
+    "POLYCAB.NS": {
+      "name": "Polycab India Limited",
+      "market_cap": 1371392835584,
+      "rank": 53
+    },
+    "ASTRAL.NS": {
+      "name": "Astral Limited",
+      "market_cap": 357224120320,
+      "rank": 136
+    },
+    "OBEROIRLTY.NS": {
+      "name": "Oberoi Realty Limited",
+      "market_cap": 691789627392,
+      "rank": 106
+    },
+    "GODREJPROP.NS": {
+      "name": "Godrej Properties Limited",
+      "market_cap": 630164684800,
+      "rank": 111
+    },
+    "PRESTIGE.NS": {
+      "name": "Prestige Estates Projects Limited",
+      "market_cap": 728623284224,
+      "rank": 102
+    },
+    "PHOENIXLTD.NS": {
+      "name": "The Phoenix Mills Limited",
+      "market_cap": 753298178048,
+      "rank": 98
+    },
+    "BRIGADE.NS": {
+      "name": "Brigade Enterprises Limited",
+      "market_cap": 179633930240,
+      "rank": 158
+    },
+    "FEDERALBNK.NS": {
+      "name": "The Federal Bank Limited",
+      "market_cap": 817308762112,
+      "rank": 92
+    },
+    "IDFCFIRSTB.NS": {
+      "name": "IDFC First Bank Limited",
+      "market_cap": 699688878080,
+      "rank": 105
+    },
+    "AUBANK.NS": {
+      "name": "AU Small Finance Bank Limited",
+      "market_cap": 802016067584,
+      "rank": 93
+    },
+    "BANDHANBNK.NS": {
+      "name": "Bandhan Bank Limited",
+      "market_cap": 334524252160,
+      "rank": 141
+    },
+    "RBLBANK.NS": {
+      "name": "RBL Bank Limited",
+      "market_cap": 580786716672,
+      "rank": 114
+    },
+    "MFSL.NS": {
+      "name": "Max Financial Services Limited",
+      "market_cap": 546938748928,
+      "rank": 118
+    },
+    "M&MFIN.NS": {
+      "name": "Mahindra & Mahindra Financial Services Limited",
+      "market_cap": 478003560448,
+      "rank": 123
+    },
+    "MUTHOOTFIN.NS": {
+      "name": "Muthoot Finance Limited",
+      "market_cap": 1254990413824,
+      "rank": 62
+    },
+    "MANAPPURAM.NS": {
+      "name": "Manappuram Finance Limited",
+      "market_cap": 320078774272,
+      "rank": 143
+    },
+    "SHRIRAMFIN.NS": {
+      "name": "Shriram Finance Limited",
+      "market_cap": 2468243046400,
+      "rank": 33
+    },
+    "SUNDARMFIN.NS": {
+      "name": "Sundaram Finance Limited",
+      "market_cap": 504742641664,
+      "rank": 122
+    },
+    "PVRINOX.NS": {
+      "name": "PVR INOX Limited",
+      "market_cap": 98818621440,
+      "rank": 167
+    },
+    "SUNTV.NS": {
+      "name": "Sun TV Network Limited",
+      "market_cap": 198993035264,
+      "rank": 154
+    },
+    "ZEEL.NS": {
+      "name": "Zee Entertainment Enterprises Limited",
+      "market_cap": 97166147584,
+      "rank": 169
+    },
+    "JUBLFOOD.NS": {
+      "name": "Jubilant FoodWorks Limited",
+      "market_cap": 287436668928,
+      "rank": 144
+    },
+    "DEVYANI.NS": {
+      "name": "Devyani International Limited",
+      "market_cap": 138681073664,
+      "rank": 163
+    },
+    "PAGEIND.NS": {
+      "name": "Page Industries Limited",
+      "market_cap": 449054965760,
+      "rank": 124
+    },
+    "BATAINDIA.NS": {
+      "name": "Bata India Limited",
+      "market_cap": 89538707456,
+      "rank": 170
+    },
+    "RELAXO.NS": {
+      "name": "Relaxo Footwears Limited",
+      "market_cap": 97733296128,
+      "rank": 168
+    },
+    "MRF.NS": {
+      "name": "MRF Limited",
+      "market_cap": 570539769856,
+      "rank": 116
+    },
+    "BALKRISIND.NS": {
+      "name": "Balkrishna Industries Limited",
+      "market_cap": 436316897280,
+      "rank": 126
+    },
+    "BHARATFORG.NS": {
+      "name": "Bharat Forge Limited",
+      "market_cap": 1022631608320,
+      "rank": 79
+    },
+    "ESCORTS.NS": {
+      "name": "Escorts Kubota Limited",
+      "market_cap": 321753120768,
+      "rank": 142
+    },
+    "CUMMINSIND.NS": {
+      "name": "Cummins India Limited",
+      "market_cap": 1569506459648,
+      "rank": 48
+    },
+    "SCHAEFFLER.NS": {
+      "name": "Schaeffler India Limited",
+      "market_cap": 639125684224,
+      "rank": 110
+    },
+    "SKFINDIA.NS": {
+      "name": "SKF India Limited",
+      "market_cap": 77306142720,
+      "rank": 171
+    },
+    "TIMKEN.NS": {
+      "name": "Timken India Limited",
+      "market_cap": 242264506368,
+      "rank": 148
+    },
+    "AIAENG.NS": {
+      "name": "AIA Engineering Limited",
+      "market_cap": 434919571456,
+      "rank": 127
+    },
+    "THERMAX.NS": {
+      "name": "Thermax Limited",
+      "market_cap": 540150366208,
+      "rank": 119
+    },
+    "KEC.NS": {
+      "name": "KEC International Limited",
+      "market_cap": 134045007872,
+      "rank": 164
+    },
+    "KPIL.NS": {
+      "name": "Kalpataru Projects International Limited",
+      "market_cap": 230286770176,
+      "rank": 149
+    },
+    "DEEPAKNTR.NS": {
+      "name": "Deepak Nitrite Limited",
+      "market_cap": 226467004416,
+      "rank": 150
+    },
+    "AARTIIND.NS": {
+      "name": "Aarti Industries Limited",
+      "market_cap": 174997487616,
+      "rank": 159
+    },
+    "ATUL.NS": {
+      "name": "Atul Ltd",
+      "market_cap": 183201333248,
+      "rank": 156
+    },
+    "NAVINFLUOR.NS": {
+      "name": "Navin Fluorine International Limited",
+      "market_cap": 395363450880,
+      "rank": 133
+    },
+    "COROMANDEL.NS": {
+      "name": "Coromandel International Limited",
+      "market_cap": 599182868480,
+      "rank": 112
+    },
+    "CHAMBLFERT.NS": {
+      "name": "Chambal Fertilisers and Chemicals Limited",
+      "market_cap": 182416982016,
+      "rank": 157
+    },
+    "GNFC.NS": {
+      "name": "Gujarat Narmada Valley Fertilizers & Chemicals Limited",
+      "market_cap": 74814849024,
+      "rank": 172
+    },
+    "EXIDEIND.NS": {
+      "name": "Exide Industries Limited",
+      "market_cap": 364820004864,
+      "rank": 135
+    },
+    "ARE&M.NS": {
+      "name": "Amara Raja Energy & Mobility Limited",
+      "market_cap": 160247857152,
+      "rank": 162
+    },
+    "LAURUSLABS.NS": {
+      "name": "Laurus Labs Limited",
+      "market_cap": 829445242880,
+      "rank": 89
+    },
+    "GRANULES.NS": {
+      "name": "Granules India Limited",
+      "market_cap": 222682710016,
+      "rank": 151
+    },
+    "SYNGENE.NS": {
+      "name": "Syngene International Limited",
+      "market_cap": 168764932096,
+      "rank": 161
+    },
+    "LALPATHLAB.NS": {
+      "name": "Dr. Lal PathLabs Limited",
+      "market_cap": 282159054848,
+      "rank": 145
+    },
+    "METROPOLIS.NS": {
+      "name": "Metropolis Healthcare Limited",
+      "market_cap": 116831625216,
+      "rank": 165
+    },
+    "APOLLOTYRE.NS": {
+      "name": "Apollo Tyres Limited",
+      "market_cap": 279284645888,
+      "rank": 146
+    },
+    "JKCEMENT.NS": {
+      "name": "J.K. Cement Limited",
+      "market_cap": 422657327104,
+      "rank": 130
+    },
+    "DALBHARAT.NS": {
+      "name": "Dalmia Bharat Limited",
+      "market_cap": 335170994176,
+      "rank": 140
+    },
+    "RAMCOCEM.NS": {
+      "name": "The Ramco Cements Limited",
+      "market_cap": 220744351744,
+      "rank": 152
+    },
+    "STARHEALTH.NS": {
+      "name": "Star Health and Allied Insurance Company Limited",
+      "market_cap": 355366305792,
+      "rank": 137
+    },
+    "NYKAA.NS": {
+      "name": "FSN E-Commerce Ventures Limited",
+      "market_cap": 935897661440,
+      "rank": 84
+    },
+    "POLICYBZR.NS": {
+      "name": "PB Fintech Limited",
+      "market_cap": 729194692608,
+      "rank": 101
+    },
+    "DELHIVERY.NS": {
+      "name": "Delhivery Limited",
+      "market_cap": 386517991424,
+      "rank": 134
+    }
+  }
+}

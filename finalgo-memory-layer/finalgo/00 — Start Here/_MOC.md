@@ -8,4 +8,4 @@
 | Doc | Type | Status | Verdict | Updated |
 |---|---|---|---|---|
 | [[00 — Start Here/AI Operating Protocol|AI Operating Protocol (pointer)]] | reference | 🟢 active |  | 2026-06-12 |
-| [[00 — Start Here/Ray of Hope|Ray of Hope - Positive & Promising Edges]] | reference | 🟢 active |  | 2026-06-16 |
+| [[00 — Start Here/Ray of Hope|Ray of Hope - Positive & Promising Edges]] | reference | 🟢 active |  | 2026-07-10 |

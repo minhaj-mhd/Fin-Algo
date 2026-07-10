@@ -4,7 +4,7 @@
 > by `scripts/memory/build_index.py` from each doc's front-matter — do not hand-edit.
 > Protocol: [[00 — Start Here/AI Operating Protocol|AI Operating Protocol]] · Dead ends: [[00 — Start Here/Dead-Ends Register|Dead-Ends Register]] · Machine index: `00 — Start Here/INDEX.json`
 
-**220 docs** across 10 sections.
+**239 docs** across 10 sections.
 
 ## 00 — Start Here  (2)
 → [[00 — Start Here/_MOC|Browse all 2]]
@@ -22,8 +22,8 @@
 - [[01 — Architecture/Vanguard Engine Refactor Roadmap|Vanguard Engine Refactor Roadmap]] — This document converts the latest project analysis into an executable refactor plan. The g
 - [[01 — Architecture/Vanguard System Features|Vanguard Trading System — Feature & Architecture Release]] — Date Marked: May 27, 2026 | System Version: Vanguard v2.5 Hardened | Active Model: v8_upst
 
-## 02 — Models  (81)
-→ [[02 — Models/_MOC|Browse all 81]]
+## 02 — Models  (82)
+→ [[02 — Models/_MOC|Browse all 82]]
 - [[02 — Models/15m/15m Conviction Audit Report|15-Minute Conviction Score Audit]] — Entry Time: 2026-05-12 10:16 | Original Score: 0.1595 | Peak/Final Return: 0.00% / -
 - [[02 — Models/15m/Clean Re-Analysis & OOS Validation|Clean Re-Analysis & OOS Validation (Native Data, Holdout-Verified)]] — Date: June 7, 2026
 - [[02 — Models/15m/Complete Edge Catalog|Complete Edge Catalog: v2_15min_3y Walk-Forward & OOS Analysis]] — Date: June 7, 2026
@@ -48,14 +48,14 @@
 - [[03 — Strategies/Empirical Regime Simulation Results|Empirical Regime Simulation Results]] — This document permanently logs the results of our Dual-Pass Comparative Simulator, which w
 - [[03 — Strategies/MTF Limit Order Architecture|Multi-Timeframe (MTF) Support & Resistance Limit Order Architecture]] — This document aggregates the deep research findings on integrating conditional Limit Order
 - [[03 — Strategies/Market Friction & Slippage|Market Friction & Slippage (The Cost Drag Analysis)]] — In retail and institutional trading, transaction costs and market friction are the ultimat
-- [[03 — Strategies/Strategy Catalog|Strategy Catalog & Execution Pipelines]] — The Vanguard engine supports dual execution pipelines: Pipeline 1 (Pure AI Signals) and Pi
+- [[03 — Strategies/Strategy Catalog|Strategy Catalog & Execution Pipelines]] — The Vanguard engine generates live signals from a single execution pipeline: Pipeline 1 (P
 - [[03 — Strategies/Strategy Dashboard UI|Vanguard Dashboard UI: Strategy Integration]] — As part of the ongoing evolution of the Vanguard Trading System, the Dashboard UI is being
 - [[03 — Strategies/Strategy March 2026 Revision|FinalGo: Optimized Trading Strategy (March 2026 Revision)]] — Based on our latest March 2026 Model Reevaluation, the FinalGo trading system has transiti
 - [[03 — Strategies/Time Based ATR Targets|Time-Based ATR Targeting (1-Hour Hold Constraints)]] — Concept: Dynamic Stop Loss (SL) and Take Profit (TP) must be scaled to realistically match
 - [[03 — Strategies/Upstox Fees & Statutory Taxes|Upstox Fees & Statutory Taxes Research (2024-2025)]] — Project: Vanguard Trading Engine
 
-## 04 — Research  (24)
-→ [[04 — Research/_MOC|Browse all 24]]
+## 04 — Research  (28)
+→ [[04 — Research/_MOC|Browse all 28]]
 - [[04 — Research/1030 Strategy/Architecture Research Report|Intraday Stock Trading: AI Architecture Research Report]] — Objective: Predict the intraday trend, returns, or distribution for the rest of the day ba
 - [[04 — Research/1030 Strategy/Feature Engineering Report|Feature Engineering for 10:30 AM Intraday Trading Model (Indian Stock Market)]] — I have completed the research on feature engineering for an intraday trading model targeti
 - [[04 — Research/1030 Strategy/Implementation Plan|10:30 AM Momentum Prediction System — Implementation Plan (V2)]] — Build a two-layer prediction system that runs at 10:30 AM IST each trading day:
@@ -69,6 +69,7 @@
 - [[04 — Research/Cluster Research/Walk Forward Validation Report|Walk-Forward Validation Report: Veto Override Clustering]] — This report presents a rigorous rolling walk-forward backtest of the veto override cluster
 - [[04 — Research/Dominance Variance Analysis|Dominance & Variance Channel Analysis Report]] — We have executed a comprehensive statistical evaluation on the certified walk-forward pred
 - [[04 — Research/Dual-TF Entry-Exit Overlay Research|Dual-TF Entry/Exit Overlay Research (2026-06-11)]] — Question: can the 15m conviction ranker (Multi-Timeframe Models|v3_15min_clean, FILTER_GRA
+- [[04 — Research/Financial Machine Learning (Kelly & Xiu 2023)|Financial Machine Learning (Kelly & Xiu 2023) — Reference & Relevance]] — - Bryan T. Kelly (Yale / AQR) & Dacheng Xiu (Chicago Booth), Financial Machine Learning, 2
 - [[04 — Research/V10 V18 Independent Findings|V10 + V18 — Independent Findings (Claude, OOS 2025-07 → 2026-06)]] — This document supersedes and corrects V10_vs_V18_Edge_Evaluation.md (see §6).
 - [[04 — Research/V10 vs V18 Edge Evaluation|V10 (XGBoost Ranking) vs V18 (Random Forest Classifier) - OOS 2026 Evaluation]] — This document serves as the permanent evaluation record comparing the structural edge of v
 
@@ -81,14 +82,14 @@
 - [[05 — Operations/MCP/TradingView MCP Setup|TradingView MCP Setup]] — This document outlines the setup and connection procedures for integrating the TradingView
 - [[05 — Operations/Upstox Brokerage API Plan|Upstox Get Brokerage API Integration Plan]] — This document serves as a reminder for the future integration of the Upstox Get Brokerage 
 
-## 06 — Context & Logs  (1)
-→ [[06 — Context & Logs/_MOC|Browse all 1]]
+## 06 — Context & Logs  (2)
+→ [[06 — Context & Logs/_MOC|Browse all 2]]
 
-## 06 — Logs  (55)
-→ [[06 — Logs/_MOC|Browse all 55]]
+## 06 — Logs  (68)
+→ [[06 — Logs/_MOC|Browse all 68]]
 - [[06 — Logs/50 Strategies Performance Results|50-Strategy Regime-Aware Backtest Results]] — Test Period: May 2026
 - [[06 — Logs/50 Strategies Regime Backtest Plan|50 Strategies Regime Backtest Plan]] — The objective is to evaluate all 50 trading strategies in the catalog using a Regime-Aware
-- [[06 — Logs/Active Board|Active Board]] —  Daily Macro Scan Test Pollution Fix (COMPLETED) — Resolved test suite runs overwriting th
+- [[06 — Logs/Active Board|Active Board]] —  CONVICTION CAPS + LONG-LEG GATING (NEW 2026-07-10 — mandate-compatible; needs shadow A/B)
 - [[06 — Logs/tasks|tasks]] — Look at the pattern across your own vault. v8's 0.046 Spearman → early-stopping-on-test le
 
 ## 09 — Archive  (32)

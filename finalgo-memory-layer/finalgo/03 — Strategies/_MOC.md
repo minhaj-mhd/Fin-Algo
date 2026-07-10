@@ -10,7 +10,7 @@
 | [[03 — Strategies/Empirical Regime Simulation Results|Empirical Regime Simulation Results]] | report | 🟢 active |  | 2026-06-12 |
 | [[03 — Strategies/MTF Limit Order Architecture|Multi-Timeframe (MTF) Support & Resistance Limit Order Architecture]] | spec | 🟢 active |  | 2026-06-12 |
 | [[03 — Strategies/Market Friction & Slippage|Market Friction & Slippage (The Cost Drag Analysis)]] | reference | 🟢 active |  | 2026-06-12 |
-| [[03 — Strategies/Strategy Catalog|Strategy Catalog & Execution Pipelines]] | report | 🟢 active |  | 2026-06-12 |
+| [[03 — Strategies/Strategy Catalog|Strategy Catalog & Execution Pipelines]] | report | 🟢 active |  | 2026-06-22 |
 | [[03 — Strategies/Strategy Dashboard UI|Vanguard Dashboard UI: Strategy Integration]] | reference | 🟢 active |  | 2026-06-12 |
 | [[03 — Strategies/Strategy March 2026 Revision|FinalGo: Optimized Trading Strategy (March 2026 Revision)]] | reference | 🟢 active |  | 2026-06-12 |
 | [[03 — Strategies/Time Based ATR Targets|Time-Based ATR Targeting (1-Hour Hold Constraints)]] | reference | 🟢 active |  | 2026-06-12 |

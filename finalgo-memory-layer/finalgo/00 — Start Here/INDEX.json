@@ -15,7 +15,7 @@
   "status": "active",
   "model": "",
   "verdict": "",
-  "updated": "2026-06-16"
+  "updated": "2026-07-10"
  },
  {
   "path": "01 — Architecture/Data & Code/Codebase File Directory.md",
@@ -756,6 +756,15 @@
   "updated": "2026-06-12"
  },
  {
+  "path": "02 — Models/Transformer/Transformer Architectures Tried — Catalog.md",
+  "title": "Transformer Architectures Tried — Catalog",
+  "type": "reference",
+  "status": "active",
+  "model": "Transformer",
+  "verdict": "",
+  "updated": "2026-06-28"
+ },
+ {
   "path": "02 — Models/_Shared/Advanced Tree Models Roadmap.md",
   "title": "Advanced Tree Models Roadmap",
   "type": "spec",
@@ -861,7 +870,7 @@
   "status": "active",
   "model": "",
   "verdict": "",
-  "updated": "2026-06-12"
+  "updated": "2026-06-22"
  },
  {
   "path": "03 — Strategies/Strategy Dashboard UI.md",
@@ -1044,6 +1053,15 @@
   "updated": "2026-06-12"
  },
  {
+  "path": "04 — Research/Conviction Caps & Long-Side Filter (OOS 2026-07).md",
+  "title": "Conviction Caps & Long-Side Filter",
+  "type": "research",
+  "status": "active",
+  "model": "v20_rolling_1h",
+  "verdict": "⚠️ UNVERIFIED (no Gauntlet). SHORT: signal is inverted-U in conviction — tradeable band [0.011,0.040], cap >0.040 fails; capping lifts the top-1 short stream break-even(−0.3)→+3.2 net@6. LONG: anti-selected (top-1 long −11.3, worse than a random long −8.7; the model's highest long_score/conv picks are its worst); NO feature filter makes longs robustly net-positive. BEST long lever = the NIFTY TRAILING-2h INDEX gate: keep longs only when the index is RISING (idx2h≥0) — on LIVE shadow (07-06→07-10) it lifts the long book −0.2→+7.9 net@6 (n=36, 61% kept), whole edge = staying out of non-rallying days (07-08). Threshold moved between reconstruction (≥0.3%) and live (≥0%) → robust finding is directional only. 2h de-dupe = hygiene not alpha (hurts the gated book). Gate longs, de-weight; let the working short book carry.",
+  "updated": "2026-07-10"
+ },
+ {
   "path": "04 — Research/Dominance Variance Analysis.md",
   "title": "Dominance & Variance Channel Analysis Report",
   "type": "report",
@@ -1060,6 +1078,33 @@
   "model": "",
   "verdict": "FILTER_GRADE",
   "updated": "2026-06-12"
+ },
+ {
+  "path": "04 — Research/Financial Machine Learning (Kelly & Xiu 2023).md",
+  "title": "Financial Machine Learning (Kelly & Xiu 2023) — Reference & Relevance",
+  "type": "reference",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-28"
+ },
+ {
+  "path": "04 — Research/Kronos LoRA NSE Fine-Tune (2026-07).md",
+  "title": "Kronos LoRA NSE Fine-Tune",
+  "type": "research",
+  "status": "dead",
+  "model": "kronos-lora",
+  "verdict": "",
+  "updated": "2026-07-07"
+ },
+ {
+  "path": "04 — Research/Kronos Zero-Shot Veto (2026-07).md",
+  "title": "Kronos Zero-Shot Veto (2026-07)",
+  "type": "research",
+  "status": "dead",
+  "model": "kronos-base (external foundation model, zero-shot)",
+  "verdict": "DEAD as backtest edge — ⚠️ UNVERIFIED by Gauntlet (exploratory tier only, no run_id; pre-registered kill criteria applied instead)",
+  "updated": "2026-07-03"
  },
  {
   "path": "04 — Research/TBM 1h Ensemble Implementation Plan.md",
@@ -1179,6 +1224,15 @@
   "updated": ""
  },
  {
+  "path": "06 — Context & Logs/Conversations/Conv-2026-06-18-OOS-Dual-Model-Backtest.md",
+  "title": "Conv-2026-06-18-OOS-Dual-Model-Backtest",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
   "path": "06 — Logs/50 Strategies Performance Results.md",
   "title": "50-Strategy Regime-Aware Backtest Results",
   "type": "report",
@@ -1203,7 +1257,7 @@
   "status": "active",
   "model": "",
   "verdict": "",
-  "updated": "2026-06-18"
+  "updated": "2026-07-10"
  },
  {
   "path": "06 — Logs/Completed Work Archive.md",
@@ -1530,6 +1584,114 @@
   "updated": ""
  },
  {
+  "path": "06 — Logs/Conversations/Conv-2026-06-19-V20-V3-OOS-Backtest.md",
+  "title": "Conv-2026-06-19-V20-V3-OOS-Backtest",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-06-30-2h-Horizon-Models.md",
+  "title": "Conv-2026-06-30-2h-Horizon-Models",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-02-Fin-Algo-Repo-Migration.md",
+  "title": "Conv-2026-07-02 Fin-Algo Repo Migration",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-07-02"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-02-Kronos-Zero-Shot-Veto.md",
+  "title": "Conv 2026-07-02 Kronos Zero-Shot Veto",
+  "type": "log",
+  "status": "active",
+  "model": "kronos-base (external, zero-shot)",
+  "verdict": "",
+  "updated": "2026-07-02"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-02-News-Shock-Event-Study.md",
+  "title": "Conv-2026-07-02-News-Shock-Event-Study",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-07-02"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-02-Open-Window-Trade-Stacking.md",
+  "title": "Conv-2026-07-02-Open-Window-Trade-Stacking",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-07-02"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-03-RELAXO-Jun29-SL-Postmortem.md",
+  "title": "Conv-2026-07-03-RELAXO-Jun29-SL-Postmortem",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-07-03"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-03-Trade-History-Tab.md",
+  "title": "Conv-2026-07-03-Trade-History-Tab",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-07-03"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-04-SL-Rebound-1ATR-vs-2ATR.md",
+  "title": "Conv 2026-07-04 — Would the 2×ATR Stop Have Saved the 1×ATR Stop-Outs?",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-07-04"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-05-Optimal-Signal-Layer-6bps.md",
+  "title": "Conv 2026-07-05 — Optimal signal-generation layer vs 6bps cost",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "1h stack CANNOT beat 6bps (certified); the layer that does = daily_macro_v2 LONG (+28.2bps net@6, TRIGGER_GRADE) + open gap-fade (+14.1bps/day net@6, exploratory); S2 live veto value FALSIFIED on the 1h stream. NEW (part 2) — E3 OVERNIGHT-EXIT LAYER: daily_macro_v2 edge is 100% overnight (all 3 ON segments +20..+23bps t≈10, all intraday segments NEGATIVE); exiting at open[t+4] instead of close[t+3] nets +49.4bps@6 (t 5.2) vs +29.0, paired uplift +20.3bps t 9.3, better EVERY year 2018-26, flips 2025/2026 positive. ⚠️ UNVERIFIED (exploratory, WF preds from run 20260610T135608Z-5f7d069f); needs one pre-registered Gauntlet run",
+  "updated": "2026-07-05"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-05-Short-Long-Exclusion-Rule-Engine.md",
+  "title": "Conv 2026-07-05 — Short/Long Exclusion Rule Engine feasibility",
+  "type": "log",
+  "status": "concluded",
+  "model": "v20_rolling_1h",
+  "verdict": "DEAD (alpha version); risk-gate version viable but sub-cost",
+  "updated": "2026-07-05"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-10-Conviction-Caps-Long-Filter.md",
+  "title": "Conv 2026-07-10 — Conviction caps, long-side filter, market-cap rank",
+  "type": "log",
+  "status": "concluded",
+  "model": "v20_rolling_1h",
+  "verdict": "⚠️ UNVERIFIED (exploratory, no Gauntlet). SHORT signal inverted-U in conviction: cap >0.040 (fails both top-1 & not-top-1); capping lifts top-1 short −0.3→+3.2 net@6. LONG anti-selected (top-1 −11.3 worse than random long −8.7; model's most-confident longs are worst); best gate VWAP≥0 & mkt-up removes drag (top-1 −11.3→+2.5) but pool still −7.5 → gate hard + de-weight, let shorts carry. Active model = v20 (v21 not live). :15-close reconstruction understates live shadow shorts ~20-40bps (scan-time fills).",
+  "updated": "2026-07-10"
+ },
+ {
   "path": "06 — Logs/Daily Logs/2026-05-31.md",
   "title": "Daily Update: 2026-05-31",
   "type": "log",
@@ -1645,6 +1807,15 @@
   "model": "",
   "verdict": "",
   "updated": "2026-06-18"
+ },
+ {
+  "path": "06 — Logs/Daily Logs/2026-06-28.md",
+  "title": "Daily Log 2026-06-28",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-06-28"
  },
  {
   "path": "06 — Logs/Memory Layer Restructure Plan.md",
