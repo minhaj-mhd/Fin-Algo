@@ -94,6 +94,34 @@ class TradeStateManager:
         return True
 
     @staticmethod
+    def record_barrier_checkpoint(trade, price, pnl, now):
+        """Records the FIRST time a counterfactual SHADOW trade's P&L breaches its
+        stop-loss (and, symmetrically, its take-profit) barrier — WITHOUT exiting.
+
+        Used only for the vetoed / cancelled shadow trades, which are tracked to their
+        full 1-hour outcome but never execute: this captures the return at the point
+        they WOULD have stopped out (the live "1xATR stop-out rebound replay"). Executed
+        OPEN trades are not marked here — they exit at their real stop loss. Idempotent:
+        only the first breach of each barrier is stamped, so sl_hit_* is the return at the
+        moment the stop was first touched, not the worst point (that is peak_adverse_pct).
+        Mutates `trade` in place.
+        """
+        sl_pct = trade.get("stop_loss_pct", 0.50)
+        tp_pct = trade.get("take_profit_pct", 1.00)
+
+        if not trade.get("sl_hit") and pnl <= -sl_pct:
+            trade["sl_hit"] = 1
+            trade["sl_hit_time"] = now.isoformat()
+            trade["sl_hit_price"] = round(price, 4)
+            trade["sl_hit_pnl"] = round(pnl, 4)
+
+        if not trade.get("tp_hit") and pnl >= tp_pct:
+            trade["tp_hit"] = 1
+            trade["tp_hit_time"] = now.isoformat()
+            trade["tp_hit_price"] = round(price, 4)
+            trade["tp_hit_pnl"] = round(pnl, 4)
+
+    @staticmethod
     def evaluate_open_trade_exit(trade, price, pnl, now):
         """Evaluates whether an open trade has met exit criteria (SL, BE, Trailing Stop, Time Expiry).
         Returns a tuple: (should_exit, exit_status, exit_note)

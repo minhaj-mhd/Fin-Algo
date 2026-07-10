@@ -1,0 +1,11 @@
+DATA-SIZE ABLATION — 15m ranker 1h-horizon IC vs training-data fraction (exploratory)
+incumbent 1h ranker: long +0.0275 short +0.0254
+
+  frac=1.00  ~2,180,398 rows/fold   1h IC  long=+0.0287  short=+0.0307
+  frac=0.50  ~1,090,145 rows/fold   1h IC  long=+0.0289  short=+0.0312
+  frac=0.25  ~ 545,052 rows/fold   1h IC  long=+0.0277  short=+0.0313
+  frac=0.10  ~ 217,951 rows/fold   1h IC  long=+0.0265  short=+0.0305
+
+READ: if IC falls toward ~0.026 as fraction shrinks (esp. frac~0.25 ~ 1h model size),
+DATA QUANTITY is the driver. If IC holds ~0.029 even at small fractions, it's the 15m
+RESOLUTION/features, not the row count.

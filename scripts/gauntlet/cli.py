@@ -178,11 +178,16 @@ def load_model_spec(model_name: str, model_dir: str) -> ModelSpec:
     else:
         adapter = "xgb_ranker"
         
+    sides = meta.get("sides", ["long", "short"])
+    if isinstance(sides, list):
+        sides = tuple(sides)
+        
     return ModelSpec(
         name=model_name,
         adapter=adapter,
         params=params,
         features=features,
+        sides=sides,
         num_boost_round=meta.get("num_boost_round", 500),
         early_stopping_rounds=meta.get("early_stopping_rounds", 50)
     )

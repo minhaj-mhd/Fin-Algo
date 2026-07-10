@@ -1,0 +1,9 @@
+FEED 1h FEATURE-VECTORS TO THE 15m MODEL -> predict 1h (clean WF, exploratory)
+  15m-model scoring 1h vectors:  long +0.0176  short +0.0220
+  dedicated 1h ranker:           long +0.0275      short +0.0254
+  15m-model on 15m vectors, held 1h: long +0.0287  short +0.0307
+
+READ: if 15m-model-on-1h-vectors >= the dedicated 1h ranker, the 15m-learned
+relationships transfer to 1h inputs (cross-sectional z-scoring makes inputs comparable).
+If well below, the 15m model's structure is tied to 15m-bar dynamics. IC = ranking skill
+only; all sub-cost.

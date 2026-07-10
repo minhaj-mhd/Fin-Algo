@@ -390,7 +390,21 @@ class UpstoxWebSocketManager:
         """
         backoff_schedule = [10, 20, 30, 60, 90, 90]  # Upstox rate-limits rapid reconnects with 403; give server time to clear
 
+        try:
+            from scripts.vanguard.network_monitor import is_online, wait_for_network
+        except Exception:
+            is_online = wait_for_network = None
+
         while not self._stop_event.is_set():
+            # Don't hammer the WS handshake while the network is down (handshake/403
+            # spam). Park here until connectivity returns, then reconnect cleanly.
+            if is_online is not None and not is_online():
+                self._set_state("DISCONNECTED")
+                print("[WS] Network down — pausing WebSocket reconnects until it's back...")
+                wait_for_network(label="WS-FEED")
+                if self._stop_event.is_set():
+                    break
+
             try:
                 self._set_state("CONNECTING")
                 self._connect_and_stream()      # blocks until disconnected
@@ -438,6 +452,14 @@ class UpstoxWebSocketManager:
 
         api_client  = upstox_client.ApiClient(configuration)
         streamer    = upstox_client.MarketDataStreamerV3(api_client=api_client)
+        
+        # Turn off SDK-level auto-reconnect so we don't hammer the API during network
+        # outages. Our outer _run_loop handles reconnections robustly.
+        try:
+            streamer.auto_reconnect(False)
+        except AttributeError:
+            pass
+            
         self._streamer = streamer
 
         # Connection lifecycle events

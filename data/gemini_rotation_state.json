@@ -1,33 +1,33 @@
 {
-    "current_index": 4,
+    "current_index": 0,
     "stats": {
         "AIzaSyC0...Vkdo": {
-            "success": 31,
-            "fail": 105
+            "success": 127,
+            "fail": 193
         },
         "AIzaSyAV...Luu4": {
-            "success": 33,
-            "fail": 103
+            "success": 121,
+            "fail": 199
         },
         "AQ.Ab8RN...h2_A": {
             "success": 11,
             "fail": 74
         },
         "AIzaSyBG...zUGU": {
-            "success": 28,
-            "fail": 111
+            "success": 110,
+            "fail": 214
         },
         "AIzaSyAO...Imsg": {
-            "success": 39,
-            "fail": 97
+            "success": 131,
+            "fail": 193
         },
         "AQ.Ab8RN...rXDA": {
-            "success": 35,
-            "fail": 98
+            "success": 124,
+            "fail": 192
         },
         "AQ.Ab8RN...akBA": {
-            "success": 27,
-            "fail": 84
+            "success": 128,
+            "fail": 170
         }
     }
 }

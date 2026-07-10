@@ -1,0 +1,41 @@
+EARLY-EXIT overlay (exit/risk study) — exploratory, no verdict authority
+Script: scripts/analysis/wf_early_exit.py
+Run: 2026-06-11 | 6 folds WF OOS 2024-09 -> 2026-06 | 11,692 candidates | cost 10 bps
+Models: v3_15min_clean (15m), v10_native_1h (1h) | retrained per fold (purged WF)
+
+IDEA: after entering a 1h top-3 trade, watch the 15m own-side conviction rank during
+the hold; exit early on decay to cut losses. Cost identical either way (one round-trip),
+so it's a pure timing overlay. Checkpoints after sub-periods 1/2/3 (dt1+75/90/105);
+exit realizes the compounded return so far. No look-ahead (rank + return-so-far only).
+
+Policies: full_hold | conv_level (exit if rank<0.5) | conv_momentum (exit if rank falls)
+          | price_stop (control: exit at first checkpoint where signed return-so-far < 0)
+
+===== LONG (N=5830) =====                  mean_net   WR     median
+  full_hold                                  -8.0     40.1%   -9.4
+  conv_level                                 -7.5     38.6%   -6.3   <- beats full_hold AND price_stop
+  conv_momentum                              -8.5     36.0%   -8.0
+  price_stop (control)                       -9.3     25.1%  -16.6
+  on full-hold LOSERS (N=3495): full_hold=-40.3 | conv_level=-23.0 | conv_momentum=-22.9 | price_stop=-28.1
+
+===== SHORT (N=5862) =====                  mean_net   WR     median
+  full_hold                                  -8.2     44.7%   -6.6
+  conv_level                                 -9.3     45.9%   -3.4   (better WR/median but mean DROPS = winner-clipping)
+  conv_momentum                              -9.1     41.7%   -6.3
+  price_stop (control)                       -9.9     27.8%  -18.0
+  on full-hold LOSERS (N=3241): full_hold=-56.5 | conv_level=-37.5 | conv_momentum=-31.2 | price_stop=-38.8
+
+VERDICT (exploratory):
+- 15m conviction-exit genuinely CUTS LOSSES on bad trades: long losers -40.3->-23.0,
+  short losers -56.5->-31.2. And it BEATS the dumb price-stop on mean, WR, median, and
+  loser-cutting -> the 15m model adds real EXIT information beyond "bail when already red".
+- On LONG, conv_level raises overall mean_net above full_hold (-7.5 vs -8.0) and improves
+  median (-6.3 vs -9.4): a small genuine win by the script's own criterion.
+- On SHORT, conv_level lowers mean (-9.3 vs -8.2) despite better WR/median = winner-clipping
+  tax (exiting early also bails trades that would recover). conv_momentum cuts short losers best.
+- BUT all policies remain net-NEGATIVE: this is loss-MITIGATION on a losing host, not profit.
+  The 1h host is net-negative, so trimming losses can't cross zero on its own.
+
+TAKEAWAY: 15m conviction is weak for ENTRY but genuinely useful as an EXIT/RISK overlay.
+Pair with a profitable entry source (new-information levers) to make it a real exit module.
+Recommended default policy: conv_level (longs); revisit winner-clipping on shorts.

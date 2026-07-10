@@ -278,7 +278,7 @@
                         <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
                             <div>
                                 <div class="d-flex align-items-center flex-wrap gap-3">
-                                    <div class="ticker-header m-0">{{ ticker.replace('.NS', '') }}</div>
+                                    <div class="ticker-header m-0">{{ ticker.replace('.NS', '') }}{% if mcap_rank %} <span style="font-size: 0.5em; opacity: 0.7; vertical-align: middle;">(MC #{{ mcap_rank }})</span>{% endif %}</div>
                                     <a href="https://www.tradingview.com/chart/?symbol=NSE:{{ ticker.replace('.NS', '') }}" target="_blank" class="btn btn-outline-info btn-sm fw-bold px-3" style="border-radius: 8px; font-size: 10px;">
                                         <i class="bi bi-box-arrow-up-right me-1"></i> VIEW ON TRADINGVIEW
                                     </a>
@@ -469,6 +469,7 @@
                                         <th>Exit</th>
                                         <th>P&amp;L</th>
                                         <th>Peak P&amp;L</th>
+                                        <th>Peak Neg</th>
                                         <th>1H Forecast</th>
                                         <th>Audit</th>
                                         <th>Status</th>
@@ -485,13 +486,14 @@
                                             {{ '+' if trade.final_profit_pct > 0 else '' }}{{ "%.2f"|format(trade.final_profit_pct or 0) }}%
                                         </td>
                                         <td class="mono small text-dim">+{{ "%.2f"|format(trade.peak_profit_pct or 0) }}%</td>
+                                        <td class="mono small text-dim">{% if (trade.peak_adverse_pct or 0) < 0 %}{{ "%.2f"|format(trade.peak_adverse_pct) }}%{% else %}+0.00%{% endif %}</td>
                                         <td class="mono text-info fw-semibold" style="font-size: 12px;">{{ trade.one_hour_prob or 'N/A' }}</td>
                                         <td><span class="badge bg-dark border border-white border-opacity-10 py-1 px-2 text-dim font-monospace" style="font-size: 10px;">{{ "%.2f"|format(trade.nlp_sentiment or 0) }}</span></td>
                                         <td><span class="badge {% if trade.status == 'CLOSED' %}bg-secondary{% else %}bg-info text-dark{% endif %} px-2 py-1" style="font-size: 10px; font-weight: 700; font-family: 'Outfit';">{{ trade.status }}</span></td>
                                     </tr>
                                     {% else %}
                                     <tr>
-                                        <td colspan="9" class="text-center text-dim py-4">No trade history recorded for this ticker.</td>
+                                        <td colspan="10" class="text-center text-dim py-4">No trade history recorded for this ticker.</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>

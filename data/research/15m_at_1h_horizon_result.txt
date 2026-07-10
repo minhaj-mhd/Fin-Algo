@@ -1,0 +1,9 @@
+DOES 15m RANKER SKILL SURVIVE AT 1H HORIZON? (exploratory, no verdict)
+15m model, clean 6-fold WF OOS, full-universe cross-sectional IC:
+  vs NATIVE 15m-forward return:  long +0.0530  short +0.0491   (expect ~0.06)
+  vs 1h-forward return (masked): long +0.0291  short +0.0273
+  incumbent dedicated 1h ranker:  long +0.0275  short +0.0254
+
+VERDICT: if 1h-horizon IC > ~0.03 (clears the 1h ranker), 15m skill transfers and is worth
+chasing; if <= ~0.026, the 15m edge is horizon-specific (decays by 1h) and offers no lift
+over the existing 1h model. (IC alone is not post-cost edge — both rankers are sub-cost.)

@@ -71,6 +71,16 @@ def log_trade(trade):
                     "take_profit_pct": trade.get("take_profit_pct"),
                     "peak_profit_pct": trade.get("peak_profit_pct"),
                     "peak_adverse_pct": trade.get("peak_adverse_pct"),
+                    # Stop-loss / take-profit barrier checkpoint (SHADOW_SL_CHECKPOINT):
+                    # the return at the first barrier touch, held through to the 1h close.
+                    "sl_hit": trade.get("sl_hit", 0),
+                    "sl_hit_time": trade.get("sl_hit_time"),
+                    "sl_hit_price": trade.get("sl_hit_price"),
+                    "sl_hit_pnl": trade.get("sl_hit_pnl"),
+                    "tp_hit": trade.get("tp_hit", 0),
+                    "tp_hit_time": trade.get("tp_hit_time"),
+                    "tp_hit_price": trade.get("tp_hit_price"),
+                    "tp_hit_pnl": trade.get("tp_hit_pnl"),
                     "gross_pnl_bps": round(gross_pnl_bps, 4),
                     "net_pnl_bps": round(net_pnl_bps, 4)
                 }

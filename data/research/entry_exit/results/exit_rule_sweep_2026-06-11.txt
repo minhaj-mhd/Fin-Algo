@@ -1,0 +1,33 @@
+
+===== LONG (N=5830) =====   [winners/losers cols = bps changed vs full-hold]
+  full_hold                  mean=  -8.0  WR= 40.1%  med= -9.4 | winners   +0.0  losers   +0.0
+  conv<0.5                   mean=  -7.5  WR= 38.6%  med= -6.3 | winners  -24.6  losers  +17.3
+  conv<0.35                  mean=  -7.5  WR= 40.9%  med= -5.8 | winners  -19.1  losers  +13.6
+  conv<0.2                   mean=  -7.3  WR= 41.8%  med= -6.0 | winners  -11.5  losers   +8.9
+  -- asymmetric: exit only when conviction weak AND currently underwater --
+  conv<0.5 & RED             mean=  -8.1  WR= 33.2%  med=-13.7 | winners   -8.6  losers   +5.7
+  conv<0.35 & RED            mean=  -8.0  WR= 35.6%  med=-12.6 | winners   -5.7  losers   +3.8
+  conv<0.2 & RED             mean=  -8.0  WR= 37.8%  med=-11.3 | winners   -2.9  losers   +2.0
+  RED-only stop (ctrl)       mean=  -9.3  WR= 25.1%  med=-16.6 | winners  -21.4  losers  +12.1
+  -- let-winners-run: lock once green, else exit weak&red --
+  conv<0.5&RED,lock@green    mean=  -8.0  WR= 34.2%  med=-13.5 | winners   -7.7  losers   +5.2
+  conv<0.35&RED,lock@green   mean=  -8.1  WR= 36.1%  med=-12.4 | winners   -5.2  losers   +3.4
+
+===== SHORT (N=5862) =====   [winners/losers cols = bps changed vs full-hold]
+  full_hold                  mean=  -8.2  WR= 44.7%  med= -6.6 | winners   +0.0  losers   +0.0
+  conv<0.5                   mean=  -9.3  WR= 45.9%  med= -3.4 | winners  -26.1  losers  +19.0
+  conv<0.35                  mean=  -8.4  WR= 47.0%  med= -3.0 | winners  -19.1  losers  +14.9
+  conv<0.2                   mean=  -7.8  WR= 47.4%  med= -2.9 | winners  -11.4  losers   +9.8
+  -- asymmetric: exit only when conviction weak AND currently underwater --
+  conv<0.5 & RED             mean=  -8.7  WR= 39.3%  med=-12.6 | winners   -7.4  losers   +5.0
+  conv<0.35 & RED            mean=  -8.3  WR= 41.2%  med=-11.2 | winners   -4.5  losers   +3.4
+  conv<0.2 & RED             mean=  -8.0  WR= 42.9%  med=-10.0 | winners   -2.2  losers   +2.1
+  RED-only stop (ctrl)       mean=  -9.9  WR= 27.8%  med=-18.0 | winners  -25.9  losers  +17.7
+  -- let-winners-run: lock once green, else exit weak&red --
+  conv<0.5&RED,lock@green    mean=  -8.7  WR= 40.0%  med=-12.1 | winners   -6.6  losers   +4.5
+  conv<0.35&RED,lock@green   mean=  -8.3  WR= 41.6%  med=-10.9 | winners   -4.0  losers   +3.1
+
+============================================================================================
+  GOAL: a rule with mean > full_hold. Asymmetry should shrink the 'winners' clip
+  toward 0 while keeping the 'losers' save positive.
+============================================================================================

@@ -8,9 +8,10 @@ from flask import Flask, jsonify, render_template
 sys.path.append(os.getcwd())
 
 from scripts.database_manager import (
-    get_trades_by_status, get_performance_stats, get_trades_for_ticker, 
+    get_trades_by_status, get_performance_stats, get_trades_for_ticker,
     get_ticker_performance, get_detailed_performance, get_portfolio_summary,
-    get_strategy_performance, get_trades_by_strategy, get_recent_trades
+    get_strategy_performance, get_trades_by_strategy, get_recent_trades,
+    get_trade_history
 )
 from scripts.ticker_intelligence import get_ticker_analysis
 from scripts.tickers import TICKERS
@@ -125,6 +126,22 @@ def get_strategies_data():
 def get_tickers():
     return jsonify([t.replace('.NS', '') for t in TICKERS])
 
+@app.route('/api/marketcap_ranks')
+def get_marketcap_ranks():
+    """Symbol (no .NS) -> weekly market-cap rank, from data/marketcap_ranks.json.
+
+    Persisted weekly by scripts/fetch_marketcap_ranks.py. Returns {} if not yet
+    generated so the dashboard degrades gracefully to plain ticker names.
+    """
+    try:
+        with open('data/marketcap_ranks.json', encoding='utf-8') as f:
+            snap = json.load(f)
+        ranks = {t.replace('.NS', ''): v.get('rank')
+                 for t, v in snap.get('tickers', {}).items() if v.get('rank')}
+        return jsonify(ranks)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return jsonify({})
+
 @app.route('/api/upstox/stats')
 def get_upstox_stats():
     """Returns full portfolio state: capital, margins, open positions, today's P&L."""
@@ -228,6 +245,16 @@ def get_vanguard_status():
         log(f"[ERROR] Dashboard Data Error: {e}")
         return jsonify({'error': str(e), 'system_health': 'ERROR'})
 
+@app.route('/api/trade_history')
+def get_trade_history_api():
+    """Returns the full history of executed trades (all statuses, all time) with every column."""
+    try:
+        history = get_trade_history(limit=2000)
+        return jsonify({'trades': history, 'count': len(history)})
+    except Exception as e:
+        log(f"[ERROR] Trade History API Error: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/live_scores')
 def get_live_scores():
     try:
@@ -282,15 +309,24 @@ def ticker_detail(symbol):
             except Exception as e:
                 log(f"[WARN] Failed to fetch live price from broker for {symbol}: {e}")
         
-        return render_template('ticker_detail.html', 
-                             ticker=symbol, 
-                             history=history, 
+        # weekly market-cap rank (from data/marketcap_ranks.json), shown in a bracket
+        mcap_rank = None
+        try:
+            with open('data/marketcap_ranks.json', encoding='utf-8') as f:
+                mcap_rank = json.load(f).get('tickers', {}).get(symbol, {}).get('rank')
+        except (FileNotFoundError, json.JSONDecodeError):
+            pass
+
+        return render_template('ticker_detail.html',
+                             ticker=symbol,
+                             history=history,
                              perf=perf,
                              live_price=live_price,
                              score_15m=score_15m,
                              score_30m=score_30m,
                              score_1h=score_1h,
-                             score_1d=score_1d)
+                             score_1d=score_1d,
+                             mcap_rank=mcap_rank)
     except Exception as e:
         log(f"[ERROR] Ticker Detail Error: {e}")
         return f"Error loading detail page for {symbol}: {e}", 500

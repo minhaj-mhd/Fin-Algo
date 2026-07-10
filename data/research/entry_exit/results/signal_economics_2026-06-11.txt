@@ -1,0 +1,24 @@
+1H SIGNAL ECONOMICS — why "+1 bps net, 3 signals/hr all day" is hard (exploratory, no verdict)
+Source: data/research/entry_exit/dualtf_trade_panel.csv (13,020 top-3 signals, 434 days, full-hold)
+
+GROSS edge (signed, full-hold top-3, both dirs pooled) by 1h-bar entry hour:
+  09: +1.0   10: +2.8   11: -0.1 (DEAD)   12: +3.3   13: +2.5    (~30 signals/day all-day)
+
+NET by cost level (gross - cost):
+  hour   net@10   net@6   net@4   net@2
+   10     -7.2    -3.2    -1.2    +0.8
+   12     -6.7    -2.7    -0.7    +1.3   <- target +1 net reached only at ~2 bps cost
+   13     -7.5    -3.5    -1.5    +0.5
+
+CONCENTRATION DOES NOT HELP: top-1 (single strongest score/dir/hr) gross = +1.8 over best
+hours (10,12,13) vs top-3 +2.9 — slightly WORSE. The ranker's extreme scores are not its
+most profitable. No lever on the gross side; it is stuck at ~2-3 bps.
+
+CONCLUSION: the bottleneck is EXECUTION COST, not the model.
+- +1 bps net requires gross >= 11 bps (impossible on price/volume here) OR round-trip cost <= ~2 bps.
+- ~10 bps is TAKER cost (STT ~2.5 + fees ~1 + spread/slippage ~3-5). MAKER (limit orders earning
+  the spread) could reach ~2-4 bps -> noon book crosses to +1.3 net@2.
+- CATCH: limit-order fill risk / adverse selection cannot be measured from OHLC; needs quote/
+  order-flow data. Same lever the CST kill pointed to ([[project-cst-stage0-killed]]).
+- "3/hr all day" fights the edge: forces trading the 11am dead zone at full cost. Edge is lumpy
+  (10/12/13), not uniform. Path = concentrate EOD + maker execution + measure real fills.

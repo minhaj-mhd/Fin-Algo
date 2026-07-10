@@ -51,14 +51,21 @@ class SignalGenerator:
             raw_col = "long_score" if side == "LONG" else "short_score"
             rank_col_name = "Long_Rank" if side == "LONG" else "Short_Rank"
 
-            # Top-K Hybrid (Net) Candidates sorted by rank (scale-free)
-            top_net = eligible_df.sort_values(rank_col_name, ascending=True).head(entry_top_k)
+            if getattr(config, "SIGNAL_RAW_SCORE_ONLY", False):
+                # 2026-07-05: single top-K pick per side by RAW model score only. Research showed
+                # raw beats the conviction (long-short) rank on longs (+0.6 vs -1.7 bps) and ties
+                # on shorts; drops the AI_Net path so exactly `entry_top_k` picks/side are emitted.
+                top_raw = eligible_df.sort_values(raw_col, ascending=False).head(entry_top_k)
+                source_sets = (("AI_Raw", top_raw),)
+            else:
+                # Top-K Hybrid (Net) Candidates sorted by rank (scale-free)
+                top_net = eligible_df.sort_values(rank_col_name, ascending=True).head(entry_top_k)
+                # Top-K Pure Directional Candidates sorted by raw score (excluding top_net)
+                eligible_raw_df = eligible_df[~eligible_df['ticker'].isin(top_net['ticker'])]
+                top_raw = eligible_raw_df.sort_values(raw_col, ascending=False).head(entry_top_k)
+                source_sets = (("AI_Net", top_net), ("AI_Raw", top_raw))
 
-            # Top-K Pure Directional Candidates sorted by raw score (excluding top_net)
-            eligible_raw_df = eligible_df[~eligible_df['ticker'].isin(top_net['ticker'])]
-            top_raw = eligible_raw_df.sort_values(raw_col, ascending=False).head(entry_top_k)
-
-            for source, candidates in (("AI_Net", top_net), ("AI_Raw", top_raw)):
+            for source, candidates in source_sets:
                 for _, row in candidates.iterrows():
                     row_dict = row.to_dict()
                     row_dict.update({

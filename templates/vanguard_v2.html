@@ -656,6 +656,9 @@
             <li class="nav-item">
                 <button class="nav-link" id="strategies-tab" data-bs-toggle="tab" data-bs-target="#strategies" type="button" onclick="loadStrategyData()"><i class="bi bi-diagram-3 me-1"></i> Strategy Edge</button>
             </li>
+            <li class="nav-item">
+                <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" onclick="loadTradeHistory()"><i class="bi bi-journal-text me-1"></i> Trade History</button>
+            </li>
         </ul>
 
         <div class="tab-content" id="vanguardTabContent">
@@ -681,11 +684,12 @@
                                     <th>Next 1H</th>
                                     <th>Gemini Sentiment</th>
                                     <th>TV 1H</th>
+                                    <th>Veto Layers</th>
                                 </tr>
                             </thead>
                             <tbody id="open-signals">
                                 <tr>
-                                    <td colspan="13" class="text-center text-dim py-4">No active trades.</td>
+                                    <td colspan="14" class="text-center text-dim py-4">No active trades.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -726,6 +730,10 @@
                     <div class="section-title text-warning d-flex justify-content-between align-items-center mb-3">
                         <span><i class="bi bi-shield-slash"></i> AI Vetoed (Live Tracking)</span>
                         <div class="d-flex gap-4" style="font-family: 'JetBrains Mono'; font-size: 11px;">
+                            <div class="text-end">
+                                <div style="color: var(--text-dim); font-size: 9px; text-transform: uppercase;">Kronos Avoided</div>
+                                <div id="veto-kronos-pnl" class="fw-bold text-warning">+0.00%</div>
+                            </div>
                             <div class="text-end">
                                 <div style="color: var(--text-dim); font-size: 9px; text-transform: uppercase;">S1 Avoided</div>
                                 <div id="veto-s1-pnl" class="fw-bold text-warning">+0.00%</div>
@@ -768,6 +776,7 @@
                                     <th>Peak P&amp;L</th>
                                     <th>Peak Neg</th>
                                     <th>Veto Stage</th>
+                                    <th>Veto Layers</th>
                                     <th>LLM Reason</th>
                                     <th>TV 1H</th>
                                     <th>Next 1H</th>
@@ -776,7 +785,7 @@
                             </thead>
                             <tbody id="vetoed-ml-signals">
                                 <tr>
-                                    <td colspan="14" class="text-center text-dim py-4">No recently vetoed signals.</td>
+                                    <td colspan="15" class="text-center text-dim py-4">No recently vetoed signals.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -797,6 +806,7 @@
                                     <th>Peak P&amp;L</th>
                                     <th>Peak Neg</th>
                                     <th>Veto Stage</th>
+                                    <th>Veto Layers</th>
                                     <th>LLM Reason</th>
                                     <th>TV 1H</th>
                                     <th>Status / Time</th>
@@ -804,7 +814,7 @@
                             </thead>
                             <tbody id="vetoed-strategy-signals">
                                 <tr>
-                                    <td colspan="14" class="text-center text-dim py-4">No recently vetoed signals.</td>
+                                    <td colspan="15" class="text-center text-dim py-4">No recently vetoed signals.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -883,6 +893,75 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <!-- TRADE HISTORY TAB -->
+            <div class="tab-pane fade" id="history">
+                <div class="card card-glass mb-4 p-4">
+                    <div class="section-title text-info d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <span><i class="bi bi-journal-text"></i> Full Trade History (All Executed Trades)</span>
+                        <div class="d-flex gap-3 flex-wrap" style="font-family:'JetBrains Mono'; font-size:11px;">
+                            <span class="text-dim">Trades: <span id="hist-total" class="fw-bold text-white">0</span></span>
+                            <span class="text-dim">Win Rate: <span id="hist-winrate" class="fw-bold text-white">0%</span></span>
+                            <span class="text-dim">Wins: <span id="hist-wins" class="fw-bold text-success">0</span></span>
+                            <span class="text-dim">Losses: <span id="hist-losses" class="fw-bold text-danger">0</span></span>
+                            <span class="text-dim">Net P&amp;L: <span id="hist-net-pnl" class="fw-bold text-white">₹0</span></span>
+                            <span class="text-dim">Net Alpha: <span id="hist-net-alpha" class="fw-bold text-white">0%</span></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 align-items-center my-3">
+                        <input type="text" id="hist-search" class="form-control form-control-sm bg-dark text-white border-secondary" style="width:160px; font-size:12px;" placeholder="Filter ticker..." oninput="applyHistoryFilters()">
+                        <select id="hist-side-filter" class="form-select form-select-sm bg-dark text-white border-secondary" style="width:120px; font-size:12px;" onchange="applyHistoryFilters()">
+                            <option value="ALL">All Sides</option>
+                            <option value="LONG">Long</option>
+                            <option value="SHORT">Short</option>
+                        </select>
+                        <select id="hist-status-filter" class="form-select form-select-sm bg-dark text-white border-secondary" style="width:150px; font-size:12px;" onchange="applyHistoryFilters()">
+                            <option value="ALL">All Statuses</option>
+                            <option value="OPEN">Open</option>
+                            <option value="PENDING_LIMIT">Pending Limit</option>
+                            <option value="CLOSED">Closed</option>
+                            <option value="STOP_LOSS">Stop Loss</option>
+                            <option value="TAKE_PROFIT">Take Profit</option>
+                        </select>
+                        <select id="hist-page-size" class="form-select form-select-sm bg-dark text-white border-secondary" style="width:110px; font-size:12px;" onchange="applyHistoryFilters()">
+                            <option value="25">25 / page</option>
+                            <option value="50" selected>50 / page</option>
+                            <option value="100">100 / page</option>
+                            <option value="250">250 / page</option>
+                        </select>
+                        <button class="btn btn-sm btn-outline-secondary" style="font-size:12px;" onclick="resetHistoryFilters()">Reset</button>
+                        <button class="btn btn-sm btn-outline-info ms-auto" style="font-size:12px;" onclick="loadTradeHistory(true)"><i class="bi bi-arrow-clockwise me-1"></i> Refresh</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Ticker</th>
+                                    <th>Side</th>
+                                    <th>Status</th>
+                                    <th>Qty</th>
+                                    <th>Entry ₹</th>
+                                    <th>Exit ₹</th>
+                                    <th>Net P&amp;L ₹</th>
+                                    <th>P&amp;L %</th>
+                                    <th>Peak % / Neg %</th>
+                                    <th>ML Score</th>
+                                    <th>Multi-TF</th>
+                                    <th>Sentiment</th>
+                                    <th>Comment</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-body">
+                                <tr><td colspan="14" class="text-center text-dim py-4">Loading trade history...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="history-pagination" class="text-center mt-2"></div>
                 </div>
             </div>
 
@@ -1080,9 +1159,55 @@
             }
         }
 
+        // Render the per-signal veto-layer verdict strip (SHADOW_ALL_LAYERS telemetry).
+        // Input is the trade's `veto_layers` field (JSON string or object): each of the 5
+        // layers gets a colour-coded chip (verdict) with a tooltip carrying the details.
+        function renderVetoLayerChips(raw) {
+            if (!raw) return '<span class="text-dim smallest">—</span>';
+            let L;
+            try { L = (typeof raw === 'string') ? JSON.parse(raw) : raw; }
+            catch (e) { return '<span class="text-dim smallest">—</span>'; }
+            if (!L || typeof L !== 'object') return '<span class="text-dim smallest">—</span>';
+
+            const order = [['gate_15m','15m'],['candle','Cndl'],['kronos','Krns'],['gemini_s1','S1'],['gemini_s2','S2']];
+            // verdict -> [fg, bg, border]
+            const palette = {
+                PASS:     ['#50fa7b','rgba(80,250,123,0.14)','rgba(80,250,123,0.40)'],
+                VETO:     ['#ff6b6b','rgba(255,107,107,0.16)','rgba(255,107,107,0.45)'],
+                ABSTAIN:  ['#8a8f98','rgba(138,143,152,0.12)','rgba(138,143,152,0.30)'],
+                DISABLED: ['#6b7280','rgba(107,114,128,0.10)','rgba(107,114,128,0.25)'],
+                BYPASSED: ['#6b7280','rgba(107,114,128,0.10)','rgba(107,114,128,0.25)'],
+                NOT_RUN:  ['#00d4ff','rgba(0,212,255,0.10)','rgba(0,212,255,0.30)'],
+                ERROR:    ['#ffb86c','rgba(255,184,108,0.14)','rgba(255,184,108,0.40)'],
+            };
+            const glyph = { PASS:'✓', VETO:'✕', ABSTAIN:'·', DISABLED:'–', BYPASSED:'–', NOT_RUN:'○', ERROR:'!' };
+
+            function detail(key, v) {
+                const p = [];
+                if (key === 'kronos' && v.p_up != null) p.push(`p_up=${v.p_up} aligned=${v.aligned}`);
+                if (key === 'candle') { if (v.fade_guard) p.push(v.fade_guard); if (v.range_pct != null) p.push(`rng=${v.range_pct}% pos=${v.close_pos}`); }
+                if (key === 'gate_15m' && v.score_15m != null) p.push(`score=${v.score_15m} thr=${v.threshold}`);
+                if ((key === 'gemini_s1' || key === 'gemini_s2')) { if (v.sentiment) p.push(v.sentiment); if (v.reason) p.push(String(v.reason).slice(0, 140)); }
+                if (v.error) p.push('err: ' + v.error);
+                return p.join(' · ');
+            }
+
+            let chips = '';
+            order.forEach(([key, label]) => {
+                const v = L[key] || {};
+                const verdict = (v.verdict || 'ABSTAIN').toUpperCase();
+                const c = palette[verdict] || palette.ABSTAIN;
+                const g = glyph[verdict] || '·';
+                const d = detail(key, v);
+                const tip = (`${label} → ${verdict}` + (d ? `  (${d})` : '')).replace(/"/g, '&quot;');
+                chips += `<span title="${tip}" style="display:inline-flex;align-items:center;gap:2px;padding:2px 5px;margin:1px;border-radius:5px;font-family:'JetBrains Mono';font-size:9px;font-weight:700;line-height:1;background:${c[1]};border:1px solid ${c[2]};color:${c[0]};cursor:default;">${label}<span style="opacity:0.9;">${g}</span></span>`;
+            });
+            return `<div style="display:flex;flex-wrap:wrap;max-width:200px;gap:1px;">${chips}</div>`;
+        }
+
         function formatComment(comment, tradeId) {
             if (!comment) return '';
-            
+
             let text = comment;
             if (text.includes('|')) {
                 const parts = text.split('|');
@@ -1119,6 +1244,21 @@
             return "STRONG BEARISH";
         }
 
+        // --- MARKET-CAP RANK (weekly, from /api/marketcap_ranks) ---
+        let MCAP_RANKS = {};
+        async function loadMcapRanks() {
+            try {
+                const res = await fetch('/api/marketcap_ranks');
+                MCAP_RANKS = await res.json();
+            } catch (e) { console.warn('Failed to load market-cap ranks'); }
+        }
+        loadMcapRanks();
+        // Append the weekly market-cap rank in a bracket next to a symbol (no .NS).
+        function withRank(sym) {
+            const r = MCAP_RANKS[sym];
+            return r ? `${sym} (${r})` : sym;
+        }
+
         // --- SEARCH SUGGESTIONS LOGIC ---
         let allTickers = [];
         const searchInput = document.getElementById('tickerSearch');
@@ -1145,7 +1285,7 @@
             if (matches.length > 0) {
                 suggestionsBox.innerHTML = matches.map(m => `
                     <div class="suggestion-item" onclick="selectTicker('${m}')">
-                        <span class="suggestion-ticker">${m}</span>
+                        <span class="suggestion-ticker">${withRank(m)}</span>
                         <span class="suggestion-meta">NSE Cash</span>
                     </div>
                 `).join('');
@@ -1281,7 +1421,7 @@
                             <tr>
                                 <td class="ticker-name">
                                     <div class="d-flex align-items-center gap-2">
-                                        <a href="/ticker/${encodeURIComponent(p.ticker)}" class="ticker-link">${p.ticker.replace('.NS','')}</a>
+                                        <a href="/ticker/${encodeURIComponent(p.ticker)}" class="ticker-link">${withRank(p.ticker.replace('.NS',''))}</a>
                                         ${stratBadge}
                                     </div>
                                 </td>
@@ -1356,7 +1496,7 @@
                             <tr>
                                 <td class="ticker-name">
                                     <div class="d-flex align-items-center gap-2">
-                                        <a href="/ticker/${encodeURIComponent(p.ticker)}" class="ticker-link">${p.ticker.replace('.NS','')}</a>
+                                        <a href="/ticker/${encodeURIComponent(p.ticker)}" class="ticker-link">${withRank(p.ticker.replace('.NS',''))}</a>
                                         ${stratBadge}
                                         <a href="https://www.tradingview.com/chart/?symbol=NSE:${p.ticker.replace('.NS','')}" target="_blank" class="text-dim" style="font-size:10px;" title="TradingView"><i class="bi bi-graph-up"></i></a>
                                     </div>
@@ -1446,7 +1586,7 @@
                             <tr>
                                 <td class="ticker-name">
                                     <div class="d-flex align-items-center gap-2">
-                                        <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">${(t.ticker || '').replace('.NS','')}</a>
+                                        <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">${withRank((t.ticker || '').replace('.NS',''))}</a>
                                         ${stratBadge}
                                     </div>
                                 </td>
@@ -1571,6 +1711,13 @@
                             candleEl.innerText = (candlev >= 0 ? '+' : '') + candlev.toFixed(2) + '%';
                             candleEl.className = 'fw-bold ' + (candlev > 0 ? 'text-success' : (candlev < 0 ? 'text-danger' : 'text-white'));
                         }
+
+                        const kronosv = s.vetoed.daily_kronos ? s.vetoed.daily_kronos.alpha : 0;
+                        const kronosEl = document.getElementById('veto-kronos-pnl');
+                        if (kronosEl) {
+                            kronosEl.innerText = (kronosv >= 0 ? '+' : '') + kronosv.toFixed(2) + '%';
+                            kronosEl.className = 'fw-bold ' + (kronosv > 0 ? 'text-success' : (kronosv < 0 ? 'text-danger' : 'text-white'));
+                        }
                     }
                 }
 
@@ -1624,7 +1771,7 @@
                                 <td class="ticker-name">
                                     <div class="d-flex align-items-center gap-2">
                                         <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">
-                                            ${t.ticker.replace('.NS', '')}
+                                            ${withRank(t.ticker.replace('.NS', ''))}
                                         </a>
                                         ${stratBadge}
                                         ${pendingBadge}
@@ -1664,11 +1811,12 @@
                                         <i class="bi bi-speedometer2 me-1"></i> ${t.tv_sentiment || 'N/A'}
                                     </span>
                                 </td>
+                                <td>${renderVetoLayerChips(t.veto_layers)}</td>
                             </tr>
                         `;
                     });
                 } else {
-                    openBody.innerHTML = '<tr><td colspan="13" class="text-center text-dim py-4">No active trades.</td></tr>';
+                    openBody.innerHTML = '<tr><td colspan="14" class="text-center text-dim py-4">No active trades.</td></tr>';
                 }
 
                 // 2.5 UPDATE VETOED TRADES
@@ -1680,7 +1828,7 @@
 
                     function renderVetoList(tradesList, tbodyElem, isStrategyTable, tableType) {
                         if (tradesList.length === 0) {
-                            tbodyElem.innerHTML = '<tr><td colspan="13" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
+                            tbodyElem.innerHTML = '<tr><td colspan="15" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
                             return;
                         }
                         
@@ -1707,7 +1855,7 @@
  
                                 htmlBuffer += `
                                     <tr class="bg-dark bg-opacity-50">
-                                        <td colspan="14" class="py-2">
+                                        <td colspan="15" class="py-2">
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <div class="d-flex align-items-center gap-2">
                                                     <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
@@ -1748,6 +1896,12 @@
                                 stageBg = isLimit ? 'rgba(0, 212, 255, 0.12)' : 'rgba(189, 147, 249, 0.12)';
                                 stageBorder = isLimit ? 'rgba(0, 212, 255, 0.35)' : 'rgba(189, 147, 249, 0.35)';
                                 stageTitle = isLimit ? 'Limit order expired without fill' : `Candle-stage Veto: ${t.reject_reason || 'Rejection'}`;
+                            } else if (rawComment.includes('[KRONOS-')) {
+                                vetoStage = 'KRONOS';
+                                stageColor  = '#50fa7b';
+                                stageBg     = 'rgba(80,250,123,0.12)';
+                                stageBorder = 'rgba(80,250,123,0.35)';
+                                stageTitle  = 'Kronos K-line foundation model: forecast disagrees with trade direction';
                             } else {
                                 const isS1 = rawComment.includes('[S1-VETO]') || rawComment.includes('[S1-');
                                 vetoStage = isS1 ? 'S1' : 'S2';
@@ -1759,6 +1913,7 @@
 
                             const cleanReason = rawComment
                                 .replace(/^\[S[12]-VETO\]\s*/i, '')
+                                .replace(/^\[KRONOS-VETO\]\s*/i, '')
                                 .replace(/^\[VETOED by [^\]]+\]\s*/i, '')
                                 .trim() || 'No reason recorded.';
 
@@ -1788,7 +1943,7 @@
                                     <td class="ticker-name">
                                         <div class="d-flex align-items-center gap-2">
                                             <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">
-                                                ${t.ticker.replace('.NS', '')}
+                                                ${withRank(t.ticker.replace('.NS', ''))}
                                             </a>
                                             ${!isStrategyTable ? stratBadge : ''}
                                             <a href="https://www.tradingview.com/chart/?symbol=NSE:${t.ticker.replace('.NS', '')}" target="_blank" class="text-dim" style="font-size: 10px;" title="View TradingView Chart">
@@ -1823,6 +1978,7 @@
                                             <i class="bi bi-shield-slash" style="font-size:9px;"></i> ${vetoStage}
                                         </span>
                                     </td>
+                                    <td>${renderVetoLayerChips(t.veto_layers)}</td>
                                     <td style="max-width: 250px; white-space: normal; line-height:1.4;">
                                         ${llmReasonHtml}
                                     </td>
@@ -1841,7 +1997,7 @@
                         if (totalPages > 1) {
                             htmlBuffer += `
                                 <tr class="bg-dark bg-opacity-50">
-                                    <td colspan="14" class="py-2 text-center border-top border-secondary border-opacity-10">
+                                    <td colspan="15" class="py-2 text-center border-top border-secondary border-opacity-10">
                                         <button class="btn btn-sm btn-outline-secondary me-2 px-3 py-1" onclick="changeVetoPage('${tableType}', -1)" ${currentPage === 1 ? 'disabled' : ''} style="font-size: 11px;">Previous</button>
                                         <span class="text-dim mx-2" style="font-size: 11px;">Page ${currentPage} of ${totalPages} (${tradesList.length} total)</span>
                                         <button class="btn btn-sm btn-outline-secondary ms-2 px-3 py-1" onclick="changeVetoPage('${tableType}', 1)" ${currentPage === totalPages ? 'disabled' : ''} style="font-size: 11px;">Next</button>
@@ -1856,8 +2012,8 @@
                     renderVetoList(mlTrades, vetoMlBody, false, 'ml');
                     renderVetoList(stratTrades, vetoStrategyBody, true, 'strat');
                 } else {
-                    vetoMlBody.innerHTML = '<tr><td colspan="14" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
-                    vetoStrategyBody.innerHTML = '<tr><td colspan="14" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
+                    vetoMlBody.innerHTML = '<tr><td colspan="15" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
+                    vetoStrategyBody.innerHTML = '<tr><td colspan="15" class="text-center text-dim py-4">No recently vetoed signals.</td></tr>';
                 }
 
                 // 3. UPDATE CLOSED TRADES
@@ -1904,7 +2060,7 @@
                                 <td class="ticker-name">
                                     <div class="d-flex align-items-center gap-2">
                                         <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">
-                                            ${t.ticker.replace('.NS', '')}
+                                            ${withRank(t.ticker.replace('.NS', ''))}
                                         </a>
                                         ${stratBadge}
                                         <a href="https://www.tradingview.com/chart/?symbol=NSE:${t.ticker.replace('.NS', '')}" target="_blank" class="text-dim" style="font-size: 10px;" title="View TradingView Chart">
@@ -2011,7 +2167,7 @@
                         <td class="ticker-name">
                             <div class="d-flex align-items-center gap-2">
                                 <a href="/ticker/${encodeURIComponent(s.ticker)}" class="ticker-link">
-                                    ${s.ticker.replace('.NS', '')}
+                                    ${withRank(s.ticker.replace('.NS', ''))}
                                 </a>
                                 ${gatekeeperBadge}
                                 <a href="https://www.tradingview.com/chart/?symbol=NSE:${s.ticker.replace('.NS', '')}" target="_blank" class="text-dim" style="font-size: 10px;" title="View TradingView Chart">
@@ -2501,7 +2657,7 @@
                                 </td>
                                 <td>
                                     <a href="/ticker/${t.ticker.replace('.NS', '')}" class="ticker-link" target="_blank">
-                                        ${t.ticker}
+                                        ${withRank((t.ticker || '').replace('.NS', ''))}
                                     </a>
                                 </td>
                                 <td>
@@ -2531,6 +2687,241 @@
                 console.error("Failed to load strategy data:", err);
             }
         }
+
+        // ── TRADE HISTORY TAB ────────────────────────────────────────────
+        let allHistoryTrades = [];
+        let historyLoaded = false;
+        let currentHistoryPage = 1;
+
+        async function loadTradeHistory(forceRefresh) {
+            if (historyLoaded && !forceRefresh) { renderTradeHistory(); return; }
+            const body = document.getElementById('history-body');
+            body.innerHTML = '<tr><td colspan="14" class="text-center text-dim py-4">Loading trade history...</td></tr>';
+            try {
+                const res = await fetch('/api/trade_history');
+                const data = await res.json();
+                allHistoryTrades = data.trades || [];
+                historyLoaded = true;
+                currentHistoryPage = 1;
+                renderTradeHistory();
+            } catch (e) {
+                console.error("Failed to load trade history:", e);
+                body.innerHTML = '<tr><td colspan="14" class="text-center text-danger py-4">Failed to load trade history.</td></tr>';
+            }
+        }
+
+        function filterHistoryTrades() {
+            const q = (document.getElementById('hist-search').value || '').trim().toUpperCase();
+            const side = document.getElementById('hist-side-filter').value;
+            const status = document.getElementById('hist-status-filter').value;
+            return allHistoryTrades.filter(t => {
+                if (q && !(t.ticker || '').toUpperCase().includes(q)) return false;
+                if (side !== 'ALL' && t.side !== side) return false;
+                if (status !== 'ALL' && t.status !== status) return false;
+                return true;
+            });
+        }
+
+        window.resetHistoryFilters = function() {
+            document.getElementById('hist-search').value = '';
+            document.getElementById('hist-side-filter').value = 'ALL';
+            document.getElementById('hist-status-filter').value = 'ALL';
+            document.getElementById('hist-page-size').value = '50';
+            applyHistoryFilters();
+        };
+
+        window.applyHistoryFilters = function() {
+            currentHistoryPage = 1;
+            renderTradeHistory();
+        };
+
+        window.changeHistoryPage = function(delta) {
+            currentHistoryPage += delta;
+            renderTradeHistory();
+        };
+
+        window.jumpHistoryPage = function(page) {
+            currentHistoryPage = page;
+            renderTradeHistory();
+        };
+
+        window.toggleHistoryDetail = function(rowId) {
+            const row = document.getElementById(rowId);
+            if (row) row.style.display = (row.style.display === 'none' ? 'table-row' : 'none');
+        };
+
+        function renderTradeHistory() {
+            const body = document.getElementById('history-body');
+            const filtered = filterHistoryTrades();
+
+            const closedLike = filtered.filter(t => ['CLOSED', 'STOP_LOSS', 'TAKE_PROFIT'].includes(t.status));
+            const wins = closedLike.filter(t => (t.net_pnl_amt || 0) > 0).length;
+            const losses = closedLike.filter(t => (t.net_pnl_amt || 0) < 0).length;
+            const winRate = closedLike.length ? (wins / closedLike.length * 100) : 0;
+            const netPnl = closedLike.reduce((acc, t) => acc + (t.net_pnl_amt || 0), 0);
+            const netAlpha = closedLike.reduce((acc, t) => acc + (t.final_profit_pct || 0), 0);
+
+            document.getElementById('hist-total').innerText = filtered.length;
+            document.getElementById('hist-winrate').innerText = winRate.toFixed(1) + '%';
+            document.getElementById('hist-wins').innerText = wins;
+            document.getElementById('hist-losses').innerText = losses;
+            const netPnlEl = document.getElementById('hist-net-pnl');
+            netPnlEl.innerText = (netPnl >= 0 ? '+' : '') + inrFmt(netPnl);
+            netPnlEl.className = 'fw-bold ' + pnlClass(netPnl);
+            const netAlphaEl = document.getElementById('hist-net-alpha');
+            netAlphaEl.innerText = (netAlpha >= 0 ? '+' : '') + netAlpha.toFixed(2) + '%';
+            netAlphaEl.className = 'fw-bold ' + pnlClass(netAlpha);
+
+            if (filtered.length === 0) {
+                body.innerHTML = '<tr><td colspan="14" class="text-center text-dim py-4">No trades match the current filters.</td></tr>';
+                document.getElementById('history-pagination').innerHTML = '';
+                return;
+            }
+
+            const pageSize = parseInt(document.getElementById('hist-page-size').value, 10) || 50;
+            const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+            if (currentHistoryPage > totalPages) currentHistoryPage = totalPages;
+            if (currentHistoryPage < 1) currentHistoryPage = 1;
+            const pageSlice = filtered.slice((currentHistoryPage - 1) * pageSize, currentHistoryPage * pageSize);
+
+            let html = '';
+            let lastDate = '';
+            pageSlice.forEach((t, idx) => {
+                const dateObj = new Date(t.timestamp);
+                const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+                if (dateStr !== lastDate) {
+                    html += `
+                        <tr class="bg-dark bg-opacity-50">
+                            <td colspan="14" class="py-2">
+                                <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
+                                    <i class="bi bi-calendar3 me-1"></i> ${dateStr}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                    lastDate = dateStr;
+                }
+
+                const sideCls = t.side === 'LONG' ? 'side-long' : 'side-short';
+                const netPnlT = t.net_pnl_amt;
+                const pnlPctT = t.final_profit_pct || 0;
+                const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                let statusBadge;
+                if (t.status === 'STOP_LOSS') statusBadge = '<span class="badge bg-danger" style="font-size:9px;">SL HIT</span>';
+                else if (t.status === 'TAKE_PROFIT') statusBadge = '<span class="badge bg-success" style="font-size:9px;">TP HIT</span>';
+                else if (t.status === 'OPEN') statusBadge = '<span class="badge bg-info text-dark" style="font-size:9px;">OPEN</span>';
+                else if (t.status === 'PENDING_LIMIT') statusBadge = '<span class="badge bg-warning text-dark" style="font-size:9px;">PENDING</span>';
+                else statusBadge = '<span class="badge bg-secondary" style="font-size:9px;">CLOSED</span>';
+
+                const sId = t.strategy_id;
+                const isEns_t = t.is_ensemble === 1 || t.is_ensemble === true;
+                let stratBadge = (sId !== null && sId !== undefined && sId !== -1)
+                    ? `<a href="/strategy/${sId}" class="badge bg-dark text-info border border-info border-opacity-25 text-decoration-none" style="font-size: 8px; vertical-align: middle;">S${sId}</a>`
+                    : `<a href="/strategy/0" class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none" style="font-size: 8px; vertical-align: middle;">AI</a>`;
+                if (isEns_t && sId !== null && sId !== undefined && sId !== -1) {
+                    stratBadge = `<a href="/strategy/0" class="badge bg-dark text-dim border border-secondary border-opacity-10 text-decoration-none" style="font-size: 8px; vertical-align: middle;">AI</a> ` + stratBadge;
+                }
+
+                const rowId = `hist-detail-${idx}-${(t.trade_id || Math.random().toString(36).substr(2, 6)).replace(/[^a-zA-Z0-9]/g, '')}`;
+
+                html += `
+                    <tr>
+                        <td class="ticker-name">
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="/ticker/${encodeURIComponent(t.ticker)}" class="ticker-link">${withRank((t.ticker || '').replace('.NS', ''))}</a>
+                                ${stratBadge}
+                            </div>
+                            <div class="text-dim smallest" style="font-size:9px;">${time}</div>
+                        </td>
+                        <td><span class="side-badge ${sideCls}">${t.side}</span></td>
+                        <td>${statusBadge}</td>
+                        <td class="mono">${t.quantity || '—'}</td>
+                        <td class="mono">₹${(t.entry_price || 0).toFixed(2)}</td>
+                        <td class="mono">${t.exit_price != null ? '₹' + t.exit_price.toFixed(2) : '—'}</td>
+                        <td class="mono fw-bold ${pnlClass(netPnlT || 0)}">${netPnlT != null ? pnlSign(netPnlT) + inrFmt(netPnlT) : '—'}</td>
+                        <td class="mono fw-bold ${pnlClass(pnlPctT)}">${pnlSign(pnlPctT)}${pnlPctT.toFixed(2)}%</td>
+                        <td class="mono small text-dim">+${(t.peak_profit_pct || 0).toFixed(2)}% / ${pnlSign(t.peak_adverse_pct || 0)}${(t.peak_adverse_pct || 0).toFixed(2)}%</td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="mono fw-bold ${t.side === 'LONG' ? 'text-accent-long' : 'text-accent-short'}" style="font-size: 11px;">${(t.tech_score || 0).toFixed(4)}</span>
+                                <span class="mono text-dim smallest" style="font-size: 9px;">L:${(t.long_score || 0).toFixed(3)} / S:${(t.short_score || 0).toFixed(3)}</span>
+                            </div>
+                        </td>
+                        <td class="mono text-dim smallest" style="font-size:10px;">15m:${(t.score_15m || 0).toFixed(3)}<br>30m:${(t.score_30m || 0).toFixed(3)}<br>1d:${(t.score_1d || 0).toFixed(3)}</td>
+                        <td>
+                            <span class="badge bg-dark text-white border border-white border-opacity-10 smallest d-block mb-1" style="font-size: 9px;">${t.tv_sentiment || 'N/A'}</span>
+                            <span class="mono smallest text-info" style="font-size:9px;">${t.one_hour_prob || 'N/A'}</span>
+                        </td>
+                        <td class="text-dim smallest" style="max-width:220px;">${formatComment(t.comment, t.trade_id)}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:10px;" onclick="toggleHistoryDetail('${rowId}')" title="Full trade detail">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr id="${rowId}" style="display:none;" class="bg-dark bg-opacity-25">
+                        <td colspan="14" class="p-3">
+                            <div class="row g-2" style="font-size:11px; font-family:'JetBrains Mono';">
+                                <div class="col-6 col-md-3"><span class="text-dim text-uppercase" style="font-size:9px;">Trade ID</span><br><span class="text-white">${t.trade_id || '—'}</span></div>
+                                <div class="col-6 col-md-3"><span class="text-dim text-uppercase" style="font-size:9px;">Exit Time</span><br><span class="text-white">${t.exit_time ? new Date(t.exit_time).toLocaleString() : '—'}</span></div>
+                                <div class="col-6 col-md-3"><span class="text-dim text-uppercase" style="font-size:9px;">Margin Used</span><br><span class="text-white">${inrFmt(t.margin_used || 0)}</span></div>
+                                <div class="col-6 col-md-3"><span class="text-dim text-uppercase" style="font-size:9px;">Brokerage</span><br><span class="text-white">${inrFmt(t.buy_brokerage || 0)}</span></div>
+                                <div class="col-6 col-md-3"><span class="text-dim text-uppercase" style="font-size:9px;">SL % / TP %</span><br><span class="text-white">${(t.stop_loss_pct || 0).toFixed(2)}% / ${(t.take_profit_pct || 0).toFixed(2)}%</span></div>
+                                <div class="col-6 col-md-3"><span class="text-dim text-uppercase" style="font-size:9px;">Trailing / Breakeven</span><br><span class="text-white">${t.trailing_active ? 'Active' : 'No'} / ${t.breakeven_locked ? 'Locked' : 'No'}</span></div>
+                                <div class="col-6 col-md-3"><span class="text-dim text-uppercase" style="font-size:9px;">Extensions</span><br><span class="text-white">${t.extension_count || 0} / 2</span></div>
+                                <div class="col-6 col-md-3"><span class="text-dim text-uppercase" style="font-size:9px;">Ensemble</span><br><span class="text-white">${isEns_t ? 'Yes' : 'No'}</span></div>
+                                <div class="col-6 col-md-3"><span class="text-dim text-uppercase" style="font-size:9px;">Peak Price</span><br><span class="text-white">₹${(t.peak_price || 0).toFixed(2)}</span></div>
+                                <div class="col-6 col-md-3"><span class="text-dim text-uppercase" style="font-size:9px;">NLP Sentiment</span><br><span class="text-white">${t.nlp_sentiment != null ? Number(t.nlp_sentiment).toFixed(3) : '—'}</span></div>
+                                <div class="col-6 col-md-3"><span class="text-dim text-uppercase" style="font-size:9px;">Reject Stage / Reason</span><br><span class="text-white">${t.reject_stage || '—'}${t.reject_reason ? ' / ' + t.reject_reason : ''}</span></div>
+                                <div class="col-6 col-md-3"><span class="text-dim text-uppercase" style="font-size:9px;">Pending Since</span><br><span class="text-white">${t.pending_since ? new Date(t.pending_since).toLocaleString() : '—'}</span></div>
+                                <div class="col-12"><span class="text-dim text-uppercase" style="font-size:9px;">Full Comment</span><br><span class="text-white" style="white-space:normal;">${t.comment || '—'}</span></div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            body.innerHTML = html;
+
+            const pag = document.getElementById('history-pagination');
+            if (totalPages > 1) {
+                pag.innerHTML = `
+                    <div class="d-flex justify-content-center align-items-center flex-wrap gap-1">
+                        <button class="btn btn-sm btn-outline-secondary me-1 px-3 py-1" onclick="changeHistoryPage(-1)" ${currentHistoryPage === 1 ? 'disabled' : ''} style="font-size: 11px;">Previous</button>
+                        ${buildHistoryPageButtons(currentHistoryPage, totalPages)}
+                        <button class="btn btn-sm btn-outline-secondary ms-1 px-3 py-1" onclick="changeHistoryPage(1)" ${currentHistoryPage === totalPages ? 'disabled' : ''} style="font-size: 11px;">Next</button>
+                        <span class="text-dim ms-3" style="font-size: 11px;">Page ${currentHistoryPage} of ${totalPages} (${filtered.length} total)</span>
+                    </div>
+                `;
+            } else {
+                pag.innerHTML = '';
+            }
+        }
+
+        function buildHistoryPageButtons(current, total) {
+            const windowSize = 2;
+            const pages = new Set([1, total]);
+            for (let p = current - windowSize; p <= current + windowSize; p++) {
+                if (p >= 1 && p <= total) pages.add(p);
+            }
+            const sorted = Array.from(pages).sort((a, b) => a - b);
+
+            let html = '';
+            let prev = 0;
+            sorted.forEach(p => {
+                if (prev && p - prev > 1) {
+                    html += `<span class="text-dim mx-1" style="font-size: 11px;">…</span>`;
+                }
+                const active = p === current;
+                html += `<button class="btn btn-sm ${active ? 'btn-info text-dark' : 'btn-outline-secondary'} px-2 py-1" onclick="jumpHistoryPage(${p})" style="font-size: 11px; min-width: 30px;" ${active ? 'disabled' : ''}>${p}</button>`;
+                prev = p;
+            });
+            return html;
+        }
+
+        loadTradeHistory();
 
     </script>
 

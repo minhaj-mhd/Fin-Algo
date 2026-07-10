@@ -22,7 +22,10 @@ except Exception:
     pass
 from scripts.transformer.model import DualResCSTransformer
 
-P = 'data/transformer_panel'
+P = os.environ.get('TRANSFORMER_PANEL', 'data/transformer_panel')   # override to train on the SMC panel
+LABEL = os.environ.get('TRANSFORMER_LABEL', 'Y_ret')   # swap the LABEL tensor (e.g. Y_ret_2h = next-2h)
+                                                        # WITHOUT touching features -> isolates horizon
+LBL_SUFFIX = '' if LABEL == 'Y_ret' else '_' + LABEL.replace('Y_ret_', '')  # horizon-tag artifacts (no clobber)
 L1, L2 = 30, 60                       # 1h / 15m sequence lengths
 COSTS_BPS = [6.0, 10.0]
 KS = [1, 3, 5]
@@ -32,9 +35,13 @@ SEED = 42
 
 def load_panel():
     d = {}
-    for k in ['X_1h', 'Y_ret', 'slot_1h', 'end15', 'ts_1h', 'date_idx', 'macro',
+    for k in ['X_1h', 'slot_1h', 'end15', 'ts_1h', 'date_idx', 'macro',
               'slot_15m', 'sector_ids']:
         d[k] = np.load(f'{P}/{k}.npy')
+    d['Y_ret'] = np.load(f'{P}/{LABEL}.npy')        # horizon label (default Y_ret = next-1h)
+    if LABEL != 'Y_ret':
+        print(f"[label] horizon override: using {LABEL}.npy as Y_ret  "
+              f"(finite labels {int(np.isfinite(d['Y_ret']).sum()):,})")
     d['X_15m'] = np.load(f'{P}/X_15m.npy')          # ~1GB, fits in RAM
     d['meta'] = json.load(open(f'{P}/meta.json'))
     return d
@@ -44,12 +51,13 @@ class DecisionDataset(Dataset):
     """One item = one 1h decision timestamp -> all N tickers (cross-sectional).
     Optional `restrict` ([T,N] bool) ANDs into `valid`, so the gate's loss/coverage operate
     only on a chosen subset (e.g. v10's actual picks) without changing the tuple shape."""
-    def __init__(self, d, t_indices, restrict=None):
+    def __init__(self, d, t_indices, restrict=None, shuffle_labels=False):
         self.X1, self.X15, self.Y = d['X_1h'], d['X_15m'], d['Y_ret']
         self.s1, self.s15, self.end15 = d['slot_1h'], d['slot_15m'], d['end15']
         self.macro, self.date_idx = d['macro'], d['date_idx']
         self.t_idx = t_indices
         self.restrict = restrict
+        self.shuffle_labels = shuffle_labels   # NEG CONTROL: permute y within each timestamp
 
     def __len__(self):
         return len(self.t_idx)
@@ -69,6 +77,11 @@ class DecisionDataset(Dataset):
         valid = present & np.isfinite(y)                           # usable for loss/eval
         if self.restrict is not None:
             valid = valid & self.restrict[t]                       # focus on a subset (e.g. v10 picks)
+        if self.shuffle_labels:                                    # NEG CONTROL: break label<->feature link
+            idx = np.where(valid)[0]
+            if len(idx) > 1:
+                rng = np.random.default_rng(SEED + t)
+                y = y.copy(); y[idx] = y[idx][rng.permutation(len(idx))]
         ybin = np.where(y > 0, 1.0, 0.0).astype(np.float32)
         return (x1.astype(np.float32), x15.astype(np.float32), s1, s15,
                 macro.astype(np.float32), ybin, np.nan_to_num(y).astype(np.float32),
@@ -147,6 +160,15 @@ def evaluate_sided(model, loader, device, sector_ids, side_sign, tag=''):
                        f"rawWR={np.mean(wr[k]):.0%} chk(net-gross)={chk:+.2f}")
     print('\n'.join(rep))
     return out
+
+
+def chrono_split(ts, embargo=EMBARGO):
+    """Single source of truth for the 70/15/15 train/val/test chronological split with embargo
+    gaps. Imported by the veto/tuning harness too, so val/test windows can never drift between
+    training and evaluation (that drift would be a silent leakage path)."""
+    n = len(ts)
+    i_tr, i_va = int(n * 0.70), int(n * 0.85)
+    return ts[:i_tr], ts[i_tr + embargo:i_va], ts[i_va + embargo:]
 
 
 def valid_decision_timestamps(d):
@@ -291,6 +313,47 @@ def build_v10_pickmask(d, side):
     return mask
 
 
+def bce_family_loss(loss_type, logit, ybin, y, valid, *, mag_beta=0.0, pos_weight=1.0,
+                    gamma=2.0, alpha=0.5, hybrid_mix=0.5, hybrid_cost=10.0):
+    """BCE-family criteria for the veto transformer. All emit per-name logits whose sigmoid is
+    P(up); the choice only reshapes *which* names the gradient prioritizes:
+      plain_bce         — calibration baseline.
+      weighted_bce      — up-weight large |return| names (big moves drive veto Δnet) + class pos_weight.
+      focal             — down-weight easy/confident names, focus on the hard boundary (gamma, alpha).
+      bce_profit_hybrid — blend BCE with a net-of-cost PnL term so training sees economics directly.
+    Reduction is masked-mean over `valid`. UNITS TRAP (see [[feedback_validate_cost_accounting]]):
+    the PnL term is scaled to bps then /10 so it lands O(1) next to BCE (~0.69) — otherwise
+    hybrid_mix would be inert because the raw return term (~1e-3) is swamped by the CE term."""
+    import torch.nn.functional as Fn
+    vf = valid.float()
+    denom = vf.sum().clamp(min=1)
+    if loss_type == 'plain_bce':
+        ce = Fn.binary_cross_entropy_with_logits(logit, ybin, reduction='none')
+        return (ce * vf).sum() / denom
+    if loss_type == 'weighted_bce':
+        pw = torch.as_tensor(pos_weight, dtype=logit.dtype, device=logit.device)
+        ce = Fn.binary_cross_entropy_with_logits(logit, ybin, pos_weight=pw, reduction='none')
+        absy = y.abs()
+        scale = (absy * vf).sum() / denom + 1e-8          # cross-sectional mean |return|
+        w = 1.0 + mag_beta * absy / scale
+        return (w * ce * vf).sum() / denom
+    if loss_type == 'focal':
+        ce = Fn.binary_cross_entropy_with_logits(logit, ybin, reduction='none')   # == -log pt
+        p = torch.sigmoid(logit)
+        pt = p * ybin + (1 - p) * (1 - ybin)
+        at = alpha * ybin + (1 - alpha) * (1 - ybin)
+        fl = at * (1 - pt).clamp(min=1e-6).pow(gamma) * ce
+        return (fl * vf).sum() / denom
+    if loss_type == 'bce_profit_hybrid':
+        ce = Fn.binary_cross_entropy_with_logits(logit, ybin, reduction='none')
+        bce_term = (ce * vf).sum() / denom
+        pos = 2 * torch.sigmoid(logit) - 1                # [-1,1] position, 0 = flat
+        pnl_bps = (pos * y - (hybrid_cost / 1e4) * pos.abs()) * 1e4
+        profit_term = -((pnl_bps * vf).sum() / denom) / 10.0   # /10 -> O(1) vs BCE
+        return (1.0 - hybrid_mix) * bce_term + hybrid_mix * profit_term
+    raise ValueError(f"unknown loss_type {loss_type}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--epochs', type=int, default=25)
@@ -298,6 +361,22 @@ def main():
     ap.add_argument('--lr', type=float, default=3e-4)
     ap.add_argument('--d_model', type=int, default=64)
     ap.add_argument('--dropout', type=float, default=0.1)
+    ap.add_argument('--t_layers', type=int, default=2, help='temporal encoder depth (per resolution)')
+    ap.add_argument('--c_layers', type=int, default=2, help='cross-sectional encoder depth')
+    ap.add_argument('--nhead', type=int, default=4, help='attention heads (must divide d_model)')
+    ap.add_argument('--weight_decay', type=float, default=1e-2)
+    ap.add_argument('--patience', type=int, default=6, help='early-stop patience (epochs)')
+    ap.add_argument('--no_save', action='store_true',
+                    help='skip writing checkpoint/metrics (protects production artifacts on tuning/smoke runs)')
+    # --- BCE-family loss selection (only used when --objective bce) ---
+    ap.add_argument('--loss', choices=['plain_bce', 'weighted_bce', 'focal', 'bce_profit_hybrid'],
+                    default='plain_bce', help='bce-objective loss variant')
+    ap.add_argument('--mag_beta', type=float, default=0.0, help='weighted_bce: weight = 1 + beta*|y|/mean|y|')
+    ap.add_argument('--pos_weight', type=float, default=1.0, help='weighted_bce: positive-class weight')
+    ap.add_argument('--focal_gamma', type=float, default=2.0, help='focal: focusing parameter')
+    ap.add_argument('--focal_alpha', type=float, default=0.5, help='focal: positive-class balance')
+    ap.add_argument('--hybrid_mix', type=float, default=0.5, help='bce_profit_hybrid: economic-term weight [0,1]')
+    ap.add_argument('--hybrid_cost', type=float, default=10.0, help='bce_profit_hybrid: cost (bps) in profit term')
     ap.add_argument('--objective', choices=['bce', 'netpnl', 'listwise', 'gate'], default='bce')
     ap.add_argument('--target', choices=['long', 'short'], default='long',
                     help='side specialist (listwise/gate): long uses +y, short uses -y')
@@ -306,6 +385,8 @@ def main():
     ap.add_argument('--gate_lambda', type=float, default=100.0, help='gate: coverage-budget penalty weight')
     ap.add_argument('--v10_restrict', action='store_true',
                     help='gate: restrict loss/eval to v10 Top-5 {target} picks (decision-boundary focus)')
+    ap.add_argument('--shuffle_labels', action='store_true',
+                    help='NEG CONTROL: permute returns within each timestamp; rank-IC must collapse to ~0')
     args = ap.parse_args()
     side_sign = 1.0 if args.target == 'long' else -1.0
 
@@ -320,29 +401,28 @@ def main():
 
     ts = valid_decision_timestamps(d)
     n = len(ts)
-    i_tr, i_va = int(n * 0.70), int(n * 0.85)
-    tr = ts[:i_tr]
-    va = ts[i_tr + EMBARGO:i_va]
-    te = ts[i_va + EMBARGO:]
+    tr, va, te = chrono_split(ts, EMBARGO)
     print(f"decision timestamps: {n}  train={len(tr)} val={len(va)} test={len(te)}")
     import pandas as pd
     print(f"  date span: {pd.Timestamp(int(d['ts_1h'][ts[0]]))} .. {pd.Timestamp(int(d['ts_1h'][ts[-1]]))}")
 
     restrict = build_v10_pickmask(d, args.target) if args.v10_restrict else None
-    mk = lambda idx, sh: DataLoader(DecisionDataset(d, idx, restrict=restrict), batch_size=args.batch,
-                                    shuffle=sh, collate_fn=collate, num_workers=0)
+    mk = lambda idx, sh: DataLoader(DecisionDataset(d, idx, restrict=restrict, shuffle_labels=args.shuffle_labels),
+                                    batch_size=args.batch, shuffle=sh, collate_fn=collate, num_workers=0)
     dl_tr, dl_va, dl_te = mk(tr, True), mk(va, False), mk(te, False)
 
+    assert args.d_model % args.nhead == 0, \
+        f"d_model {args.d_model} must be divisible by nhead {args.nhead}"
     model = DualResCSTransformer(F, M, n_sec, n_slots_1h=d['meta']['n_slots_1h'],
                                  n_slots_15m=d['meta']['n_slots_15m'], d_model=args.d_model,
+                                 t_layers=args.t_layers, c_layers=args.c_layers, nhead=args.nhead,
                                  dropout=args.dropout).to(device)
     nparam = sum(p.numel() for p in model.parameters())
     print(f"model params: {nparam:,}")
 
-    opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-2)
+    opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=args.epochs)
     scaler = torch.amp.GradScaler('cuda', enabled=(device == 'cuda'))
-    bce = nn.BCEWithLogitsLoss(reduction='none')
 
     cost = args.cost_bps / 1e4
     sel = {'netpnl': 'netpnl10', 'listwise': 'rho', 'gate': 'keepnet'}.get(args.objective, 'auc')
@@ -354,7 +434,7 @@ def main():
     else:
         val_fn = lambda tag: evaluate(model, dl_va, device, sector_ids, tag)
     print(f"objective={args.objective}{side_tag}  early-stop on val {sel}  (cost={args.cost_bps}bps)")
-    best_metric, best_state, patience, bad = -1e9, None, 6, 0
+    best_metric, best_state, patience, bad = -1e9, None, args.patience, 0
     for ep in range(args.epochs):
         model.train(); t0 = time.time(); tot = 0.0; nb = 0
         for batch in dl_tr:
@@ -370,8 +450,11 @@ def main():
                     pos = 2 * torch.sigmoid(logit) - 1           # [-1,1], 0 = no trade
                     pnl = pos * y - cost * pos.abs()             # net-of-cost PnL per name
                     loss = -(pnl * valid).sum() / valid.sum().clamp(min=1)
-                else:
-                    loss = (bce(logit, ybin) * valid).sum() / valid.sum().clamp(min=1)
+                else:  # bce family (plain / weighted / focal / profit-hybrid)
+                    loss = bce_family_loss(args.loss, logit, ybin, y, valid,
+                                           mag_beta=args.mag_beta, pos_weight=args.pos_weight,
+                                           gamma=args.focal_gamma, alpha=args.focal_alpha,
+                                           hybrid_mix=args.hybrid_mix, hybrid_cost=args.hybrid_cost)
             scaler.scale(loss).backward()
             scaler.unscale_(opt); torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             scaler.step(opt); scaler.update()
@@ -392,21 +475,24 @@ def main():
     if args.objective == 'gate':
         test_metrics = evaluate_gate(model, dl_te, device, sector_ids, side_sign, args.keep_rate,
                                      tag=f'TEST gate {args.target}')
-        ckpt = f'artifacts/dualres_gate_{args.target}{"_v10" if args.v10_restrict else ""}.pt'
+        ckpt = f'artifacts/dualres_gate_{args.target}{"_v10" if args.v10_restrict else ""}{LBL_SUFFIX}.pt'
     elif args.objective == 'listwise':
         test_metrics = evaluate_sided(model, dl_te, device, sector_ids, side_sign, tag=f'TEST {args.target}')
-        ckpt = f'artifacts/dualres_{args.target}.pt'
+        ckpt = f'artifacts/dualres_{args.target}{LBL_SUFFIX}.pt'
     else:
         test_metrics = evaluate(model, dl_te, device, sector_ids, tag='TEST')
         suffix = '' if args.objective == 'bce' else f'_{args.objective}{int(args.cost_bps)}'
-        ckpt = f'artifacts/dualres_transformer{suffix}.pt'
-    os.makedirs('artifacts', exist_ok=True)
-    torch.save(model.state_dict(), ckpt)
-    meta_path = ckpt.replace('.pt', '_metrics.json')
-    json.dump({'objective': args.objective, 'target': args.target,
-               'val_best_metric': float(best_metric), 'test': test_metrics},
-              open(meta_path, 'w'), indent=2, default=float)
-    print(f"saved -> {ckpt} + {meta_path}")
+        ckpt = f'artifacts/dualres_transformer{suffix}{LBL_SUFFIX}.pt'
+    if args.no_save:
+        print("--no_save set: skipping checkpoint/metrics write (production artifacts untouched)")
+    else:
+        os.makedirs('artifacts', exist_ok=True)
+        torch.save(model.state_dict(), ckpt)
+        meta_path = ckpt.replace('.pt', '_metrics.json')
+        json.dump({'objective': args.objective, 'target': args.target,
+                   'val_best_metric': float(best_metric), 'test': test_metrics},
+                  open(meta_path, 'w'), indent=2, default=float)
+        print(f"saved -> {ckpt} + {meta_path}")
 
 
 if __name__ == '__main__':

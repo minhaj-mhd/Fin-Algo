@@ -52,7 +52,8 @@ def init_db():
             strategy_id INTEGER,
             is_ensemble INTEGER,
             reject_stage TEXT,
-            reject_reason TEXT
+            reject_reason TEXT,
+            veto_layers TEXT
         )
     ''')
     
@@ -101,6 +102,17 @@ def init_db():
         ('peak_adverse_pct', 'REAL'),
         ('reject_stage', 'TEXT'),
         ('reject_reason', 'TEXT'),
+        ('veto_layers', 'TEXT'),
+        # Stop-loss / take-profit barrier checkpoint (SHADOW_SL_CHECKPOINT): the point a
+        # counterfactual shadow trade would have stopped out, recorded while it runs to 1h.
+        ('sl_hit', 'INTEGER'),
+        ('sl_hit_time', 'TEXT'),
+        ('sl_hit_price', 'REAL'),
+        ('sl_hit_pnl', 'REAL'),
+        ('tp_hit', 'INTEGER'),
+        ('tp_hit_time', 'TEXT'),
+        ('tp_hit_price', 'REAL'),
+        ('tp_hit_pnl', 'REAL'),
     ]:
         try:
             cursor.execute(f'ALTER TABLE trades ADD COLUMN {col} {col_type}')
@@ -126,8 +138,10 @@ def log_trade(trade_data):
             pending_since, extension_count, extended_exit_time, extension_pending,
             stop_loss_pct, take_profit_pct, trailing_active, breakeven_locked, buy_brokerage,
             long_score, short_score, score_15m, score_30m, score_1d, strategy_id, is_ensemble,
-            reject_stage, reject_reason
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            reject_stage, reject_reason, veto_layers,
+            sl_hit, sl_hit_time, sl_hit_price, sl_hit_pnl,
+            tp_hit, tp_hit_time, tp_hit_price, tp_hit_pnl
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         trade_data.get('trade_id'),
         trade_data.get('timestamp'),
@@ -166,7 +180,16 @@ def log_trade(trade_data):
         trade_data.get('strategy_id'),
         1 if trade_data.get('is_ensemble') else 0,
         trade_data.get('reject_stage'),
-        trade_data.get('reject_reason')
+        trade_data.get('reject_reason'),
+        trade_data.get('veto_layers'),
+        trade_data.get('sl_hit', 0),
+        trade_data.get('sl_hit_time'),
+        trade_data.get('sl_hit_price'),
+        trade_data.get('sl_hit_pnl'),
+        trade_data.get('tp_hit', 0),
+        trade_data.get('tp_hit_time'),
+        trade_data.get('tp_hit_price'),
+        trade_data.get('tp_hit_pnl')
     ))
     
     conn.commit()
@@ -253,6 +276,12 @@ def get_performance_stats():
     s2_vetoed_alpha = dv_s2_row[0] or 0.0
     s2_vetoed_count = dv_s2_row[1]
     
+    # Kronos Daily Vetoed
+    cursor.execute('SELECT SUM(final_profit_pct - 0.06), COUNT(*) FROM trades WHERE status IN ("VETOED", "VETOED_EXPIRED") AND comment LIKE "%[KRONOS-%" AND timestamp LIKE ?', (f'{today_str}%',))
+    dv_kronos_row = cursor.fetchone()
+    kronos_vetoed_alpha = dv_kronos_row[0] or 0.0
+    kronos_vetoed_count = dv_kronos_row[1]
+
     # Candle Daily Vetoed
     cursor.execute('SELECT SUM(final_profit_pct - 0.06), COUNT(*) FROM trades WHERE status IN ("VETOED", "VETOED_EXPIRED", "CANCELLED", "CANCELLED_EXPIRED") AND (reject_stage="candle" OR status IN ("CANCELLED", "CANCELLED_EXPIRED")) AND timestamp LIKE ?', (f'{today_str}%',))
     dv_candle_row = cursor.fetchone()
@@ -286,6 +315,7 @@ def get_performance_stats():
             'daily': {'alpha': round(daily_vetoed_alpha, 2), 'count': daily_vetoed_count},
             'daily_s1': {'alpha': round(s1_vetoed_alpha, 2), 'count': s1_vetoed_count},
             'daily_s2': {'alpha': round(s2_vetoed_alpha, 2), 'count': s2_vetoed_count},
+            'daily_kronos': {'alpha': round(kronos_vetoed_alpha, 2), 'count': kronos_vetoed_count},
             'daily_candle': {'alpha': round(candle_vetoed_alpha, 2), 'count': candle_vetoed_count},
             'weekly': {'alpha': round(weekly_vetoed_alpha, 2), 'count': weekly_vetoed_count}
         }
@@ -324,6 +354,24 @@ def get_trades_for_ticker(ticker, limit=50):
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM trades WHERE ticker = ? ORDER BY timestamp DESC LIMIT ?', (ticker, limit))
+    rows = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return rows
+
+def get_trade_history(limit=2000):
+    """Fetches the full history of executed (non-vetoed) trades with every column,
+    most recent first. Mirrors the 'Trades Executed' definition used by get_performance_stats."""
+    conn = sqlite3.connect(DB_PATH, timeout=10)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM trades
+        WHERE status IN ("OPEN", "PENDING_LIMIT", "CLOSED", "STOP_LOSS", "TAKE_PROFIT")
+          AND (trade_id LIKE "T-%" OR trade_id LIKE "TRADE-%")
+          AND timestamp >= ?
+        ORDER BY timestamp DESC
+        LIMIT ?
+    ''', (START_DATE_FILTER, limit))
     rows = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return rows

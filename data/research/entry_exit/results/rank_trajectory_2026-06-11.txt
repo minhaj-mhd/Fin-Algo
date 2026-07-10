@@ -1,0 +1,36 @@
+RANK-TRAJECTORY veto (entry/blocking study) — exploratory, no verdict authority
+Script: scripts/analysis/wf_rank_trajectory.py
+Run: 2026-06-11 | 6 folds WF OOS 2024-09 -> 2026-06 | 11,689 candidates | cost 10 bps
+Models: v3_15min_clean (15m), v10_native_1h (1h) | retrained per fold (purged WF)
+
+HYPOTHESIS: rising 15m conviction-rank slope over the 4 pre-entry candles -> take
+the 1h shot; falling -> block.
+
+===== LONG (N=5829) =====
+ALL host                 WR=41.8%  gross=+3.2  net@10=-6.8
+RANK-SLOPE THRIVING      WR=43.3%  gross=+4.2  net@10=-5.8
+RANK-SLOPE DIMINISHING   WR=40.4%  gross=+2.2  net@10=-7.8
+  separation = +2.0 bps / +2.9pp WR  t=+1.24  p=0.22  (ns)
+PRICE-MOM  THRIVING      WR=39.5%  gross=+1.6  net@10=-8.4
+PRICE-MOM  DIMINISHING   WR=44.2%  gross=+4.8  net@10=-5.2
+  separation = -3.2 bps  t=-1.96  p=0.05   (price momentum leans WRONG way = mean reversion)
+corr(rank_slope, price_mom) = +0.084   -> rank-slope is NOT repackaged price momentum
+
+===== SHORT (N=5860) =====
+ALL host                 WR=45.2%  gross=+0.5  net@10=-9.5
+RANK-SLOPE THRIVING      WR=45.7%  gross=+1.7  net@10=-8.3
+RANK-SLOPE DIMINISHING   WR=44.8%  gross=-0.7  net@10=-10.7
+  separation = +2.4 bps / +0.9pp WR  t=+1.07  p=0.28  (ns)
+PRICE-MOM  THRIVING      WR=46.0%  gross=-1.2  net@10=-11.2
+PRICE-MOM  DIMINISHING   WR=44.5%  gross=+2.1  net@10=-7.9
+  separation = -3.3 bps  t=-1.48  p=0.14   (again wrong way)
+corr(rank_slope, price_mom) = +0.003
+
+VERDICT (exploratory):
+- Direction of the hypothesis is CORRECT on both sides (THRIVING > DIMINISHING).
+- Signal is ORTHOGONAL to price momentum (corr ~0) and correctly signed -> genuine,
+  not a momentum artifact. This is a legitimate FEATURE for a meta-labeling model.
+- BUT effect ~2 bps, not significant (p=0.22/0.28), and THRIVING bucket still
+  net-NEGATIVE after cost. Cannot dictate profitable entries standalone.
+- Host (1h top-3) is itself net-negative, so nothing to lift into the black.
+- Crossing the 10 bps hurdle needs NEW information (options OI/PCR/IV, order-flow).

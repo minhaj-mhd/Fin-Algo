@@ -1,0 +1,46 @@
+Kronos-base zero-shot veto on 1h book - 2026-07-03 12:18
+Exploratory only - NO Gauntlet verdict authority.
+merged trades: 7187 (unmatched panel rows: 5833)
+p_up: mean=0.447 std=0.333 pct(p_up in {0,1})=18.7%
+
+===== window: full  (2024-09-02 .. 2026-06-05, n=7187) =====
+  long  keep70 @10bps: ALL n= 3575 net=  -7.48 | KEPT n= 2525 net=  -5.88 | dNET= +1.60bps t=+2.41 CI[ +0.31, +3.00]
+  long  keep70 @6bps : ALL n= 3575 net=  -3.48 | KEPT n= 2525 net=  -1.88 | dNET= +1.60bps t=+2.37 CI[ +0.29, +2.89]
+  long  keep50 @10bps: ALL n= 3575 net=  -7.48 | KEPT n= 1839 net=  -6.23 | dNET= +1.25bps t=+1.20 CI[ -0.80, +3.35]
+  long  keep50 @6bps : ALL n= 3575 net=  -3.48 | KEPT n= 1839 net=  -2.23 | dNET= +1.25bps t=+1.23 CI[ -0.77, +3.38]
+  long  NEG-CONTROL keep70@10bps: null dNET mean=+0.80 95%[+0.22,+1.46]
+  short keep70 @10bps: ALL n= 3612 net=  -9.32 | KEPT n= 2585 net=  -8.14 | dNET= +1.17bps t=+1.17 CI[ -0.63, +3.29]
+  short keep70 @6bps : ALL n= 3612 net=  -5.32 | KEPT n= 2585 net=  -4.14 | dNET= +1.17bps t=+1.14 CI[ -0.74, +3.27]
+  short keep50 @10bps: ALL n= 3612 net=  -9.32 | KEPT n= 1807 net=  -8.37 | dNET= +0.95bps t=+0.67 CI[ -1.97, +4.07]
+  short keep50 @6bps : ALL n= 3612 net=  -5.32 | KEPT n= 1807 net=  -4.37 | dNET= +0.95bps t=+0.63 CI[ -1.93, +4.17]
+  short NEG-CONTROL keep70@10bps: null dNET mean=+1.61 95%[+0.51,+2.87]
+  [diag] long spearman(aligned, gross) = +0.0382
+  [diag] short spearman(aligned, gross) = +0.0133
+
+===== window: pre_cutoff  (2024-09-02 .. 2025-09-08, n=2411) =====
+  long  keep70 @10bps: ALL n= 1185 net=  -6.83 | KEPT n=  841 net=  -4.10 | dNET= +2.73bps t=+2.20 CI[ +0.32, +5.21]
+  long  keep70 @6bps : ALL n= 1185 net=  -2.83 | KEPT n=  841 net=  -0.10 | dNET= +2.73bps t=+2.15 CI[ +0.15, +5.20]
+  long  keep50 @10bps: ALL n= 1185 net=  -6.83 | KEPT n=  619 net=  -4.12 | dNET= +2.71bps t=+1.22 CI[ -1.57, +7.20]
+  long  keep50 @6bps : ALL n= 1185 net=  -2.83 | KEPT n=  619 net=  -0.12 | dNET= +2.71bps t=+1.21 CI[ -1.67, +7.16]
+  long  NEG-CONTROL keep70@10bps: null dNET mean=+1.78 95%[+0.85,+2.69]
+  short keep70 @10bps: ALL n= 1226 net= -12.74 | KEPT n=  876 net=  -8.42 | dNET= +4.32bps t=+2.06 CI[ +0.63, +9.05]
+  short keep70 @6bps : ALL n= 1226 net=  -8.74 | KEPT n=  876 net=  -4.42 | dNET= +4.32bps t=+2.00 CI[ +0.41, +8.87]
+  short keep50 @10bps: ALL n= 1226 net= -12.74 | KEPT n=  625 net=  -8.23 | dNET= +4.52bps t=+1.64 CI[ -0.73,+10.34]
+  short keep50 @6bps : ALL n= 1226 net=  -8.74 | KEPT n=  625 net=  -4.23 | dNET= +4.52bps t=+1.69 CI[ -0.39,+10.11]
+  short NEG-CONTROL keep70@10bps: null dNET mean=+4.68 95%[+3.63,+5.80]
+  [diag] long spearman(aligned, gross) = +0.0679
+  [diag] short spearman(aligned, gross) = +0.0232
+
+===== window: post_cutoff  (2025-09-09 .. 2026-06-05, n=4776) =====
+  long  keep70 @10bps: ALL n= 2390 net=  -7.80 | KEPT n= 1684 net=  -6.78 | dNET= +1.03bps t=+1.34 CI[ -0.45, +2.58]
+  long  keep70 @6bps : ALL n= 2390 net=  -3.80 | KEPT n= 1684 net=  -2.78 | dNET= +1.03bps t=+1.30 CI[ -0.46, +2.66]
+  long  keep50 @10bps: ALL n= 2390 net=  -7.80 | KEPT n= 1220 net=  -7.30 | dNET= +0.50bps t=+0.46 CI[ -1.64, +2.63]
+  long  keep50 @6bps : ALL n= 2390 net=  -3.80 | KEPT n= 1220 net=  -3.30 | dNET= +0.50bps t=+0.46 CI[ -1.60, +2.57]
+  long  NEG-CONTROL keep70@10bps: null dNET mean=+0.30 95%[-0.71,+1.34]
+  short keep70 @10bps: ALL n= 2386 net=  -7.55 | KEPT n= 1674 net=  -8.12 | dNET= -0.56bps t=-0.52 CI[ -2.79, +1.60]
+  short keep70 @6bps : ALL n= 2386 net=  -3.55 | KEPT n= 1674 net=  -4.12 | dNET= -0.56bps t=-0.50 CI[ -2.66, +1.61]
+  short keep50 @10bps: ALL n= 2386 net=  -7.55 | KEPT n= 1247 net=  -8.96 | dNET= -1.40bps t=-0.79 CI[ -4.84, +1.99]
+  short keep50 @6bps : ALL n= 2386 net=  -3.55 | KEPT n= 1247 net=  -4.96 | dNET= -1.40bps t=-0.75 CI[ -4.93, +2.14]
+  short NEG-CONTROL keep70@10bps: null dNET mean=-0.05 95%[-1.50,+1.52]
+  [diag] long spearman(aligned, gross) = +0.0236
+  [diag] short spearman(aligned, gross) = +0.0098

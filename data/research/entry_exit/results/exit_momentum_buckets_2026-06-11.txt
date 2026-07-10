@@ -1,0 +1,39 @@
+CONVICTION-MOMENTUM x PRICE-DIRECTION -> REMAINING RETURN  (exploratory, no verdict)
+Script: scripts/analysis/exit_momentum_buckets.py   Source: dualtf_trade_panel.csv
+Run: 2026-06-11 | checkpoint +90min | conviction re-scored every 15m bar (3-pt slope rk_60/75/90)
+Decision uses only info known at +90 (no look-ahead); REMAINING = signed compound(sub_90,sub_105) [+90..+120].
+
+HYPOTHESIS (user): trajectory/momentum of conviction x price direction predicts whether to
+hold or exit. Expected FAV-/CONV- (price against + conviction falling) = worst -> exit candidate.
+
+===== LONG (N=5830) — REMAINING return by bucket =====
+  FAV+ / CONV+  (hold aggressively?)   N=1163   mean_rem= -0.5 bps  t=-0.39   <- WORST
+  FAV+ / CONV-  (weakening?)           N=1742   mean_rem= -1.2 bps  t=-1.21
+  FAV- / CONV+  (pullback/dip?)        N=1730   mean_rem= +1.9 bps  t=+1.74
+  FAV- / CONV-  (exit candidate?)      N=1195   mean_rem= +3.0 bps  t=+2.33   <- BEST
+  selectivity: FAV-/CONV- vs rest = +2.9 bps  t=+1.99  p=0.046  (SIGNIFICANT but INVERTED)
+  full_hold=-8.0 | exit FAV-/CONV-=-8.7 | exit all CONV-=-8.3  (all WORSE than full_hold)
+
+===== SHORT (N=5862) — REMAINING return by bucket =====
+  FAV+ / CONV+   N=1061   mean_rem= +1.8  t=+1.19
+  FAV+ / CONV-   N=1957   mean_rem= +0.7  t=+0.62
+  FAV- / CONV+   N=1749   mean_rem= +1.5  t=+0.93
+  FAV- / CONV-   N=1095   mean_rem= +3.0  t=+1.56
+  selectivity: +1.7 bps  t=+0.82  p=0.41  (ns, same inverted ordering)
+  full_hold=-8.2 | exit FAV-/CONV-=-8.7 | exit all CONV-=-8.9  (all WORSE)
+
+VERDICT (exploratory):
+- The hypothesis is INVERTED by mean reversion, significantly so on longs (p=0.046):
+  "looks strong now" (FAV+/CONV+) has the WORST forward return (-0.5); "looks weak now"
+  (FAV-/CONV-) has the BEST (+3.0). Strength is exhaustion; weakness is oversold-bounce.
+- Same mean-reversion signature as: entry price-mom control (wrong way), RED-only stop
+  (worst rule), and the IBS/Buy_Pressure feature family (mean-reversion detectors).
+- No exit edge: the only "future losers" (FAV+/CONV+) are ~flat (-0.5), nothing to cut.
+  Every momentum-exit rule <= full_hold. FULL-HOLD remains optimal.
+- The significant effect is a mean-reversion HOLD/ADD signal (not an exit), and at ~3 bps
+  spread is still below the 10 bps cost -> not standalone-tradeable.
+- IMPLICATION: any persistence/momentum framing fires inverted here. Future intraday edge
+  (if any) is mean-reversion-shaped and needs NEW information to clear cost.
+
+NOTE: short policy-net rows had a sign bug in the first run (held branch dropped sgn);
+fixed in scripts/analysis/exit_momentum_buckets.py policy_net(). Bucket table was always correct.

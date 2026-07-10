@@ -164,12 +164,15 @@ class AIVetoManager:
             log(f"[ERROR] JSON Parse Error: {e} | Raw snippet: {text[:150]}...")
             return {}
 
-    def gemini_audit(self, ticker, side, conviction, features, get_recent_candles_fn):
+    def gemini_audit(self, ticker, side, conviction, features, get_recent_candles_fn, use_cache=True):
         if not self.gemini_enabled:
             return "NEUTRAL", "Audit Disabled", "N/A"
 
         cache_key = f"{ticker}_{side}"
-        if cache_key in self.sentiment_cache:
+        # use_cache=False forces a fresh audit (SHADOW_ALL_LAYERS: S2 must run on every
+        # tracked signal, like the candle/Kronos layers — not reuse a verdict from an
+        # earlier anchor within the hour).
+        if use_cache and cache_key in self.sentiment_cache:
             cached_data = self.sentiment_cache[cache_key]
             if len(cached_data) == 4:
                 sent, reason, ts, prob = cached_data

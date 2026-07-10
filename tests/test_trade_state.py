@@ -17,7 +17,7 @@ def patch_datetime(mocker):
 
 def test_evaluate_open_trade_exit_stop_loss():
     now = MockDatetime.now()
-    
+
     trade = {
         "ticker": "RELIANCE",
         "side": "LONG",
@@ -129,4 +129,73 @@ def test_check_candle_direction():
     # 2. Invalid high/low (zero range)
     candle_zero_range = {"open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0}
     assert TradeStateManager.check_candle_direction("LONG", candle_zero_range) == False
+
+
+def test_peak_adverse_pct_tracking():
+    # Symmetrical simulation of peak tracking in orchestrator tracking loop
+    trade = {
+        "ticker": "SBIN",
+        "side": "LONG",
+        "entry_price": 100.0,
+        "peak_profit_pct": 0.0,
+        "peak_adverse_pct": 0.0,
+    }
+    
+    # 1. Price drops to 99.0 -> PnL = -1.0%
+    price = 99.0
+    pnl = (price - trade["entry_price"]) / trade["entry_price"] * 100
+    trade["peak_profit_pct"] = max(trade["peak_profit_pct"], pnl)
+    trade["peak_adverse_pct"] = min(trade.get("peak_adverse_pct", 0.0), pnl)
+    
+    assert trade["peak_profit_pct"] == 0.0
+    assert trade["peak_adverse_pct"] == -1.0
+    
+    # 2. Price rises to 102.0 -> PnL = +2.0%
+    price = 102.0
+    pnl = (price - trade["entry_price"]) / trade["entry_price"] * 100
+    trade["peak_profit_pct"] = max(trade["peak_profit_pct"], pnl)
+    trade["peak_adverse_pct"] = min(trade.get("peak_adverse_pct", 0.0), pnl)
+    
+    assert trade["peak_profit_pct"] == 2.0
+    assert trade["peak_adverse_pct"] == -1.0  # Should remain -1.0% (lowest PnL)
+
+    # 3. SHORT trade simulation
+    trade_short = {
+        "ticker": "SBIN",
+        "side": "SHORT",
+        "entry_price": 100.0,
+        "peak_profit_pct": 0.0,
+        "peak_adverse_pct": 0.0,
+    }
+    
+    # Price rises to 101.5 -> PnL = -1.5%
+    price = 101.5
+    pnl = (trade_short["entry_price"] - price) / trade_short["entry_price"] * 100
+    trade_short["peak_profit_pct"] = max(trade_short["peak_profit_pct"], pnl)
+    trade_short["peak_adverse_pct"] = min(trade_short.get("peak_adverse_pct", 0.0), pnl)
+    
+    assert trade_short["peak_profit_pct"] == 0.0
+    assert trade_short["peak_adverse_pct"] == -1.5
+
+
+def test_record_barrier_checkpoint_first_touch_only():
+    # Shadow-trade checkpoint: stamp the first stop-loss touch and hold it; a deeper
+    # later dip must not overwrite. Records the would-be stop-out without exiting.
+    t = {"side": "LONG", "stop_loss_pct": 0.5, "take_profit_pct": 1.0}
+    t0 = datetime(2026, 7, 9, 10, 30)
+
+    TradeStateManager.record_barrier_checkpoint(t, 100.0, 0.2, t0)  # no breach
+    assert not t.get("sl_hit") and not t.get("tp_hit")
+
+    TradeStateManager.record_barrier_checkpoint(t, 99.4, -0.6, t0 + timedelta(minutes=5))  # SL touch
+    assert t["sl_hit"] == 1
+    assert t["sl_hit_pnl"] == -0.6
+    first_time, first_px = t["sl_hit_time"], t["sl_hit_price"]
+
+    TradeStateManager.record_barrier_checkpoint(t, 99.0, -1.0, t0 + timedelta(minutes=10))  # deeper
+    assert t["sl_hit_time"] == first_time and t["sl_hit_price"] == first_px  # unchanged
+
+    TradeStateManager.record_barrier_checkpoint(t, 101.5, 1.5, t0 + timedelta(minutes=20))  # rebounds thru TP
+    assert t["tp_hit"] == 1 and t["tp_hit_pnl"] == 1.5
+
 

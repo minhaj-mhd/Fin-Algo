@@ -193,8 +193,17 @@ class UpstoxSandboxBroker:
                 pass   # fall through to REST
 
         # ── 2. REST fallback ──────────────────────────────────────────────────
-        days = 2 if interval == '1minute' else 1
-        return self.get_historical_data(ticker, interval=interval, days=days)
+        # Calendar days must cover `count` completed bars (25×15m bars per session,
+        # ~5 trading days per 7 calendar). Deep requests (e.g. the Kronos veto's
+        # 480-bar context) previously starved here on the fixed 1-day window.
+        if interval == '1minute':
+            days = 2
+        else:
+            days = max(1, int(count / 25 * 1.6) + 3)
+        df = self.get_historical_data(ticker, interval=interval, days=days)
+        if df is not None and len(df) > count:
+            df = df.tail(count).reset_index(drop=True)
+        return df
 
     # Sub-hour minute intervals NOT supported by the v2 HistoryApi
     # (which only accepts 1minute/30minute/day/week/month). These are served

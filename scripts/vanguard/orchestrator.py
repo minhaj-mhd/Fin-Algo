@@ -17,6 +17,7 @@ from scripts.vanguard.trade_state import TradeStateManager
 from scripts.vanguard.risk_manager import RiskManager
 from scripts.vanguard.broker_adapter import BrokerAdapter
 from scripts.vanguard.ai_veto import AIVetoManager
+from scripts.vanguard.kronos_veto import kronos_check
 from scripts.vanguard.network_monitor import wait_for_network
 from scripts.vanguard.persistence import log_trade, save_latest_scores
 
@@ -60,10 +61,20 @@ class VanguardOrchestrator:
         self.recent_vetoes = {}
         self._conviction_flip_checked = {}
 
+        # Startup entry hold: the catch-up scan that runs immediately on process
+        # start must NOT open new trades (mid-interval restarts were entering off
+        # the scheduler grid). New entries resume at the next quarter-hour scan;
+        # position monitoring/exits are unaffected.
+        _boot = datetime.now()
+        _past = (_boot.minute % 15) * 60 + _boot.second
+        self.entries_resume_at = _boot + timedelta(seconds=(15 * 60) - _past)
+
         self._veto_stats_date = datetime.now().date()
         self._daily_bars_cache: pd.DataFrame = pd.DataFrame()
         self._daily_bars_cache_date = None  # date object; refreshed once per calendar day
         self.veto_stats = {
+            "kronos_vetoes": 0,
+            "kronos_passes": 0,
             "s1_vetoes":  0,
             "s2_vetoes":  0,
             "s1_passes":  0,
@@ -77,6 +88,7 @@ class VanguardOrchestrator:
             "candle_breakout_veto": 0,
             "candle_adverse_veto": 0,
             "candle_live_reversal": 0,
+            "candle_fill_recheck": 0,
             "running_guard_value_sum": 0.0,
             "running_guard_value_count": 0,
         }
@@ -618,11 +630,16 @@ class VanguardOrchestrator:
             df_ranks['xgb_l_rank'] = df_ranks['xgb_l'].rank(ascending=False, method='min')
             df_ranks['xgb_s_rank'] = df_ranks['xgb_s'].rank(ascending=False, method='min')
             
-            k_eligible = max(2, int(len(df_ranks) * 0.40))
-            
-            long_eligible = df_ranks.sort_values('xgb_l_rank').head(k_eligible)['Ticker'].tolist()
-            short_eligible = df_ranks.sort_values('xgb_s_rank').head(k_eligible)['Ticker'].tolist()
-            
+            if getattr(config, "DAILY_GATE_ENABLED", True):
+                k_eligible = max(2, int(len(df_ranks) * 0.40))
+                long_eligible = df_ranks.sort_values('xgb_l_rank').head(k_eligible)['Ticker'].tolist()
+                short_eligible = df_ranks.sort_values('xgb_s_rank').head(k_eligible)['Ticker'].tolist()
+            else:
+                # Daily gate disabled (2026-07-05): daily same-side rank carries no intraday
+                # info (neg-control-verified) — trade the full evaluated universe both sides.
+                long_eligible = df_ranks['Ticker'].tolist()
+                short_eligible = df_ranks['Ticker'].tolist()
+
             with self.lock:
                 self.long_eligible_tickers = set(long_eligible)
                 self.short_eligible_tickers = set(short_eligible)
@@ -699,7 +716,7 @@ class VanguardOrchestrator:
         }
 
     def compute_15min_atr(self, ticker):
-        ATR_SL_DEFAULT = 0.50
+        ATR_SL_DEFAULT = 1.00
         ATR_TP_DEFAULT = 1.00
 
         cached = self.atr_cache.get(ticker)
@@ -739,10 +756,14 @@ class VanguardOrchestrator:
             cur_price = float(close.iloc[-1])
             atr_pct = (atr / cur_price) * 100
 
-            # For a 1-hour hold (4 x 15min bars), the expected price move is ~sqrt(4) * ATR = 2.0 * ATR.
-            # Using 3.0 * ATR for TP is highly improbable to hit within 1 hour.
-            # Adjusted to realistic levels: SL = 1.0x ATR, TP = 1.8x ATR
-            sl_pct = max(0.25, min(1.20, atr_pct * 1.0))
+            # For a 1-hour hold (4 x 15min bars), typical price movement is ~sqrt(4) = 2.0x
+            # the 15m ATR, so a 1.0x-ATR stop sat INSIDE hourly noise (~40% touch odds on a
+            # driftless walk; cf. 3 noise stop-outs in 2h on 2026-06-16). Widened to 2.0x
+            # (~1x hourly ATR) per 2026-07-03 decision: the stop is a DISASTER BRAKE, not an
+            # edge lever — stop-width research showed no width improves net returns (mean-
+            # reverting universe; stops realize recoverable dips). TP untouched at 1.8x.
+            # Sizing divides by SL distance, so the wider stop auto-halves position size.
+            sl_pct = max(0.50, min(2.00, atr_pct * 2.0))
             tp_pct = max(0.50, min(2.00, atr_pct * 1.8))
 
             self.atr_cache[ticker] = (sl_pct, tp_pct, datetime.now())
@@ -1122,20 +1143,319 @@ class VanguardOrchestrator:
 
         return scores_df
 
+    @staticmethod
+    def _fade_guard_verdict(side, candle, rvol, dist_52h):
+        """Deterministic bar guards for a fade entry (look-back bar failed direction).
+
+        Single source of truth for the guard math — used by the entry-loop candle
+        prescreen (ahead of Kronos/Gemini) and by start_shadow_trade, so the two
+        stages can never drift apart. Priority preserves the original inline order:
+        THRUST_VETO > FADE_BREAKOUT > FADE_ADVERSE.
+
+        Returns (reject_reason_or_None, metrics) with metrics carrying
+        rng_pct / close_pos / adverse_pos for logging and DB fields.
+        """
+        high, low, close = candle.get('high'), candle.get('low'), candle.get('close')
+        rng = (high - low) if (high is not None and low is not None) else 0.0
+        rng_pct = (rng / close * 100.0) if close else 0.0
+        close_pos = ((close - low) / rng) if rng > 1e-8 else 0.5
+        adverse_pos = close_pos if side == "SHORT" else (1.0 - close_pos)
+        metrics = {"rng_pct": rng_pct, "close_pos": close_pos, "adverse_pos": adverse_pos}
+
+        adverse_thrust = rng_pct > config.THRUST_VETO_RANGE_PCT and (
+            (side == "SHORT" and close_pos >= config.THRUST_VETO_POS) or
+            (side == "LONG" and close_pos <= 1.0 - config.THRUST_VETO_POS)
+        )
+        breakout_short = (
+            config.FADE_QUALITY_GUARD and side == "SHORT"
+            and dist_52h is not None and dist_52h >= config.FADE_BREAKOUT_52H_PROXIMITY
+            and rvol is not None and rvol >= config.FADE_BREAKOUT_RVOL
+        )
+        vol_backed_adverse = (
+            config.FADE_QUALITY_GUARD
+            and adverse_pos >= config.FADE_ADVERSE_POS
+            and rvol is not None and rvol >= config.FADE_ADVERSE_MIN_RVOL
+        )
+        if adverse_thrust:
+            return "THRUST_VETO", metrics
+        if breakout_short:
+            return "FADE_BREAKOUT", metrics
+        if vol_backed_adverse:
+            return "FADE_ADVERSE", metrics
+        return None, metrics
+
+    def _fill_time_veto(self, ticker, side):
+        """Freshness gate at the moment a pending fade limit would fill.
+
+        The limit was priced off a bar that is now up to 15 minutes stale. Before
+        converting the touch into a position, require that the trailing 15 minutes
+        of 1-minute candles do NOT already form a violent adverse thrust — the
+        completed-bar THRUST veto applied to a rolling window ending now, so the
+        check works mid-bar and across bar boundaries (RELAXO 2026-06-29 filled
+        into the ignition of a 3%+ move the completed-bar guard could not yet see).
+
+        Returns (reject_reason, detail) to veto the fill, else None. Any data
+        problem passes the fill through — a thin tape must never block by accident.
+        """
+        try:
+            live_df = self.broker.get_recent_candles(ticker, interval='1minute', count=16)
+            if live_df is None or live_df.empty:
+                return None
+            if 'timestamp' in live_df.columns:
+                live_df = live_df.set_index('timestamp')
+            if live_df.index.tz is not None:
+                live_df.index = live_df.index.tz_localize(None)
+            window = live_df.tail(15)
+
+            w_high = float(window['high'].max())
+            w_low = float(window['low'].min())
+            w_close = float(window['close'].iloc[-1])
+            rng = w_high - w_low
+            rng_pct = (rng / w_close * 100.0) if w_close else 0.0
+            close_pos = ((w_close - w_low) / rng) if rng > 1e-8 else 0.5
+            adverse_thrust = rng_pct > config.THRUST_VETO_RANGE_PCT and (
+                (side == "SHORT" and close_pos >= config.THRUST_VETO_POS) or
+                (side == "LONG" and close_pos <= 1.0 - config.THRUST_VETO_POS)
+            )
+            if adverse_thrust:
+                kind = "rip" if side == "SHORT" else "dump"
+                return ("LIMIT_FILL_THRUST",
+                        f"trailing-15m tape range {rng_pct:.2f}% > {config.THRUST_VETO_RANGE_PCT}% "
+                        f"closing at pos {close_pos:.2f} — runaway {kind} against {side}")
+            return None
+        except Exception as e:
+            log(f"[FILL-RECHECK] {ticker} recheck error ({e}) — passing fill through.")
+            return None
+
+    def _evaluate_veto_layers(self, ticker, side, conviction, full_feature_row):
+        """Score EVERY veto layer for one signal and return the per-layer verdict map.
+
+        Unlike the sequential enforce pipeline, this NEVER short-circuits: each layer
+        is evaluated and its independent verdict recorded even when an earlier layer
+        would have vetoed, and no layer blocks the trade (enforcement is decoupled in
+        SHADOW_ALL_LAYERS mode). Verdict vocabulary per layer: PASS / VETO / ABSTAIN
+        (layer had no usable data) / DISABLED / NOT_RUN / ERROR.
+
+        Returns (verdicts, gemini_sentiment, gemini_reason, gemini_prob).
+        """
+        verdicts = {}
+        rvol = full_feature_row.get("rvol_raw")
+        dist_52h = full_feature_row.get("dist_52h_model")
+
+        # --- Layer 1: 15m same-side top-10% gate (enforcement default OFF) ---
+        try:
+            in_top, score_15m, thr_15m, valid_15m = self._check_15m_percentile(ticker, side, top_percent=0.10)
+            verdicts["gate_15m"] = {
+                "verdict": ("ABSTAIN" if not valid_15m else ("PASS" if in_top else "VETO")),
+                "enforced": bool(getattr(config, "ENTRY_15M_GATE_ENABLED", True)),
+                "score_15m": (None if (score_15m is None or pd.isna(score_15m)) else round(float(score_15m), 5)),
+                "threshold": (None if not valid_15m else round(float(thr_15m), 5)),
+            }
+        except Exception as e:
+            verdicts["gate_15m"] = {"verdict": "ERROR", "error": repr(e)[:150]}
+
+        # --- Layer 2: candle fade-guard on the last completed 15m bar ---
+        try:
+            candle_on = bool(getattr(config, "CANDLE_LAYER_ENABLED", True))
+            candle = self.get_last_completed_15min_candle(ticker) if candle_on else None
+            if candle is None:
+                verdicts["candle"] = {"verdict": ("ABSTAIN" if candle_on else "DISABLED"),
+                                      "enforced": candle_on, "reason": "no completed 15m candle"}
+            else:
+                direction_ok = TradeStateManager.check_candle_direction(side, candle)
+                guard_verdict, gm = self._fade_guard_verdict(side, candle, rvol, dist_52h)
+                verdicts["candle"] = {
+                    "verdict": ("VETO" if guard_verdict is not None else "PASS"),
+                    "enforced": candle_on,
+                    "fade_guard": guard_verdict,            # THRUST_VETO / FADE_BREAKOUT / FADE_ADVERSE / None
+                    "direction_confirmed": bool(direction_ok),
+                    "range_pct": round(float(gm["rng_pct"]), 4),
+                    "close_pos": round(float(gm["close_pos"]), 4),
+                    "adverse_pos": round(float(gm["adverse_pos"]), 4),
+                }
+        except Exception as e:
+            verdicts["candle"] = {"verdict": "ERROR", "error": repr(e)[:150]}
+
+        # --- Layer 3: Kronos zero-shot ---
+        if config.KRONOS_VETO_ENABLED:
+            try:
+                k_candles = self.broker.get_recent_candles(
+                    ticker, interval='15minute', count=config.KRONOS_VETO_LOOKBACK)
+                k_res = kronos_check(ticker, side, k_candles)
+                enforced = config.KRONOS_VETO_MODE == "enforce"
+                if k_res.get("error"):
+                    verdicts["kronos"] = {"verdict": "ABSTAIN", "enforced": enforced, "error": k_res["error"]}
+                else:
+                    verdicts["kronos"] = {
+                        "verdict": ("VETO" if k_res["would_veto"] else "PASS"),
+                        "enforced": enforced,
+                        "p_up": k_res["p_up"], "aligned": k_res["aligned"],
+                        "latency_s": k_res.get("latency_s"),
+                    }
+                    self.veto_stats["kronos_vetoes" if k_res["would_veto"] else "kronos_passes"] += 1
+            except Exception as e:
+                verdicts["kronos"] = {"verdict": "ERROR", "error": repr(e)[:150]}
+        else:
+            verdicts["kronos"] = {"verdict": "DISABLED", "enforced": False}
+
+        # --- Layers 4/5: Gemini S1 (technical) + S2 (news/governance) ---
+        # gemini_audit short-circuits S2 internally when S1 vetoes; we surface that as
+        # S2 NOT_RUN to keep the Google-search-grounded S2 call inside the daily budget.
+        gsent, greason, gprob = "NEUTRAL", "N/A", "N/A"
+        try:
+            # use_cache=False: S2 runs fresh on EVERY tracked signal (S1 is disabled).
+            gsent, greason, gprob = self.ai_veto_manager.gemini_audit(
+                ticker, side, conviction, full_feature_row, self.broker.get_recent_candles,
+                use_cache=False)
+            gveto = "VETO" in gsent.upper()
+            s1_on = bool(getattr(config, "GEMINI_S1_VETO_ENABLED", True))
+            if gsent == "SYSTEM_ERROR":
+                verdicts["gemini_s1"] = {"verdict": "ERROR", "reason": greason}
+                verdicts["gemini_s2"] = {"verdict": "ERROR", "reason": greason}
+            elif greason.startswith("[S1-"):
+                # S1 fired a veto (only possible when S1 is enabled) -> S2 never ran.
+                verdicts["gemini_s1"] = {"verdict": "VETO", "reason": greason}
+                verdicts["gemini_s2"] = {"verdict": "NOT_RUN", "reason": "S1 short-circuited S2"}
+                self.veto_stats["s1_vetoes"] += 1
+            else:
+                # S1 passed, or is disabled (GEMINI_S1_VETO_ENABLED=0 -> bypassed).
+                verdicts["gemini_s1"] = {"verdict": ("PASS" if s1_on else "BYPASSED"), "enabled": s1_on}
+                verdicts["gemini_s2"] = {"verdict": ("VETO" if gveto else "PASS"),
+                                         "sentiment": gsent, "reason": greason}
+                if s1_on:
+                    self.veto_stats["s1_passes"] += 1
+                self.veto_stats["s2_vetoes" if gveto else "s2_passes"] += 1
+        except Exception as e:
+            verdicts["gemini_s1"] = {"verdict": "ERROR", "error": repr(e)[:150]}
+            verdicts["gemini_s2"] = {"verdict": "ERROR", "error": repr(e)[:150]}
+
+        return verdicts, gsent, greason, gprob
+
+    def _process_signal_shadow_all(self, ticker, side, sig, full_feature_row,
+                                   conviction, strategy_id, size_multiplier, rank_col):
+        """SHADOW_ALL_LAYERS: record every layer's verdict for this signal and open it
+        as a tracked shadow position at the signal price — no layer blocks it."""
+        verdicts, gsent, greason, gprob = self._evaluate_veto_layers(
+            ticker, side, conviction, full_feature_row)
+
+        entry_price = self.broker.get_live_price(ticker)
+        if not entry_price or entry_price <= 0:
+            entry_price = float(full_feature_row["Close"])
+        tv_sentiment = get_tv_sentiment(ticker)
+
+        sent_map = {"STRONG BULLISH": 1.0, "BULLISH": 0.75, "NEUTRAL": 0.5,
+                    "BEARISH": 0.25, "STRONG BEARISH": 0.0, "VETOED": 0.0}
+        nlp_score = sent_map.get(gsent, 0.5)
+
+        # One unified telemetry row per signal carrying all layer verdicts.
+        try:
+            rank_val = sig.get(rank_col)
+            rec = {
+                "ts": datetime.now().isoformat(timespec="seconds"),
+                "ticker": ticker, "side": side,
+                "raw_score": (None if sig.get("raw_score") is None else round(float(sig.get("raw_score")), 6)),
+                "conviction": (None if conviction is None else round(float(conviction), 6)),
+                "rank": (None if rank_val is None or pd.isna(rank_val) else int(rank_val)),
+                "entry_price": round(float(entry_price), 4),
+                "layers": verdicts,
+            }
+            os.makedirs(os.path.dirname(config.VETO_LAYERS_LOG), exist_ok=True)
+            with open(config.VETO_LAYERS_LOG, "a", encoding="utf-8") as f:
+                f.write(json.dumps(rec) + "\n")
+        except Exception as e:
+            log(f"[SHADOW-ALL] veto-layer log write failed for {ticker}: {e}")
+
+        tags = " | ".join(f"{k}={v.get('verdict')}" for k, v in verdicts.items())
+
+        common = dict(
+            nlp_sentiment=nlp_score,
+            tv_sentiment=tv_sentiment,
+            long_score=full_feature_row.get("long_score"),
+            short_score=full_feature_row.get("short_score"),
+            strategy_id=strategy_id,
+            score_15m=full_feature_row.get("score_15m"),
+            score_30m=full_feature_row.get("score_30m"),
+            score_1d=full_feature_row.get("score_1d"),
+            is_ensemble=full_feature_row.get("is_ensemble", False),
+            size_multiplier=size_multiplier,
+            veto_layers=verdicts,
+        )
+
+        if config.SHADOW_DECOUPLE_ENFORCEMENT:
+            # Layers observe but never block: open EVERY signal at the signal price.
+            log(f"[SHADOW-ALL] {side} {ticker} -> OPEN (enforcement decoupled, all layers recorded) | {tags}")
+            self.start_shadow_trade(
+                ticker, conviction, entry_price, side,
+                f"[SHADOW-ALL] {gsent}: {greason}", gprob,
+                rvol=full_feature_row.get("rvol_raw"),
+                dist_52h=full_feature_row.get("dist_52h_model"),
+                force_immediate=True, **common)
+            return
+
+        # Record-only (default): all layers logged, but OPEN vs VETOED still follows the
+        # current enforcement policy (candle prescreen -> Kronos enforce -> Gemini).
+        stage, vreason = self._first_enforced_veto(verdicts)
+        if stage is not None:
+            log(f"[SHADOW-ALL] {side} {ticker} -> VETOED by {stage} (all layers recorded) | {tags}")
+            self.start_vetoed_tracking(
+                ticker, conviction, entry_price, side,
+                f"[{stage.upper()}-VETO] {vreason} | all layers recorded", gprob, **common)
+        else:
+            log(f"[SHADOW-ALL] {side} {ticker} -> OPEN (no enforcing veto, all layers recorded) | {tags}")
+            self.start_shadow_trade(
+                ticker, conviction, entry_price, side,
+                f"[SHADOW-ALL] {gsent}: {greason}", gprob,
+                rvol=full_feature_row.get("rvol_raw"),
+                dist_52h=full_feature_row.get("dist_52h_model"),
+                **common)
+
+    @staticmethod
+    def _first_enforced_veto(verdicts):
+        """First layer (in live-pipeline order) whose veto is actually ENFORCED.
+
+        Mirrors the sequential enforce order: candle prescreen -> Kronos (enforce mode
+        only) -> Gemini S1 -> Gemini S2. Returns (stage, reason) or (None, None) when no
+        enforcing layer vetoed. Used by SHADOW_ALL_LAYERS record-only mode to reproduce
+        today's OPEN-vs-VETOED decision while every layer's verdict is still recorded.
+        """
+        c = verdicts.get("candle", {})
+        if c.get("enforced") and c.get("verdict") == "VETO":
+            return "candle", c.get("fade_guard") or "CANDLE_VETO"
+        k = verdicts.get("kronos", {})
+        if k.get("enforced") and k.get("verdict") == "VETO":
+            return "kronos", f"aligned={k.get('aligned')} p_up={k.get('p_up')}"
+        for gl in ("gemini_s1", "gemini_s2"):
+            g = verdicts.get(gl, {})
+            if g.get("verdict") == "VETO":
+                return gl, g.get("reason") or "GEMINI_VETO"
+        return None, None
+
     def start_shadow_trade(self, ticker, conviction, entry_price, side, reason, one_hour_prob,
                            nlp_sentiment=None, tv_sentiment=None,
                            long_score=None, short_score=None, strategy_id=None,
                            score_15m=None, score_30m=None, score_1d=None, is_ensemble=False, size_multiplier=1.0,
-                           rvol=None, dist_52h=None):
+                           rvol=None, dist_52h=None, prescreen_candle=None,
+                           veto_layers=None, force_immediate=False):
         now = datetime.now()
-        
-        # 1. Fetch look-back completed candle
-        candle = self.get_last_completed_15min_candle(ticker)
-        
-        # 2. Check if the completed candle matches our direction
-        is_confirmed = False
+        veto_layers_json = json.dumps(veto_layers) if veto_layers is not None else None
+        # force_immediate (SHADOW_ALL_LAYERS mode): open at the signal price regardless
+        # of the candle layer — the candle verdict is recorded in veto_layers, not acted on.
+        candle_layer_on = getattr(config, "CANDLE_LAYER_ENABLED", True) and not force_immediate
+
+        # 1. Fetch look-back completed candle (skipped when the candle layer is OFF).
+        #    A prescreen-rejected candidate passes its candle through so this record
+        #    is judged on the exact bar the prescreen saw (no bar-boundary drift).
+        if prescreen_candle is not None and candle_layer_on:
+            candle = prescreen_candle
+        else:
+            candle = self.get_last_completed_15min_candle(ticker) if candle_layer_on else None
+
+        # 2. Check if the completed candle matches our direction. When the candle layer
+        #    is disabled, every AI-passed trade enters immediately at the signal price —
+        #    no look-back / live-reversal / thrust / fade-guard gating, no pending-limit.
+        is_confirmed = not candle_layer_on
         live_reversal = False
-        if candle is not None:
+        if candle_layer_on and candle is not None:
             from scripts.vanguard.trade_state import TradeStateManager
             is_confirmed = TradeStateManager.check_candle_direction(side, candle)
             
@@ -1179,7 +1499,7 @@ class VanguardOrchestrator:
                 "timestamp":           now.isoformat(),
                 "exit_time":           (now + timedelta(hours=1)).isoformat(),
                 "status":              "OPEN",
-                "comment":             f"{order_id} | Look-back candle confirmed | {reason}",
+                "comment":             f"{order_id} | {'Candle layer OFF (immediate entry)' if not candle_layer_on else 'Look-back candle confirmed'} | {reason}",
                 "margin_used":         (qty * entry_price) / config.MARGIN_MULTIPLIER,
                 "buy_brokerage":       config.BROKERAGE_PER_ORDER,
                 "final_profit_pct":    0.0,
@@ -1208,8 +1528,9 @@ class VanguardOrchestrator:
                 "market_entry_px":     entry_price,
                 "limit_px":            None,
                 "entry_mode":          "immediate",
+                "veto_layers":         veto_layers_json,
             }
-            
+
             with self.lock:
                 self.active_shadow_trades.append(trade)
                 self.risk_manager.realized_charges += config.BROKERAGE_PER_ORDER
@@ -1245,37 +1566,22 @@ class VanguardOrchestrator:
                 low = candle.get('low')
                 close = candle.get('close')
 
-                # --- Violent adverse-thrust guard ---------------------------------
-                rng = (high - low) if (high is not None and low is not None) else 0.0
-                rng_pct = (rng / close * 100.0) if close else 0.0
-                close_pos = ((close - low) / rng) if rng > 1e-8 else 0.5
-                adverse_thrust = rng_pct > config.THRUST_VETO_RANGE_PCT and (
-                    (side == "SHORT" and close_pos >= config.THRUST_VETO_POS) or
-                    (side == "LONG" and close_pos <= 1.0 - config.THRUST_VETO_POS)
-                )
+                # Thrust + Fade-Entry Quality guards (shared with the entry-loop
+                # prescreen; see _fade_guard_verdict and post-mortem 2026-06-16).
+                guard_verdict, gm = self._fade_guard_verdict(side, candle, rvol, dist_52h)
+                rng_pct = gm["rng_pct"]
+                close_pos = gm["close_pos"]
+                adverse_pos = gm["adverse_pos"]
 
-                # --- Fade-Entry Quality Guard (see config; post-mortem 2026-06-16) -
-                adverse_pos = close_pos if side == "SHORT" else (1.0 - close_pos)
-                breakout_short = (
-                    config.FADE_QUALITY_GUARD and side == "SHORT"
-                    and dist_52h is not None and dist_52h >= config.FADE_BREAKOUT_52H_PROXIMITY
-                    and rvol is not None and rvol >= config.FADE_BREAKOUT_RVOL
-                )
-                vol_backed_adverse = (
-                    config.FADE_QUALITY_GUARD
-                    and adverse_pos >= config.FADE_ADVERSE_POS
-                    and rvol is not None and rvol >= config.FADE_ADVERSE_MIN_RVOL
-                )
-
-                if adverse_thrust or breakout_short or vol_backed_adverse:
-                    if adverse_thrust:
+                if guard_verdict is not None:
+                    if guard_verdict == "THRUST_VETO":
                         thrust_kind = "rip" if side == "SHORT" else "dump"
                         comment_msg = (f"[THRUST-VETO] Look-back bar range {rng_pct:.2f}% > "
                                        f"{config.THRUST_VETO_RANGE_PCT}% closing at pos {close_pos:.2f} — "
                                        f"runaway {thrust_kind} against {side}; not fading.{c_str} | {reason}")
                         reject_reason = "THRUST_VETO"
                         self.veto_stats["candle_thrust_veto"] += 1
-                    elif breakout_short:
+                    elif guard_verdict == "FADE_BREAKOUT":
                         comment_msg = (f"[FADE-GUARD] Short into heavy-volume breakout: "
                                        f"rvol {rvol:.2f} >= {config.FADE_BREAKOUT_RVOL}, "
                                        f"{dist_52h*100:.2f}% from 52wH; not fading the breakout.{c_str} | {reason}")
@@ -1366,6 +1672,7 @@ class VanguardOrchestrator:
                 "market_entry_px":     entry_price, # Signal/market price
                 "limit_px":            limit_price if status == "PENDING_LIMIT" else None,
                 "entry_mode":          None,
+                "veto_layers":         veto_layers_json,
             }
             
             if status == "PENDING_LIMIT":
@@ -1385,7 +1692,8 @@ class VanguardOrchestrator:
     def start_vetoed_tracking(self, ticker, conviction, entry_price, side, reason, one_hour_prob,
                               nlp_sentiment=None, tv_sentiment=None,
                               long_score=None, short_score=None, strategy_id=None,
-                              score_15m=None, score_30m=None, score_1d=None, is_ensemble=False, size_multiplier=1.0):
+                              score_15m=None, score_30m=None, score_1d=None, is_ensemble=False, size_multiplier=1.0,
+                              veto_layers=None):
         now = datetime.now()
         trade = {
             "size_multiplier":     size_multiplier,
@@ -1420,6 +1728,7 @@ class VanguardOrchestrator:
             "score_1d":            float(score_1d) if score_1d is not None else None,
             "is_ensemble":         is_ensemble,
             "net_pnl_amt":         0.0,
+            "veto_layers":         json.dumps(veto_layers) if veto_layers is not None else None,
         }
 
         self._mark_recently_vetoed(ticker)
@@ -1548,6 +1857,15 @@ class VanguardOrchestrator:
                         trade["peak_profit_pct"] = max(trade["peak_profit_pct"], pnl)
                         trade["peak_adverse_pct"] = min(trade.get("peak_adverse_pct", 0.0), pnl)
 
+                        # Stop-loss / take-profit barrier CHECKPOINT (record-only): stamp the
+                        # first time a counterfactual SHADOW trade (vetoed / cancelled, tracked
+                        # to its full 1-hour outcome but never executed) WOULD have stopped out,
+                        # WITHOUT exiting it. Executed OPEN trades are untouched — they still
+                        # exit at their real stop loss via evaluate_open_trade_exit below.
+                        if (trade["status"] in ("VETOED", "CANCELLED")
+                                and getattr(config, "SHADOW_SL_CHECKPOINT", True)):
+                            TradeStateManager.record_barrier_checkpoint(trade, price, pnl, now)
+
                         # PENDING_LIMIT tracking
                         if trade["status"] == "PENDING_LIMIT":
                             trade["exit_price"] = price
@@ -1560,6 +1878,34 @@ class VanguardOrchestrator:
                                 is_triggered = True
                                 
                             if is_triggered:
+                                # Fill-time recheck: the limit was priced off a bar now
+                                # up to 15 min stale — do not convert a touch that is
+                                # part of a violent cascade (RELAXO 2026-06-29).
+                                fill_veto = None
+                                if (getattr(config, "CANDLE_LAYER_ENABLED", True)
+                                        and getattr(config, "FILL_RECHECK_ENABLED", True)):
+                                    fill_veto = self._fill_time_veto(trade["ticker"], trade["side"])
+                                if fill_veto:
+                                    fv_reason, fv_detail = fill_veto
+                                    trade["status"] = "VETOED"
+                                    trade["reject_stage"] = "candle"
+                                    trade["reject_reason"] = fv_reason
+                                    trade["quantity"] = 0
+                                    # Counterfactual baseline = the fill this veto blocked.
+                                    trade["entry_price"] = price
+                                    trade["exit_price"] = price
+                                    trade["peak_price"] = price
+                                    trade["comment"] = trade.get("comment", "") + f" | Fill-time recheck vetoed the fill at {price}: {fv_detail}"
+                                    trade_start = datetime.fromisoformat(trade["timestamp"])
+                                    trade["exit_time"] = (trade_start + timedelta(hours=1)).isoformat()
+                                    self.veto_stats["candle_fill_recheck"] = self.veto_stats.get("candle_fill_recheck", 0) + 1
+                                    with self.lock:
+                                        self.risk_manager.used_margin -= trade.get("margin_used", 0.0)
+                                        trade["margin_used"] = 0.0
+                                    log_trade(trade)
+                                    print(f"[FILL-RECHECK VETO] {trade['ticker']} ({trade['side']}) at {price}: {fv_detail}. Counterfactual tracking started.")
+                                    continue
+
                                 # Execute market order
                                 sl_mult = 1 - (trade["stop_loss_pct"] / 100) if trade["side"] == "LONG" else 1 + (trade["stop_loss_pct"] / 100)
                                 sl_price = round(price * sl_mult, 2)
@@ -1586,7 +1932,16 @@ class VanguardOrchestrator:
                                 if now >= datetime.fromisoformat(trade["exit_time"]):
                                     # 15 minutes have passed, fetch newly formed candle
                                     new_candle = self.get_last_completed_15min_candle(trade["ticker"])
-                                    if TradeStateManager.check_candle_direction(trade["side"], new_candle):
+                                    market_fill_on = getattr(config, "LIMIT_EXPIRY_MARKET_FILL_ENABLED", True)
+                                    expiry_fill_ok = market_fill_on and TradeStateManager.check_candle_direction(trade["side"], new_candle)
+                                    expiry_fill_veto = None
+                                    if (expiry_fill_ok
+                                            and getattr(config, "CANDLE_LAYER_ENABLED", True)
+                                            and getattr(config, "FILL_RECHECK_ENABLED", True)):
+                                        expiry_fill_veto = self._fill_time_veto(trade["ticker"], trade["side"])
+                                        if expiry_fill_veto:
+                                            expiry_fill_ok = False
+                                    if expiry_fill_ok:
                                         # Fills order at current market price!
                                         sl_mult = 1 - (trade["stop_loss_pct"] / 100) if trade["side"] == "LONG" else 1 + (trade["stop_loss_pct"] / 100)
                                         sl_price = round(price * sl_mult, 2)
@@ -1610,7 +1965,12 @@ class VanguardOrchestrator:
                                     else:
                                         # Keep in active trades with quantity=0, margin=0 to track counterfactual return for 1 hour
                                         trade["status"] = "CANCELLED"
-                                        trade["comment"] = trade.get("comment", "") + " | 15m wait expired, new candle failed confirmation."
+                                        if not market_fill_on:
+                                            trade["comment"] = trade.get("comment", "") + " | 15m wait expired, limit not hit — market-fill-on-expiry disabled, left it."
+                                        elif expiry_fill_veto:
+                                            trade["comment"] = trade.get("comment", "") + f" | 15m wait expired, market-fill blocked by fill-time recheck: {expiry_fill_veto[1]}"
+                                        else:
+                                            trade["comment"] = trade.get("comment", "") + " | 15m wait expired, new candle failed confirmation."
                                         trade["reject_stage"] = "candle"
                                         trade["reject_reason"] = "LIMIT_EXPIRED"
                                         trade["quantity"] = 0
@@ -1623,7 +1983,10 @@ class VanguardOrchestrator:
                                             self.risk_manager.used_margin -= trade.get("margin_used", 0.0)
                                             trade["margin_used"] = 0.0
                                         log_trade(trade)
-                                        print(f"[LIMIT EXPIRED -> CANCELLED] {trade['ticker']} ({trade['side']}) new candle failed confirmation. Counterfactual tracking started.")
+                                        _why = ("market-fill-on-expiry disabled" if not market_fill_on
+                                                else "fill-time recheck vetoed the market fill" if expiry_fill_veto
+                                                else "new candle failed confirmation")
+                                        print(f"[LIMIT EXPIRED -> CANCELLED] {trade['ticker']} ({trade['side']}) {_why}. Counterfactual tracking started.")
                                 continue
 
                         # Vetoed or Cancelled trade check EOD or 1H expiry
@@ -1647,25 +2010,29 @@ class VanguardOrchestrator:
                             continue
 
                         # ── 15-MIN CONVICTION FLIP CHECK ───────────────────────────
+                        # Force-closes an open trade when its 15m model conviction drops
+                        # out of the top 33%. DISABLED by default — flip
+                        # CONVICTION_FLIP_EXIT_ENABLED in config to re-enable.
                         is_conviction_flip = False
-                        trade_id = trade.get("trade_id", trade.get("ticker"))
-                        last_flip_check = self._conviction_flip_checked.get(trade_id)
-                        
-                        if (last_flip_check is None or (now - last_flip_check).total_seconds() >= 900) and trade["status"] == "OPEN":
-                            self._conviction_flip_checked[trade_id] = now
-                            # Use 33% (Top 1/3) for maintenance to prevent whipsaws
-                            is_in_top, score_15m, threshold, valid_15m = self._check_15m_percentile(trade["ticker"], trade["side"], top_percent=0.33)
+                        if getattr(config, "CONVICTION_FLIP_EXIT_ENABLED", False):
+                            trade_id = trade.get("trade_id", trade.get("ticker"))
+                            last_flip_check = self._conviction_flip_checked.get(trade_id)
 
-                            if not valid_15m:
-                                # No / thin 15m data this cycle is NOT a conviction
-                                # reversal — hold the position rather than closing it.
-                                print(f"[CONVICTION-HOLD] {trade['ticker']} {trade['side']} — 15m score indeterminate (no data / thin universe). Holding.")
-                            elif not is_in_top:
-                                is_conviction_flip = True
-                                flip_note = f" | Conviction Flip @ 15-min check (15m_score={score_15m:.3f}, top33%_threshold={threshold:.3f})"
-                                print(f"[CONVICTION-FLIP] {trade['ticker']} {trade['side']} — 15m Conviction dropped out of top 33%. Closing.")
-                            else:
-                                print(f"[CONVICTION-OK] {trade['ticker']} {trade['side']} — 15m Conviction in top 33%.")
+                            if (last_flip_check is None or (now - last_flip_check).total_seconds() >= 900) and trade["status"] == "OPEN":
+                                self._conviction_flip_checked[trade_id] = now
+                                # Use 33% (Top 1/3) for maintenance to prevent whipsaws
+                                is_in_top, score_15m, threshold, valid_15m = self._check_15m_percentile(trade["ticker"], trade["side"], top_percent=0.33)
+
+                                if not valid_15m:
+                                    # No / thin 15m data this cycle is NOT a conviction
+                                    # reversal — hold the position rather than closing it.
+                                    print(f"[CONVICTION-HOLD] {trade['ticker']} {trade['side']} — 15m score indeterminate (no data / thin universe). Holding.")
+                                elif not is_in_top:
+                                    is_conviction_flip = True
+                                    flip_note = f" | Conviction Flip @ 15-min check (15m_score={score_15m:.3f}, top33%_threshold={threshold:.3f})"
+                                    print(f"[CONVICTION-FLIP] {trade['ticker']} {trade['side']} — 15m Conviction dropped out of top 33%. Closing.")
+                                else:
+                                    print(f"[CONVICTION-OK] {trade['ticker']} {trade['side']} — 15m Conviction in top 33%.")
 
                         # --- Time Expiry Extension Check ---
                         raw_time_expiry = now >= datetime.fromisoformat(trade["exit_time"])
@@ -1838,7 +2205,7 @@ class VanguardOrchestrator:
                     time.sleep(60)
                     continue
 
-                is_trading_window = "10:15" <= now_str < "15:05"
+                is_trading_window = config.FIRST_ENTRY_TIME <= now_str <= config.LAST_ENTRY_TIME
 
                 # 3. Generate candidate signals
                 top_signals = self.signal_generator.generate_candidate_signals(
@@ -1871,16 +2238,25 @@ class VanguardOrchestrator:
                                 
                             strat_display = f"S{strategy_id}" if isinstance(strategy_id, int) else str(strategy_id) if strategy_id else "AI"
                             rank_col = "Long_Rank" if side == "LONG" else "Short_Rank"
-                            is_eligible_time = "10:15" <= now_str < "15:05"
+                            is_eligible_time = config.FIRST_ENTRY_TIME <= now_str <= config.LAST_ENTRY_TIME
 
                             if not is_eligible_time:
                                 log(f"[SCAN ONLY] {side} {ticker} ({strat_display}) | Conviction: {conviction:.4f} (Outside Window)")
                                 continue
 
-                            # Concurrency Slots
+                            # Startup hold: catch-up scan after a restart is scan-only;
+                            # entries resume on the scheduler grid.
+                            if datetime.now() < self.entries_resume_at:
+                                log(f"[STARTUP-HOLD] {side} {ticker} ({strat_display}) | Conviction: {conviction:.4f} "
+                                    f"(entries resume at {self.entries_resume_at.strftime('%H:%M:%S')})")
+                                continue
+
+                            # Concurrency Slots — the slot cap is an enforcement
+                            # constraint, so it is bypassed in SHADOW_ALL_LAYERS mode
+                            # (every emitted signal must be tracked as its own sample).
                             with self.lock:
                                 active_slots = len([t for t in self.active_shadow_trades if t["status"] in ["OPEN", "PENDING_ENTRY"]])
-                                if active_slots >= config.MAX_TRADE_SLOTS:
+                                if active_slots >= config.MAX_TRADE_SLOTS and not config.SHADOW_ALL_LAYERS:
                                     log(f"[SKIP] Concurrency Limit Reached (Max {config.MAX_TRADE_SLOTS}).")
                                     break
 
@@ -1899,14 +2275,32 @@ class VanguardOrchestrator:
                                 log(f"[VETO-COOLDOWN] {side} {ticker} vetoed recently. Skipping.")
                                 continue
 
-                            # 15m Top 10% confirmation check (Entry demands high conviction)
-                            is_in_top_10, score_15m, top_10_threshold, valid_15m = self._check_15m_percentile(ticker, side, top_percent=0.10)
-                            if not valid_15m:
-                                log(f"[15M-FILTER] {side} {ticker} 15m score indeterminate (no data / thin universe). Skipping.")
+                            # SHADOW_ALL_LAYERS: score EVERY veto layer and open the
+                            # signal as a tracked shadow position regardless of any
+                            # veto (enforcement decoupled). Bypasses the sequential
+                            # gate/prescreen/Kronos/Gemini short-circuit pipeline below.
+                            if config.SHADOW_ALL_LAYERS:
+                                ffr = scores_df[scores_df['ticker'] == ticker].iloc[0].copy()
+                                ffr['strategy_id'] = sig.get('strategy_id')
+                                ffr['signal_source'] = sig.get('source')
+                                ffr['is_ensemble'] = sig.get('is_ensemble', False)
+                                self._process_signal_shadow_all(
+                                    ticker, side, sig, ffr, conviction, strategy_id,
+                                    sig.get('size_multiplier', 1.0), rank_col)
                                 continue
-                            if not is_in_top_10:
-                                log(f"[15M-FILTER] {side} {ticker} 15m score ({score_15m:.3f}) not in top 10% (threshold: {top_10_threshold:.3f}). Skipping.")
-                                continue
+
+                            # 15m Top 10% confirmation check (Entry demands high conviction).
+                            # 2026-07-05: DISABLED by default (ENTRY_15M_GATE_ENABLED) — same-side 15m
+                            # confirmation is flat-to-backwards (mean reversion) and discarded ~90% of
+                            # candidates without adding value. Flip the flag True to restore the gate.
+                            if getattr(config, "ENTRY_15M_GATE_ENABLED", True):
+                                is_in_top_10, score_15m, top_10_threshold, valid_15m = self._check_15m_percentile(ticker, side, top_percent=0.10)
+                                if not valid_15m:
+                                    log(f"[15M-FILTER] {side} {ticker} 15m score indeterminate (no data / thin universe). Skipping.")
+                                    continue
+                                if not is_in_top_10:
+                                    log(f"[15M-FILTER] {side} {ticker} 15m score ({score_15m:.3f}) not in top 10% (threshold: {top_10_threshold:.3f}). Skipping.")
+                                    continue
 
                             # 4. Gemini AI Veto Audit (or Vanguard Bypass)
                             full_feature_row = scores_df[scores_df['ticker'] == ticker].iloc[0].copy()
@@ -1915,7 +2309,90 @@ class VanguardOrchestrator:
                             full_feature_row['is_ensemble'] = sig.get('is_ensemble', False)
                             
                             size_multiplier = sig.get('size_multiplier', 1.0)
-                            
+
+                            # 3b. Candle prescreen — the deterministic completed-bar
+                            # guards run BEFORE the expensive layers so a doomed
+                            # candidate never burns a Kronos GPU pass or a Gemini
+                            # call. Only bar-based checks belong here: a completed
+                            # bar cannot change during pipeline latency. The
+                            # freshness checks (live-1m reversal, fill-time thrust)
+                            # stay at entry/fill time (post-mortem 2026-07-03).
+                            # A prescreen reject records the identical candle-stage
+                            # VETOED row (via start_shadow_trade, same bar passed
+                            # through) and moves to the NEXT candidate — previously
+                            # such a candidate was only vetoed after the audit, and
+                            # then ended the side's scan cycle.
+                            if getattr(config, "CANDLE_LAYER_ENABLED", True):
+                                ps_candle = self.get_last_completed_15min_candle(ticker)
+                                if ps_candle is not None and not TradeStateManager.check_candle_direction(side, ps_candle):
+                                    ps_verdict, _ps_gm = self._fade_guard_verdict(
+                                        side, ps_candle,
+                                        full_feature_row.get("rvol_raw"),
+                                        full_feature_row.get("dist_52h_model"))
+                                    if ps_verdict is not None:
+                                        entry_price = self.broker.get_live_price(ticker)
+                                        if not entry_price or entry_price <= 0:
+                                            entry_price = float(full_feature_row["Close"])
+                                        log(f"[CANDLE-PRESCREEN] {side} {ticker} {ps_verdict} on look-back bar — "
+                                            f"skipping Kronos/Gemini.")
+                                        self.start_shadow_trade(
+                                            ticker, conviction, entry_price, side,
+                                            "[PRESCREEN] bar guard fired ahead of Kronos/Gemini audit", "N/A",
+                                            nlp_sentiment=0.5,
+                                            tv_sentiment=get_tv_sentiment(ticker),
+                                            long_score=full_feature_row.get("long_score"),
+                                            short_score=full_feature_row.get("short_score"),
+                                            strategy_id=strategy_id,
+                                            score_15m=full_feature_row.get("score_15m"),
+                                            score_30m=full_feature_row.get("score_30m"),
+                                            score_1d=full_feature_row.get("score_1d"),
+                                            is_ensemble=full_feature_row.get("is_ensemble", False),
+                                            size_multiplier=size_multiplier,
+                                            rvol=full_feature_row.get("rvol_raw"),
+                                            dist_52h=full_feature_row.get("dist_52h_model"),
+                                            prescreen_candle=ps_candle,
+                                        )
+                                        continue
+
+                            # 3c. Kronos zero-shot veto — AHEAD of the Gemini S1/S2 audit
+                            # (local GPU, no API quota; enforce-mode vetoes save the
+                            # Gemini calls entirely). Shadow mode logs but never blocks.
+                            if config.KRONOS_VETO_ENABLED:
+                                k_candles = self.broker.get_recent_candles(
+                                    ticker, interval='15minute', count=config.KRONOS_VETO_LOOKBACK)
+                                k_res = kronos_check(ticker, side, k_candles)
+                                if k_res.get("error"):
+                                    log(f"[KRONOS-VETO] {side} {ticker} abstained ({k_res['error']}) — pass-through.")
+                                else:
+                                    k_tag = "WOULD-VETO" if k_res["would_veto"] else "PASS"
+                                    log(f"[KRONOS-VETO] {side} {ticker} p_up={k_res['p_up']:.3f} "
+                                        f"aligned={k_res['aligned']:.3f} -> {k_tag} ({k_res['mode']}, {k_res['latency_s']}s)")
+                                if k_res["would_veto"]:
+                                    self.veto_stats["kronos_vetoes"] += 1
+                                else:
+                                    self.veto_stats["kronos_passes"] += 1
+                                if k_res["would_veto"] and config.KRONOS_VETO_MODE == "enforce":
+                                    entry_price = self.broker.get_live_price(ticker)
+                                    if not entry_price or entry_price <= 0:
+                                        entry_price = float(full_feature_row["Close"])
+                                    self.start_vetoed_tracking(
+                                        ticker, conviction, entry_price, side,
+                                        f"[KRONOS-VETO] aligned {k_res['aligned']:.3f} < threshold "
+                                        f"({'%.3f' % (config.KRONOS_THR_LONG if side == 'LONG' else config.KRONOS_THR_SHORT)})",
+                                        k_res["p_up"],
+                                        nlp_sentiment=0.5,
+                                        tv_sentiment=get_tv_sentiment(ticker),
+                                        long_score=full_feature_row.get("long_score"),
+                                        short_score=full_feature_row.get("short_score"),
+                                        strategy_id=strategy_id,
+                                        score_15m=full_feature_row.get("score_15m"),
+                                        score_30m=full_feature_row.get("score_30m"),
+                                        score_1d=full_feature_row.get("score_1d"),
+                                        is_ensemble=full_feature_row.get("is_ensemble", False),
+                                        size_multiplier=size_multiplier
+                                    )
+                                    continue
+
                             log(f"[AUDIT] {side} {ticker} ({strat_display}) | Conviction: {conviction:.4f} | Verifying...")
                             sentiment, reason, one_hour_prob = self.ai_veto_manager.gemini_audit(
                                 ticker, side, conviction, full_feature_row, self.broker.get_recent_candles
@@ -1950,6 +2427,7 @@ class VanguardOrchestrator:
                             if datetime.now().date() != self._veto_stats_date:
                                 self._veto_stats_date = datetime.now().date()
                                 self.veto_stats = {
+                                    "kronos_vetoes": 0, "kronos_passes": 0,
                                     "s1_vetoes": 0, "s2_vetoes": 0,
                                     "s1_passes": 0, "s2_passes": 0,
                                     "s1_tickers": [], "s2_tickers": [],
@@ -1960,6 +2438,7 @@ class VanguardOrchestrator:
                                     "candle_breakout_veto": 0,
                                     "candle_adverse_veto": 0,
                                     "candle_live_reversal": 0,
+                                    "candle_fill_recheck": 0,
                                     "running_guard_value_sum": 0.0,
                                     "running_guard_value_count": 0,
                                 }
@@ -2031,13 +2510,15 @@ class VanguardOrchestrator:
                 print("\n" + "═"*70)
                 print(f" SESSION VETO SUMMARY ({datetime.now().strftime('%H:%M')})")
                 print("═"*70)
+                k_mode = config.KRONOS_VETO_MODE.upper() if config.KRONOS_VETO_ENABLED else "OFF"
+                print(f" Kronos ({k_mode:7s}): WOULD-VETO={self.veto_stats.get('kronos_vetoes', 0)} | PASSED={self.veto_stats.get('kronos_passes', 0)}")
                 print(f" S1 (Technical) : VETOED={self.veto_stats['s1_vetoes']} | PASSED={self.veto_stats['s1_passes']}")
                 print(f" S2 (Governance): VETOED={self.veto_stats['s2_vetoes']} | PASSED={self.veto_stats['s2_passes']}")
                 
                 # Candle decisions & vetoes extended output
                 guard_val_avg = (self.veto_stats["running_guard_value_sum"] / self.veto_stats["running_guard_value_count"]) if self.veto_stats["running_guard_value_count"] > 0 else 0.0
                 print(f" Candle Entry   : CONFIRMED={self.veto_stats['candle_confirmed']} | FADED_FILLED={self.veto_stats['candle_faded_filled']} | FADED_EXPIRED={self.veto_stats['candle_faded_expired']}")
-                print(f" Candle Vetoes  : THRUST={self.veto_stats['candle_thrust_veto']} | BREAKOUT={self.veto_stats['candle_breakout_veto']} | ADVERSE={self.veto_stats['candle_adverse_veto']} | REVERSAL={self.veto_stats['candle_live_reversal']}")
+                print(f" Candle Vetoes  : THRUST={self.veto_stats['candle_thrust_veto']} | BREAKOUT={self.veto_stats['candle_breakout_veto']} | ADVERSE={self.veto_stats['candle_adverse_veto']} | REVERSAL={self.veto_stats['candle_live_reversal']} | FILL_RECHECK={self.veto_stats.get('candle_fill_recheck', 0)}")
                 print(f" Running Guard Value (Candle Stage Vetoes): {guard_val_avg:+.2f}% (N={self.veto_stats['running_guard_value_count']})")
                 print("═"*70 + "\n")
 

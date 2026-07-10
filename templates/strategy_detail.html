@@ -244,6 +244,7 @@
                                     <th>Exit</th>
                                     <th>P&amp;L</th>
                                     <th>Peak P&amp;L</th>
+                                    <th>Peak Neg</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -253,7 +254,7 @@
                                     {% set date_str = t.timestamp[:10] %}
                                     {% if date_str != ns.last_date %}
                                     <tr class="bg-dark bg-opacity-50">
-                                        <td colspan="8" class="py-2">
+                                        <td colspan="9" class="py-2">
                                             <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
                                                 <i class="bi bi-calendar3 me-1"></i> {{ date_str }}
                                             </span>
@@ -278,10 +279,11 @@
                                             {{ '+' if t.final_profit_pct > 0 else '' }}{{ "%.2f"|format(t.final_profit_pct or 0) }}%
                                         </td>
                                         <td class="mono small text-dim">+{{ "%.2f"|format(t.peak_profit_pct or 0) }}%</td>
+                                        <td class="mono small text-dim">{% if (t.peak_adverse_pct or 0) < 0 %}{{ "%.2f"|format(t.peak_adverse_pct) }}%{% else %}+0.00%{% endif %}</td>
                                         <td><span class="badge {% if t.status == 'CLOSED' %}bg-secondary{% else %}bg-info text-dark{% endif %}" style="font-size: 9px; font-family: 'Outfit';">{{ t.status }}</span></td>
                                     </tr>
                                 {% else %}
-                                    <tr><td colspan="8" class="text-center text-dim py-4">No trades taken by this strategy.</td></tr>
+                                    <tr><td colspan="9" class="text-center text-dim py-4">No trades taken by this strategy.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -301,6 +303,7 @@
                                     <th>LLM Reason</th>
                                     <th>Shadow P&amp;L</th>
                                     <th>Peak P&amp;L</th>
+                                    <th>Peak Neg</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -310,7 +313,7 @@
                                     {% set date_str = t.timestamp[:10] %}
                                     {% if date_str != ns.last_date %}
                                     <tr class="bg-dark bg-opacity-50">
-                                        <td colspan="10" class="py-2">
+                                        <td colspan="11" class="py-2">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <span class="smallest text-dim fw-bold text-uppercase" style="letter-spacing: 2px;">
                                                     <i class="bi bi-calendar3 me-1"></i> {{ date_str }}
@@ -364,10 +367,11 @@
                                             {{ '+' if live_pnl >= 0 else '' }}{{ "%.2f"|format(live_pnl) }}%
                                         </td>
                                         <td class="mono small text-dim">+{{ "%.2f"|format(t.peak_profit_pct or 0) }}%</td>
+                                        <td class="mono small text-dim">{% if (t.peak_adverse_pct or 0) < 0 %}{{ "%.2f"|format(t.peak_adverse_pct) }}%{% else %}+0.00%{% endif %}</td>
                                         <td><span class="text-dim small">{{ t.status }}</span></td>
                                     </tr>
                                 {% else %}
-                                    <tr><td colspan="10" class="text-center text-dim py-4">No trades vetoed for this strategy.</td></tr>
+                                    <tr><td colspan="11" class="text-center text-dim py-4">No trades vetoed for this strategy.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>

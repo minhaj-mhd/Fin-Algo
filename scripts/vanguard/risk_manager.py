@@ -137,6 +137,7 @@ class RiskManager:
                 "unrealized_pnl_inr":  round(gross_pnl_inr, 2),
                 "unrealized_pnl_pct":  round(pnl_pct, 4),
                 "peak_profit_pct":     round(t.get("peak_profit_pct", 0), 4),
+                "peak_adverse_pct":    round(t.get("peak_adverse_pct", 0), 4),
                 "entry_time":          t["timestamp"],
                 "exit_time":           t["exit_time"],
                 "time_left_min":       time_left,

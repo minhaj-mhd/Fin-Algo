@@ -1,0 +1,64 @@
+==============================================================================
+NEWS-SHOCK PROXY EVENT STUDY (exploratory, no verdict authority)
+universe: 147 tickers | sessions: 850 (2023-01-02 .. 2026-06-11)
+event = |idio 5-min ret| >= thr AND rvol >= thr, bar start 09:30-14:30,
+        de-clustered to first event per ticker-day. Sign-aligned bps:
+        POSITIVE mean = post-news DRIFT (momentum), NEGATIVE = FADE.
+==============================================================================
+
+--- EVENTS PER DAY (answers 'how many news trades daily?') ---
+ ret_thr  rvol  mean/day  med/day  p90/day  %zero   total
+    1.0%     3      6.90      6.0     12.0   2.6%   5,863
+    1.0%     5      6.00      5.0     11.0   3.4%   5,097
+    1.5%     3      2.09      1.0      4.0  27.2%   1,779
+    1.5%     5      1.98      1.0      4.0  28.7%   1,681
+    2.0%     3      0.88      0.0      2.0  57.1%     745
+    2.0%     5      0.85      0.0      2.0  57.8%     725
+    3.0%     3      0.30      0.0      1.0  82.9%     253
+    3.0%     5      0.29      0.0      1.0  83.1%     250
+
+--- CANONICAL CELL: |idio ret| >= 1.5%, rvol >= 5 ---
+       entry  horizon       N  gross bps       t  t(day)   net@6  net@10
+     instant      15m   1,681      -8.75   -2.28   -1.62  -14.75  -18.75
+     instant      30m   1,681      -7.47   -1.64   -1.33  -13.47  -17.47
+     instant       1h   1,681      -6.82   -1.13   -1.61  -12.82  -16.82
+     instant       2h   1,681     -15.31   -2.41   -1.92  -21.31  -25.31
+     instant      eod   1,681      -9.81   -1.26   -1.29  -15.81  -19.81
+  delayed+5m      15m   1,681      -2.40   -0.74   -1.20   -8.40  -12.40
+  delayed+5m      30m   1,681      -1.89   -0.43   -0.57   -7.89  -11.89
+  delayed+5m       1h   1,681      -1.91   -0.32   -1.00   -7.91  -11.91
+  delayed+5m       2h   1,681     -10.07   -1.67   -1.32  -16.07  -20.07
+  delayed+5m      eod   1,681      -4.18   -0.55   -0.70  -10.18  -14.18
+
+--- ALL CELLS, 1h horizon (gross bps / t) ---
+  entry=instant:
+    thr=1.0% rvol>=3: N= 5,863     -4.08 bps  t= -1.86
+    thr=1.0% rvol>=5: N= 5,097     -5.66 bps  t= -2.33
+    thr=1.5% rvol>=3: N= 1,779     -9.19 bps  t= -1.59
+    thr=1.5% rvol>=5: N= 1,681     -6.82 bps  t= -1.13
+    thr=2.0% rvol>=3: N=   745     -4.18 bps  t= -0.34
+    thr=2.0% rvol>=5: N=   725     -5.34 bps  t= -0.43
+    thr=3.0% rvol>=3: N=   253    -41.13 bps  t= -1.36
+    thr=3.0% rvol>=5: N=   250    -54.67 bps  t= -1.82
+  entry=delayed+5m:
+    thr=1.0% rvol>=3: N= 5,863     -1.31 bps  t= -0.62
+    thr=1.0% rvol>=5: N= 5,097     -3.47 bps  t= -1.48
+    thr=1.5% rvol>=3: N= 1,779     -3.93 bps  t= -0.68
+    thr=1.5% rvol>=5: N= 1,681     -1.91 bps  t= -0.32
+    thr=2.0% rvol>=3: N=   745      5.29 bps  t=  0.43
+    thr=2.0% rvol>=5: N=   725      5.49 bps  t=  0.45
+    thr=3.0% rvol>=3: N=   253     -2.65 bps  t= -0.09
+    thr=3.0% rvol>=5: N=   250    -13.04 bps  t= -0.44
+
+--- CANONICAL CELL SPLITS (instant entry, 1h / eod, gross bps) ---
+  pos-news (long drift test)   N= 1,021  1h:   -6.53 (t -1.00)  eod:   -5.83 (t -0.62)
+  neg-news (short drift test)  N=   660  1h:   -7.27 (t -0.63)  eod:  -15.98 (t -1.18)
+  year 2023:  N=   459  1h:   -0.99 bps (t -0.08)
+  year 2024:  N=   633  1h:    0.22 bps (t 0.02)
+  year 2025:  N=   337  1h:  -21.17 bps (t -1.92)
+  year 2026:  N=   252  1h:  -15.93 bps (t -1.24)
+
+--- NEGATIVE CONTROL (same ticker+slot, non-event bars, sign-aligned) ---
+   15m: events   -8.75 bps (t -2.28, N 1,681)   control   -0.42 bps (t -0.73, N 5,043)
+    1h: events   -6.82 bps (t -1.13, N 1,681)   control    1.20 bps (t 1.13, N 5,043)
+   eod: events   -9.81 bps (t -1.26, N 1,681)   control    1.93 bps (t 0.96, N 5,043)

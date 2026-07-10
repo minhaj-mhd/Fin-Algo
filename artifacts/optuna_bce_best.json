@@ -1,0 +1,41 @@
+{
+  "best_value": 2.8602974011608673,
+  "best_params": {
+    "loss": "plain_bce",
+    "d_model": 128,
+    "nhead": 2,
+    "lr": 0.0011506408247250173,
+    "batch": 32,
+    "t_layers": 1,
+    "c_layers": 2,
+    "dropout": 0.04634762381005189,
+    "weight_decay": 0.038842777547031436
+  },
+  "best_user_attrs": {
+    "K": 3,
+    "all_net_10": -5.90703348784787,
+    "all_net_6": -1.9070334878478656,
+    "block_min_uplift": 0.26907716292926664,
+    "coverage": 0.6499681325685149,
+    "kept_net_10": -4.491879436562608,
+    "kept_net_6": -0.4918794365626042,
+    "n_picks": 7845,
+    "neg_ctrl_uplift": 0.40607529595638703,
+    "secs": 724.8,
+    "side": "LONG",
+    "target_cov": 0.65,
+    "uplift_CI_hi": 2.4384682235159043,
+    "uplift_CI_lo": 0.48719391041111343,
+    "uplift_bps": 1.415154051285261,
+    "uplift_t": 2.8602974011608673,
+    "val_auc": 0.5305314482654896
+  },
+  "n_trials": 31,
+  "n_scored": 31,
+  "config": {
+    "epochs": 10,
+    "K": 3,
+    "side": "LONG",
+    "target_cov": 0.65
+  }
+}

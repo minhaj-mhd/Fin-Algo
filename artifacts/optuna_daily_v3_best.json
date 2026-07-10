@@ -1,0 +1,97 @@
+{
+  "data": "data/ranking_data_daily_macro_v3.csv",
+  "num_features": 83,
+  "device": "cuda",
+  "baseline_params": {
+    "objective": "rank:pairwise",
+    "eta": 0.01,
+    "max_depth": 5,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "alpha": 2.0,
+    "reg_lambda": 4.0,
+    "min_child_weight": 40,
+    "gamma": 0.0
+  },
+  "smoke": false,
+  "sides": {
+    "long": {
+      "best_value": 0.02563714079481795,
+      "best_params": {
+        "objective": "rank:pairwise",
+        "eta": 0.0697638859116341,
+        "max_depth": 6,
+        "subsample": 0.7169737577217695,
+        "colsample_bytree": 0.7348787545341985,
+        "alpha": 0.4019726529936916,
+        "reg_lambda": 3.876605436716687,
+        "min_child_weight": 89,
+        "gamma": 0.41812325948879897
+      },
+      "best_user_attrs": {
+        "fold_rhos": [
+          0.02189,
+          0.0294,
+          0.03717,
+          0.02908
+        ],
+        "mean_rho": 0.02938324675138162,
+        "secs": 8.9,
+        "worst_fold": 0.021891034838254282
+      },
+      "baseline_value": 0.019375876136490472,
+      "baseline_attrs": {
+        "fold_rhos": [
+          0.01757,
+          0.01994,
+          0.02814,
+          0.0191
+        ],
+        "mean_rho": 0.02118574992033493,
+        "secs": 10.0,
+        "worst_fold": 0.01756600235264601
+      },
+      "n_trials": 80,
+      "n_scored": 80
+    },
+    "short": {
+      "best_value": 0.03486179776151352,
+      "best_params": {
+        "objective": "rank:ndcg",
+        "eta": 0.10566914806265734,
+        "max_depth": 9,
+        "subsample": 0.6725930193572047,
+        "colsample_bytree": 0.6109708690338539,
+        "alpha": 0.0024979538691357484,
+        "reg_lambda": 0.10547170451956173,
+        "min_child_weight": 75,
+        "gamma": 0.27302465860309527
+      },
+      "best_user_attrs": {
+        "fold_rhos": [
+          0.03375,
+          0.03441,
+          0.03924,
+          0.03649
+        ],
+        "mean_rho": 0.03597198518494935,
+        "secs": 18.1,
+        "worst_fold": 0.033751610338077685
+      },
+      "baseline_value": 0.02573113106647577,
+      "baseline_attrs": {
+        "fold_rhos": [
+          0.02838,
+          0.03537,
+          0.03447,
+          0.02153
+        ],
+        "mean_rho": 0.029936937009043763,
+        "secs": 16.3,
+        "worst_fold": 0.021525325123907778
+      },
+      "n_trials": 80,
+      "n_scored": 80
+    }
+  }
+}

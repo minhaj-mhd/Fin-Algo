@@ -1,0 +1,29 @@
+{
+  "best_value": 0.02760779270392031,
+  "best_params": {
+    "objective": "rank:ndcg",
+    "eta": 0.21335327230764958,
+    "max_depth": 4,
+    "subsample": 0.7823230661434044,
+    "colsample_bytree": 0.6806191168900311,
+    "alpha": 0.5930132823954964,
+    "reg_lambda": 5.21999226357723,
+    "min_child_weight": 11,
+    "gamma": 1.8433169112115109
+  },
+  "best_user_attrs": {
+    "mean_long_rho": 0.03383031225854092,
+    "mean_short_rho": 0.03613017005112436,
+    "secs": 169.3,
+    "worst_fold": 0.020235344253007975
+  },
+  "baseline_value": 0.023446733010859068,
+  "baseline_attrs": {
+    "mean_long_rho": 0.031370223788750456,
+    "mean_short_rho": 0.032395174761897086,
+    "secs": 185.8,
+    "worst_fold": 0.015010766746394361
+  },
+  "n_trials": 57,
+  "n_scored": 56
+}

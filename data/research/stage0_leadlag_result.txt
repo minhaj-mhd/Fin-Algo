@@ -1,0 +1,9 @@
+CST STAGE-0 FALSIFICATION — 1h ranker + cross-asset/lead-lag features (exploratory, no verdict)
+Incumbent npz baseline:  long +0.0275  short +0.0254
+BASE re-run (this harness): long +0.0260  short +0.0258
+AUG (+11 lead-lag): long +0.0232  short +0.0251
+DELTA (AUG - BASE):       long -0.0028  short -0.0007
+
+VERDICT: lead-lag info is PRESENT at 1h granularity only if delta is materially positive
+(rule of thumb >= +0.01 rho AND aug clears ~0.035). Else CST dead on arrival -> redirect
+to order-flow/microstructure data roadmap (the only remaining new-information lever).

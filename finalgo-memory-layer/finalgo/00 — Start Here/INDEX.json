@@ -1161,6 +1161,15 @@
   "updated": "2026-06-15"
  },
  {
+  "path": "04 — Research/V20-15m-Regime-Gate-Sweep.md",
+  "title": "V20 Rolling 1h: 15m Regime Gate Sweep (Short & Long)",
+  "type": "research",
+  "status": "concluded",
+  "model": "v20_rolling_1h",
+  "verdict": "CONFIRMED - Raw threshold + Trend Filter unlocks massive edge",
+  "updated": "2026-07-10"
+ },
+ {
   "path": "05 — Operations/MCP/Jupyter MCP Setup.md",
   "title": "Jupyter / Python Data Sandbox MCP Integration",
   "type": "reference",
@@ -1683,6 +1692,15 @@
   "updated": "2026-07-05"
  },
  {
+  "path": "06 — Logs/Conversations/Conv-2026-07-10-11mo-Gate-Backtest-Review.md",
+  "title": "Conv-2026-07-10-11mo-Gate-Backtest-Review",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
   "path": "06 — Logs/Conversations/Conv-2026-07-10-Conviction-Caps-Long-Filter.md",
   "title": "Conv 2026-07-10 — Conviction caps, long-side filter, market-cap rank",
   "type": "log",
@@ -1690,6 +1708,15 @@
   "model": "v20_rolling_1h",
   "verdict": "⚠️ UNVERIFIED (exploratory, no Gauntlet). SHORT signal inverted-U in conviction: cap >0.040 (fails both top-1 & not-top-1); capping lifts top-1 short −0.3→+3.2 net@6. LONG anti-selected (top-1 −11.3 worse than random long −8.7; model's most-confident longs are worst); best gate VWAP≥0 & mkt-up removes drag (top-1 −11.3→+2.5) but pool still −7.5 → gate hard + de-weight, let shorts carry. Active model = v20 (v21 not live). :15-close reconstruction understates live shadow shorts ~20-40bps (scan-time fills).",
   "updated": "2026-07-10"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-11-1Slot-Portfolio-Validation.md",
+  "title": "Conv-2026-07-11-1Slot-Portfolio-Validation",
+  "type": "log",
+  "status": "concluded",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-07-11"
  },
  {
   "path": "06 — Logs/Daily Logs/2026-05-31.md",

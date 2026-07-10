@@ -1,0 +1,31 @@
+{
+  "n_nodes": 172,
+  "n_edges": 1209,
+  "edges_by_type": {
+    "sector": 1130,
+    "group": 79
+  },
+  "n_communities": 11,
+  "emb_dim": 8,
+  "sector_w": 0.3,
+  "group_w": 1.0,
+  "seed": 42,
+  "feature_cols": [
+    "degree_cent",
+    "pagerank",
+    "betweenness",
+    "clustering",
+    "community",
+    "in_group",
+    "group_size",
+    "sector_size",
+    "emb_0",
+    "emb_1",
+    "emb_2",
+    "emb_3",
+    "emb_4",
+    "emb_5",
+    "emb_6",
+    "emb_7"
+  ]
+}

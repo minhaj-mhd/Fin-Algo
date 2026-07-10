@@ -33,7 +33,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 # NSE INDICES MAPPING
 INDICES = {
     "NIFTY_50": {"upstox": "NSE_INDEX|Nifty 50", "yf": "^NSEI"},
-    "NIFTY_500": {"upstox": "NSE_INDEX|Nifty 500", "yf": "NIFTY500.NS"},
+    "NIFTY_500": {"upstox": "NSE_INDEX|Nifty 500", "yf": "^CRSLDX"},
     "NIFTY_BANK": {"upstox": "NSE_INDEX|Nifty Bank", "yf": "^NSEBANK"},
     "NIFTY_IT": {"upstox": "NSE_INDEX|Nifty IT", "yf": "^CNXIT"},
     "NIFTY_AUTO": {"upstox": "NSE_INDEX|Nifty Auto", "yf": "^CNXAUTO"},
