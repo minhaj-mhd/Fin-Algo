@@ -936,6 +936,15 @@
   "updated": "2026-06-12"
  },
  {
+  "path": "04 — Research/5x_Compounding_Sequence_Risk.md",
+  "title": "5x Compounding Engine Sequence Risk",
+  "type": "research",
+  "status": "concluded",
+  "model": "",
+  "verdict": "⚠️ UNVERIFIED / FLAWED",
+  "updated": "2026-07-11"
+ },
+ {
   "path": "04 — Research/BCE-Transformer-V20-Veto.md",
   "title": "BCE-Transformer-V20-Veto",
   "type": "?",
@@ -1089,6 +1098,15 @@
   "updated": "2026-06-28"
  },
  {
+  "path": "04 — Research/Gate Dev-Holdout Validation Framework (2026-07).md",
+  "title": "V20 Gates: Dev/Holdout Validation Framework & OOS Verdict",
+  "type": "research",
+  "status": "concluded",
+  "model": "v20_rolling_1h",
+  "verdict": "⚠️ UNVERIFIED (no Gauntlet run) — GATE LAYER DEAD OOS. DEV-tuned gates fail a sealed 1-month holdout; the model itself generalises (rho~0.02), the gates overfit.",
+  "updated": "2026-07-11"
+ },
+ {
   "path": "04 — Research/Kronos LoRA NSE Fine-Tune (2026-07).md",
   "title": "Kronos LoRA NSE Fine-Tune",
   "type": "research",
@@ -1164,10 +1182,19 @@
   "path": "04 — Research/V20-15m-Regime-Gate-Sweep.md",
   "title": "V20 Rolling 1h: 15m Regime Gate Sweep (Short & Long)",
   "type": "research",
+  "status": "superseded",
+  "model": "v20_rolling_1h",
+  "verdict": "⚠️ SUPERSEDED / UNVERIFIED — the 'massive edge' was in-sample/hindsight-tuned; the gate layer is DEAD out-of-sample. See [[Gate Dev-Holdout Validation Framework (2026-07)]].",
+  "updated": "2026-07-11"
+ },
+ {
+  "path": "04 — Research/v20_1Slot_Stress_Tests.md",
+  "title": "v20 1-Slot Priority Lane Stress Tests",
+  "type": "research",
   "status": "concluded",
   "model": "v20_rolling_1h",
-  "verdict": "CONFIRMED - Raw threshold + Trend Filter unlocks massive edge",
-  "updated": "2026-07-10"
+  "verdict": "1-Hour hard time-stop is mathematically optimal. Do not use trailing stops, dynamic holds, RVOL filters, or wick filters.",
+  "updated": "2026-07-11"
  },
  {
   "path": "05 — Operations/MCP/Jupyter MCP Setup.md",
@@ -1266,7 +1293,7 @@
   "status": "active",
   "model": "",
   "verdict": "",
-  "updated": "2026-07-10"
+  "updated": "2026-07-12"
  },
  {
   "path": "06 — Logs/Completed Work Archive.md",
@@ -1717,6 +1744,42 @@
   "model": "",
   "verdict": "",
   "updated": "2026-07-11"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-11-Macro-Dynamic-Thresholds.md",
+  "title": "Conv-2026-07-11-Macro-Dynamic-Thresholds",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-12-Dynamic-Floor-DevHoldout.md",
+  "title": "Conv-2026-07-12-Dynamic-Floor-DevHoldout",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-12-OOS-Data-Fix-and-Overfitting-Discovery.md",
+  "title": "Conv-2026-07-12-OOS-Data-Fix-and-Overfitting-Discovery",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-07-12"
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-14-Train-V23-Top20-Features.md",
+  "title": "Conv 2026-07-14 — Train V23 Top20 Features",
+  "type": "log",
+  "status": "active",
+  "model": "",
+  "verdict": "",
+  "updated": "2026-07-14"
  },
  {
   "path": "06 — Logs/Daily Logs/2026-05-31.md",

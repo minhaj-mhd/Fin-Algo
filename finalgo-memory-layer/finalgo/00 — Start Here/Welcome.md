@@ -4,7 +4,7 @@
 > by `scripts/memory/build_index.py` from each doc's front-matter — do not hand-edit.
 > Protocol: [[00 — Start Here/AI Operating Protocol|AI Operating Protocol]] · Dead ends: [[00 — Start Here/Dead-Ends Register|Dead-Ends Register]] · Machine index: `00 — Start Here/INDEX.json`
 
-**242 docs** across 10 sections.
+**249 docs** across 10 sections.
 
 ## 00 — Start Here  (2)
 → [[00 — Start Here/_MOC|Browse all 2]]
@@ -54,8 +54,8 @@
 - [[03 — Strategies/Time Based ATR Targets|Time-Based ATR Targeting (1-Hour Hold Constraints)]] — Concept: Dynamic Stop Loss (SL) and Take Profit (TP) must be scaled to realistically match
 - [[03 — Strategies/Upstox Fees & Statutory Taxes|Upstox Fees & Statutory Taxes Research (2024-2025)]] — Project: Vanguard Trading Engine
 
-## 04 — Research  (29)
-→ [[04 — Research/_MOC|Browse all 29]]
+## 04 — Research  (32)
+→ [[04 — Research/_MOC|Browse all 32]]
 - [[04 — Research/1030 Strategy/Architecture Research Report|Intraday Stock Trading: AI Architecture Research Report]] — Objective: Predict the intraday trend, returns, or distribution for the rest of the day ba
 - [[04 — Research/1030 Strategy/Feature Engineering Report|Feature Engineering for 10:30 AM Intraday Trading Model (Indian Stock Market)]] — I have completed the research on feature engineering for an intraday trading model targeti
 - [[04 — Research/1030 Strategy/Implementation Plan|10:30 AM Momentum Prediction System — Implementation Plan (V2)]] — Build a two-layer prediction system that runs at 10:30 AM IST each trading day:
@@ -85,11 +85,11 @@
 ## 06 — Context & Logs  (2)
 → [[06 — Context & Logs/_MOC|Browse all 2]]
 
-## 06 — Logs  (70)
-→ [[06 — Logs/_MOC|Browse all 70]]
+## 06 — Logs  (74)
+→ [[06 — Logs/_MOC|Browse all 74]]
 - [[06 — Logs/50 Strategies Performance Results|50-Strategy Regime-Aware Backtest Results]] — Test Period: May 2026
 - [[06 — Logs/50 Strategies Regime Backtest Plan|50 Strategies Regime Backtest Plan]] — The objective is to evaluate all 50 trading strategies in the catalog using a Regime-Aware
-- [[06 — Logs/Active Board|Active Board]] —  1-Slot Limit Backtest (COMPLETED) — Implemented and visualized global 1-slot portfolio li
+- [[06 — Logs/Active Board|Active Board]] —  v23 Top-20 Constrained Model (COMPLETED — exploratory training) — Trained v23_rolling_1h 
 - [[06 — Logs/tasks|tasks]] — Look at the pattern across your own vault. v8's 0.046 Spearman → early-stopping-on-test le
 
 ## 09 — Archive  (32)

@@ -1,0 +1,150 @@
+{
+  "description": "RESEARCH v23: V20 but strictly limited to the top 20 features by SHAP / Permutation Drop.",
+  "type": "ranking",
+  "features": [
+    "Dist_Keltner_Lower",
+    "Relative_Return",
+    "Keltner_Width",
+    "Return",
+    "CMF_20",
+    "Log_Return",
+    "PPO_Signal",
+    "Dist_52W_Low",
+    "RVOL",
+    "Lower_Shadow",
+    "Dollar_Volume",
+    "Intraday_Return",
+    "Dist_HMA_12",
+    "Hour",
+    "TRIX_15",
+    "Dist_Donchian_Upper",
+    "Rolling_Skew",
+    "IBS",
+    "Donchian_Width",
+    "VWAP_Dist"
+  ],
+  "num_features": 20,
+  "data_source": "upstox_1h_roll_v23_clean",
+  "data_file": "data/research/v20_rolling_1h/panel.parquet",
+  "total_rows": 3099604,
+  "walk_forward_summary": {
+    "avg_long_spearman": 0.03215853744901989,
+    "avg_short_spearman": 0.030840049770563246,
+    "avg_long_win_rate_k3": 0.5384074344842549,
+    "avg_short_win_rate_k3": 0.5374233303135327
+  },
+  "long_test_spearman": 0.03215853744901989,
+  "short_test_spearman": 0.030840049770563246,
+  "long_model": "models/research/v23_rolling_1h/xgb_long_model.json",
+  "short_model": "models/research/v23_rolling_1h/xgb_short_model.json",
+  "meta": "models/research/v23_rolling_1h/metadata.json",
+  "scaler": "models/research/v23_rolling_1h/scaler.pkl",
+  "walk_forward_folds": [
+    {
+      "fold": 1,
+      "long_rho": 0.036065392954399776,
+      "short_rho": 0.03441914638134563
+    },
+    {
+      "fold": 2,
+      "long_rho": 0.03822067844719633,
+      "short_rho": 0.033245162476134384
+    },
+    {
+      "fold": 3,
+      "long_rho": 0.04228780650018625,
+      "short_rho": 0.049754089366676614
+    },
+    {
+      "fold": 4,
+      "long_rho": 0.024959933493821855,
+      "short_rho": 0.025546532432549056
+    },
+    {
+      "fold": 5,
+      "long_rho": 0.04430060351051068,
+      "short_rho": 0.04856090291893328
+    },
+    {
+      "fold": 6,
+      "long_rho": 0.028066393696863586,
+      "short_rho": 0.028476102312251336
+    },
+    {
+      "fold": 7,
+      "long_rho": 0.03771764122610152,
+      "short_rho": 0.03032084302521902
+    },
+    {
+      "fold": 8,
+      "long_rho": 0.014782497756904708,
+      "short_rho": 0.007312265828259933
+    },
+    {
+      "fold": 9,
+      "long_rho": 0.023025889455194352,
+      "short_rho": 0.0199254031937
+    }
+  ],
+  "top_features_long": {
+    "Lower_Shadow": 7.32966947555542,
+    "Log_Return": 4.99465274810791,
+    "Return": 4.587122917175293,
+    "Relative_Return": 2.463139295578003,
+    "Dist_Donchian_Upper": 2.2159979343414307,
+    "Dollar_Volume": 1.9369120597839355,
+    "Keltner_Width": 1.7711303234100342,
+    "Dist_Keltner_Lower": 1.7601770162582397,
+    "IBS": 1.651741623878479,
+    "Hour": 1.6230844259262085,
+    "CMF_20": 1.5660085678100586,
+    "Dist_HMA_12": 1.437337875366211,
+    "Intraday_Return": 1.2795816659927368,
+    "PPO_Signal": 1.2526193857192993,
+    "Dist_52W_Low": 1.2475906610488892,
+    "Rolling_Skew": 1.1742775440216064,
+    "TRIX_15": 1.1434426307678223,
+    "RVOL": 1.1226283311843872,
+    "Donchian_Width": 1.0802395343780518,
+    "VWAP_Dist": 0.9826323986053467
+  },
+  "top_features_short": {
+    "Dist_Keltner_Lower": 13.1115083694458,
+    "Lower_Shadow": 7.106637001037598,
+    "Return": 5.988154411315918,
+    "Keltner_Width": 4.748795986175537,
+    "TRIX_15": 4.6477370262146,
+    "Relative_Return": 4.403508186340332,
+    "PPO_Signal": 3.522165298461914,
+    "Log_Return": 3.293142557144165,
+    "CMF_20": 2.962675094604492,
+    "Dollar_Volume": 2.2265801429748535,
+    "Dist_Donchian_Upper": 2.0657761096954346,
+    "Rolling_Skew": 2.0466134548187256,
+    "VWAP_Dist": 2.0336763858795166,
+    "Dist_HMA_12": 1.9213190078735352,
+    "Intraday_Return": 1.9044756889343262,
+    "Dist_52W_Low": 1.7665072679519653,
+    "IBS": 1.7361654043197632,
+    "RVOL": 1.7236469984054565,
+    "Donchian_Width": 1.6446335315704346,
+    "Hour": 1.584909439086914
+  },
+  "params": {
+    "objective": "rank:pairwise",
+    "eta": 0.03,
+    "max_depth": 5,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "alpha": 1.0,
+    "lambda": 2.0,
+    "min_child_weight": 10,
+    "random_state": 42,
+    "verbosity": 0,
+    "eval_metric": "ndcg@3",
+    "ndcg_exp_gain": false,
+    "tree_method": "hist",
+    "device": "cuda"
+  },
+  "trained_at": "2026-07-14T13:10:09.255909"
+}

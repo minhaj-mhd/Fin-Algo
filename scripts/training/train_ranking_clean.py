@@ -69,10 +69,24 @@ CFG = {
              'overlapping windows inflate significance (effective N ~1/4 rows) — point estimates only.',
         params=dict(max_depth=5, min_child_weight=10),
     ),
+    '1h_roll_v23': dict(
+        data='data/research/v20_rolling_1h/panel.parquet',
+        ret_col='Next_Hour_Return',
+        model_dir='models/research/v23_rolling_1h',
+        desc='RESEARCH v23: V20 but strictly limited to the top 20 features by SHAP / Permutation Drop.',
+        params=dict(max_depth=5, min_child_weight=10),
+        selected_features=[
+            'Dist_Keltner_Lower', 'Relative_Return', 'Keltner_Width', 'Return', 
+            'CMF_20', 'Log_Return', 'PPO_Signal', 'Dist_52W_Low', 'RVOL', 
+            'Lower_Shadow', 'Dollar_Volume', 'Intraday_Return', 'Dist_HMA_12', 
+            'Hour', 'TRIX_15', 'Dist_Donchian_Upper', 'Rolling_Skew', 'IBS', 
+            'Donchian_Width', 'VWAP_Dist'
+        ]
+    ),
 }
 
 ap = argparse.ArgumentParser()
-ap.add_argument('--tf', required=True, choices=['15min', '1h', '1h_v3', '1h_v3_d4', '1h_roll', '1h_roll_v21'])
+ap.add_argument('--tf', required=True, choices=['15min', '1h', '1h_v3', '1h_v3_d4', '1h_roll', '1h_roll_v21', '1h_roll_v23'])
 args = ap.parse_args()
 c = CFG[args.tf]
 DATA_FILE, RET_COL, MODEL_DIR = c['data'], c['ret_col'], c['model_dir']
@@ -94,7 +108,12 @@ print(f"Spans {len(unique_months)} months: {unique_months[0]} -> {unique_months[
 
 exclude_cols = ['DateTime', 'DateTime_15Min', 'DateTime_Hour', 'Query_ID', 'Ticker',
                 'Open', 'High', 'Low', 'Close', 'Volume', RET_COL, 'YearMonth']
-feature_cols = [col for col in df.columns if col not in exclude_cols]
+
+if 'selected_features' in c:
+    feature_cols = [col for col in c['selected_features'] if col in df.columns]
+else:
+    feature_cols = [col for col in df.columns if col not in exclude_cols]
+
 print(f"Features: {len(feature_cols)} | Samples: {df.shape[0]:,} | Queries: {df['Query_ID'].nunique():,}")
 
 X = df[feature_cols].values.astype(np.float64)
