@@ -1197,6 +1197,15 @@
   "updated": "2026-07-14"
  },
  {
+  "path": "04 — Research/V24 Binary Logistic Thresholds.md",
+  "title": "V24 Binary Logistic Threshold Experiment",
+  "type": "research",
+  "status": "concluded",
+  "model": "v24_binary_1h",
+  "verdict": "",
+  "updated": "2026-07-14"
+ },
+ {
   "path": "04 — Research/v20_1Slot_Stress_Tests.md",
   "title": "v20 1-Slot Priority Lane Stress Tests",
   "type": "research",

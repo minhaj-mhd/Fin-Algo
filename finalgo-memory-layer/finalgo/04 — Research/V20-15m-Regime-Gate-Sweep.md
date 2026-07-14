@@ -1,13 +1,19 @@
 ---
 title: "V20 Rolling 1h: 15m Regime Gate Sweep (Short & Long)"
 type: research
-status: concluded
-updated: 2026-07-10
+status: superseded
+updated: 2026-07-11
 model: v20_rolling_1h
-verdict: CONFIRMED - Raw threshold + Trend Filter unlocks massive edge
+verdict: "⚠️ SUPERSEDED / UNVERIFIED — the 'massive edge' was in-sample/hindsight-tuned; the gate layer is DEAD out-of-sample. See [[Gate Dev-Holdout Validation Framework (2026-07)]]."
 ---
 
 # V20 Rolling 1h: 15m Regime Gate Sweep (Short & Long)
+
+> [!warning] SUPERSEDED (2026-07-11)
+> The "CONFIRMED — massive edge" claim below is **in-sample**. A dev/holdout framework with a
+> sealed 1-month holdout falsified it: DEV-tuned gates score +25.98 bps but **−39.34 bps** on the
+> untouched holdout; the lone survivor (`nifty2h`) also failed as predicted. The model generalises
+> (ρ≈0.02); the gates overfit. Read [[Gate Dev-Holdout Validation Framework (2026-07)]] instead.
 
 ## Context
 The `v20_rolling_1h` model operates as a ranker (`objective: "rank:pairwise"`). However, directly taking the Top 1 trade at every 15-minute interval without external filters leads to catastrophic drawdown in adverse regimes (e.g., forcing shorts during massive bull rallies). 

@@ -39,6 +39,14 @@ If we strip away 75% of the `v20_rolling_1h` features and force the XGBoost rank
 - **The Information Ceiling Holds**: The tree-based architecture inherently manages feature redundancy well. Slicing off the bottom 75% of features merely deprives the model of secondary proxies when its primary splits are unavailable.
 - **Still Sub-Cost**: With a combined gross edge of ~7.46 bps per bar, `v23` remains strictly net-negative after applying the binding 10 bps statutory+slippage cost. It operates firmly inside the information ceiling we have observed across all 1h ranking architectures.
 
+## Probability Threshold Experiment (Sigmoid Gate)
+Attempted to convert `rank:pairwise` raw scores into strict probabilities via Sigmoid activation `1/(1+exp(-x))` and filter trades at >0.70.
+- **Score Compression**: Because `rank:pairwise` minimizes relative distances rather than producing absolute log-odds, raw scores were tightly bound (-0.12 to +0.11), yielding maximum probabilities of ~52.8%. The 70% threshold filtered out **100% of trades**.
+- **Proxy OOS Check (June 2026)**: Dropping the threshold to >0.52 (extreme upper tail) yielded 15 Longs and 7 Shorts for the entire month.
+  - *Longs > 0.52*: 33.3% WR | -13.30 bps Edge (Anti-selected; highest conviction longs are the worst trades).
+  - *Shorts > 0.52*: 57.1% WR | **+58.27 bps Edge** (Massive edge, but critically low frequency).
+- **Conclusion**: The ranking model correctly identifies highly profitable Shorts at the extreme tail, but a strict absolute probability filter is structurally incompatible with a pairwise objective function without score normalization or re-training as `binary:logistic`.
+
 ## Reusable artifacts
 - Panel: `data/research/v20_rolling_1h/panel.parquet` (gitignored)
 - Model: `models/research/v23_rolling_1h/` (XGB long/short, not registered)

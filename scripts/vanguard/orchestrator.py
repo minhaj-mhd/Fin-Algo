@@ -7,7 +7,7 @@ import traceback
 import numpy as np
 import pandas as pd
 import yfinance as yf
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time as dt_time
 import xgboost as xgb
 
 from scripts.vanguard import config
@@ -778,8 +778,8 @@ class VanguardOrchestrator:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Pulse Scan initiated ({len(tickers)} symbols)...")
 
         nifty_features = {
-            'Nifty_1H_Return': 0.0, 'Nifty_3H_Return': 0.0, 'Nifty_5H_Return': 0.0,
-            'Nifty_RSI': 50.0, 'Nifty_HL_Range': 0.0, 'Nifty_20H_Std': 0.0
+            'Nifty_1H_Return': 0.0, 'Nifty_2H_Return': 0.0, 'Nifty_3H_Return': 0.0, 'Nifty_5H_Return': 0.0,
+            'Nifty_RSI': 50.0, 'Nifty_HL_Range': 0.0, 'Nifty_20H_Std': 0.0, 'Nifty_Intraday': 0.0
         }
         try:
             nifty_raw = yf.download("^NSEI", period="15d", interval="1h", progress=False, auto_adjust=True, timeout=15)
@@ -787,8 +787,14 @@ class VanguardOrchestrator:
                 if isinstance(nifty_raw.columns, pd.MultiIndex):
                     nifty_raw.columns = [col[0] for col in nifty_raw.columns]
                 nifty_raw['Nifty_1H_Return'] = nifty_raw['Close'].pct_change(1)
+                nifty_raw['Nifty_2H_Return'] = nifty_raw['Close'].pct_change(2)
                 nifty_raw['Nifty_3H_Return'] = nifty_raw['Close'].pct_change(3)
                 nifty_raw['Nifty_5H_Return'] = nifty_raw['Close'].pct_change(5)
+                
+                nifty_raw['date'] = nifty_raw.index.date
+                daily_open = nifty_raw.groupby('date')['Open'].transform('first')
+                nifty_raw['Nifty_Intraday'] = nifty_raw['Close'] / daily_open - 1
+
                 from scripts.feature_utils import RSI
                 nifty_raw['Nifty_RSI'] = RSI(nifty_raw['Close'], 14)
                 nifty_raw['Nifty_HL_Range'] = (nifty_raw['High'] - nifty_raw['Low']) / nifty_raw['Close']
@@ -1435,7 +1441,7 @@ class VanguardOrchestrator:
                            long_score=None, short_score=None, strategy_id=None,
                            score_15m=None, score_30m=None, score_1d=None, is_ensemble=False, size_multiplier=1.0,
                            rvol=None, dist_52h=None, prescreen_candle=None,
-                           veto_layers=None, force_immediate=False):
+                           veto_layers=None, force_immediate=False, is_1slot=False):
         now = datetime.now()
         veto_layers_json = json.dumps(veto_layers) if veto_layers is not None else None
         # force_immediate (SHADOW_ALL_LAYERS mode): open at the signal price regardless
@@ -1529,6 +1535,7 @@ class VanguardOrchestrator:
                 "limit_px":            None,
                 "entry_mode":          "immediate",
                 "veto_layers":         veto_layers_json,
+                "is_1slot":            is_1slot,
             }
 
             with self.lock:
@@ -2207,7 +2214,71 @@ class VanguardOrchestrator:
 
                 is_trading_window = config.FIRST_ENTRY_TIME <= now_str <= config.LAST_ENTRY_TIME
 
-                # 3. Generate candidate signals
+                # --------------------------------------------------------
+                # 3. PRIORITY LANE: 1-Slot Global Portfolio Limit (Absolute Conviction)
+                # --------------------------------------------------------
+                with self.lock:
+                    is_1slot_active = any(
+                        t.get("is_1slot", False) and t["status"] in ["OPEN", "PENDING_ENTRY"] 
+                        for t in self.active_shadow_trades
+                    )
+                
+                if not is_1slot_active and is_trading_window and datetime.now() >= self.entries_resume_at:
+                    # Get Nifty metrics
+                    nifty_2h = float(scores_df['Nifty_2H_Return'].iloc[0]) if 'Nifty_2H_Return' in scores_df.columns else 0.0
+                    nifty_intraday = float(scores_df['Nifty_Intraday'].iloc[0]) if 'Nifty_Intraday' in scores_df.columns else 0.0
+                    
+                    t_now = now.time()
+                    dead_zone = dt_time(11, 30) <= t_now <= dt_time(13, 0)
+                    valid_time_short = not dead_zone and t_now <= dt_time(14, 45)
+                    
+                    best_1slot_candidate = None
+                    best_1slot_side = None
+                    
+                    # Short Gate
+                    if (nifty_2h <= 0.0025 or nifty_intraday > 0.0036) and valid_time_short:
+                        short_cands = scores_df[scores_df['short_score'] > 0.082]
+                        if not short_cands.empty:
+                            best_1slot_candidate = short_cands.sort_values('Short_Conviction', ascending=False).iloc[0]
+                            best_1slot_side = "SHORT"
+                            
+                    # Long Gate (only if Short didn't trigger, Short has priority)
+                    if best_1slot_candidate is None and nifty_2h > 0.0025 and nifty_intraday > 0.0020:
+                        if not scores_df.empty:
+                            best_1slot_candidate = scores_df.sort_values('Long_Conviction', ascending=False).iloc[0]
+                            best_1slot_side = "LONG"
+                            
+                    if best_1slot_candidate is not None:
+                        ticker = best_1slot_candidate['ticker']
+                        conv = best_1slot_candidate[f"{best_1slot_side.capitalize()}_Conviction"]
+                        log(f"[1-SLOT OVERRIDE] {best_1slot_side} {ticker} matched strict regime gates! Executing Full Portfolio.")
+                        
+                        entry_price = self.broker.get_live_price(ticker)
+                        if not entry_price or entry_price <= 0:
+                            entry_price = float(best_1slot_candidate["Close"])
+                            
+                        # Execute immediately without vetoes
+                        self.start_shadow_trade(
+                            ticker, conv, entry_price, best_1slot_side,
+                            reason="[1-SLOT ABSOLUTE GATES] Bypassed all vetoes for full allocation.",
+                            one_hour_prob="N/A",
+                            nlp_sentiment=0.5,
+                            tv_sentiment=get_tv_sentiment(ticker),
+                            long_score=best_1slot_candidate.get("long_score"),
+                            short_score=best_1slot_candidate.get("short_score"),
+                            strategy_id=None,
+                            score_15m=best_1slot_candidate.get("score_15m"),
+                            score_30m=best_1slot_candidate.get("score_30m"),
+                            score_1d=best_1slot_candidate.get("score_1d"),
+                            is_ensemble=False,
+                            size_multiplier=float(config.MAX_TRADE_SLOTS), # Full portfolio sizing multiplier
+                            rvol=best_1slot_candidate.get("rvol_raw"),
+                            dist_52h=best_1slot_candidate.get("dist_52h_model"),
+                            force_immediate=True, # Bypass candle checks
+                            is_1slot=True
+                        )
+
+                # 4. Generate candidate signals
                 top_signals = self.signal_generator.generate_candidate_signals(
                     scores_df,
                     self.long_eligible_tickers,

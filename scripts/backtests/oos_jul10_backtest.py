@@ -7,13 +7,24 @@ import datetime as dt
 
 # --- Configuration ---
 COST_BPS = 6.0
-NOTIONAL = 500_000.0  # 5x Leverage on 1 Lakh base capital
+NOTIONAL = 200_000.0  # 5x Leverage on 40K base capital
 SHORT_THRESH = 0.082
 LONG_NIFTY_THRESH = 0.0025
 
 # 1. Load Nifty 50 15m
 nifty = pd.read_csv('data/raw_index_cache/nifty50_15m.csv')
-nifty['ts'] = pd.to_datetime(nifty['ts'])
+ist_times = []
+for t_str in nifty['ts']:
+    t = pd.to_datetime(t_str)
+    # The old data (before June 2026) was incorrectly saved with +0000 but was actually IST
+    # The newly fetched data (June 4 2026 onwards) is correctly in UTC
+    if t.date() < date(2026, 6, 1):
+        # Old data: it's already IST, just strip the timezone
+        ist_times.append(t.tz_localize(None))
+    else:
+        # New data: it's true UTC, so convert to IST then strip
+        ist_times.append(t.tz_convert('Asia/Kolkata').tz_localize(None))
+nifty['ts'] = ist_times
 nifty = nifty.sort_values('ts').reset_index(drop=True)
 nifty['nifty_ret_2h'] = nifty['close'] / nifty['close'].shift(8) - 1
 nifty_map = dict(zip(nifty['ts'], nifty['nifty_ret_2h']))
@@ -39,7 +50,7 @@ def get_prev_sp500_ret(curr_date):
 # 2. Load Data
 df = pd.read_parquet('data/research/v20_rolling_1h/panel.parquet')
 df['DateTime'] = pd.to_datetime(df['DateTime'])
-df = df[df['DateTime'].dt.date >= date(2025, 8, 1)]
+df = df[df['DateTime'].dt.date >= date(2026, 6, 4)]
 
 time_mask = (df['DateTime'].dt.time >= time(10, 15)) & (df['DateTime'].dt.time <= time(14, 15))
 df = df[time_mask]
@@ -125,7 +136,7 @@ td['month'] = td['ts'].dt.to_period('M')
 # Geometric Compounding
 import datetime as dt
 td = td.sort_values('ts').reset_index(drop=True)
-base_capital = 100_000.0
+base_capital = 40_000.0
 leverage = 5.0
 bookRs_list = []
 capital_list = []
@@ -149,7 +160,7 @@ daily_pnl = td.groupby('date').agg({
     'short_pnl': 'sum',
     'long_pnl': 'sum'
 }).reset_index()
-daily_pnl['cum_pnl'] = daily_pnl['capital'] - 100_000.0
+daily_pnl['cum_pnl'] = daily_pnl['capital'] - 40_000.0
 daily_pnl['cum_short_pnl'] = daily_pnl['short_pnl'].cumsum()
 daily_pnl['cum_long_pnl'] = daily_pnl['long_pnl'].cumsum()
 daily_pnl['peak'] = daily_pnl['cum_pnl'].cummax()
@@ -162,7 +173,7 @@ max_dd_pct = daily_pnl['drawdown_pct'].min()
 
 # 5. Summary
 print("="*60)
-print(f" TRUE 1-SLOT STRATEGY 11-MONTH TEST (Geometric 5x, Rs. 1L Base)")
+print(f" TRUE 1-SLOT STRATEGY OOS TEST (Geometric 5x, Rs. 40K Base)")
 print("="*60)
 print(f"Total Trades : {len(td)} (Shorts: {len(td[td.side=='SHORT'])}, Longs: {len(td[td.side=='LONG'])})")
 print(f"Win Rate     : {(td.net_bps > 0).mean():.1%}")
@@ -202,10 +213,10 @@ import matplotlib.ticker as ticker
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), gridspec_kw={'height_ratios': [3, 1]}, sharex=True)
 
 ax1.plot(daily_pnl['date'], daily_pnl['capital'], label='Total Geometric 5x Capital', color='blue', linewidth=2)
-ax1.plot(daily_pnl['date'], 100000 + daily_pnl['cum_short_pnl'], label='Short Contribution', color='purple', linestyle='--', linewidth=1.5)
-ax1.plot(daily_pnl['date'], 100000 + daily_pnl['cum_long_pnl'], label='Long Contribution', color='green', linestyle='--', linewidth=1.5)
-ax1.axhline(y=100000, color='red', linestyle='--', label='Base Capital (Rs. 1L)', alpha=0.7)
-ax1.set_title('11-Month Equity Curve & Drawdown (Strict 1-Slot + Geometric 5x)', fontsize=14)
+ax1.plot(daily_pnl['date'], 40000 + daily_pnl['cum_short_pnl'], label='Short Contribution', color='purple', linestyle='--', linewidth=1.5)
+ax1.plot(daily_pnl['date'], 40000 + daily_pnl['cum_long_pnl'], label='Long Contribution', color='green', linestyle='--', linewidth=1.5)
+ax1.axhline(y=40000, color='red', linestyle='--', label='Base Capital (Rs. 40K)', alpha=0.7)
+ax1.set_title('OOS Equity Curve & Drawdown (Strict 1-Slot + Geometric 5x)', fontsize=14)
 ax1.set_ylabel('Capital (Rs.)', fontsize=12)
 ax1.grid(True, alpha=0.3)
 ax1.legend(fontsize=12)
@@ -230,8 +241,8 @@ h2_mask = td['date'] > dt.date(2026, 1, 31)
 
 h1_short_pnl = td[h1_mask & (td['side'] == 'SHORT')]['bookRs'].sum()
 h1_long_pnl = td[h1_mask & (td['side'] == 'LONG')]['bookRs'].sum()
-h1_start_cap = 100_000.0
-h1_end_cap = daily_pnl[daily_pnl['date'] <= dt.date(2026, 1, 31)]['capital'].iloc[-1] if not daily_pnl[daily_pnl['date'] <= dt.date(2026, 1, 31)].empty else 100_000.0
+h1_start_cap = 40_000.0
+h1_end_cap = daily_pnl[daily_pnl['date'] <= dt.date(2026, 1, 31)]['capital'].iloc[-1] if not daily_pnl[daily_pnl['date'] <= dt.date(2026, 1, 31)].empty else 40_000.0
 
 h2_short_pnl = td[h2_mask & (td['side'] == 'SHORT')]['bookRs'].sum()
 h2_long_pnl = td[h2_mask & (td['side'] == 'LONG')]['bookRs'].sum()
@@ -250,7 +261,7 @@ print("-" * 60)
 print("\n=== MONTHLY RETURNS (%) ===")
 daily_pnl['month_str'] = daily_pnl['date'].apply(lambda x: x.strftime('%Y-%m'))
 monthly_caps = daily_pnl.groupby('month_str')['capital'].last()
-prev_cap = 100_000.0
+prev_cap = 40_000.0
 for m, cap in monthly_caps.items():
     ret_pct = (cap - prev_cap) / prev_cap * 100
     print(f"{m} : {ret_pct:+7.2f}% (End Cap: Rs. {cap:,.0f})")
@@ -259,14 +270,14 @@ for m, cap in monthly_caps.items():
 print("\n=== WEEKLY RETURNS (%) ===")
 daily_pnl['week_str'] = daily_pnl['date'].apply(lambda x: f"{x.isocalendar()[0]}-W{x.isocalendar()[1]:02d}")
 weekly_caps = daily_pnl.groupby('week_str', sort=True)['capital'].last()
-prev_cap = 100_000.0
+prev_cap = 40_000.0
 for w, cap in weekly_caps.items():
     ret_pct = (cap - prev_cap) / prev_cap * 100
     print(f"{w} : {ret_pct:+7.2f}% (End Cap: Rs. {cap:,.0f})")
     prev_cap = cap
 
 print("\n=== SHORT ONLY MONTHLY RETURNS (%) ===")
-prev_cap = 100_000.0
+prev_cap = 40_000.0
 for m, cap in monthly_caps.items():
     m_mask = td['date'].apply(lambda x: x.strftime('%Y-%m')) == m
     short_pnl = td[m_mask & (td['side'] == 'SHORT')]['bookRs'].sum()
@@ -275,7 +286,7 @@ for m, cap in monthly_caps.items():
     prev_cap = cap
 
 print("\n=== SHORT ONLY WEEKLY RETURNS (%) ===")
-prev_cap = 100_000.0
+prev_cap = 40_000.0
 for w, cap in weekly_caps.items():
     w_mask = td['date'].apply(lambda x: f"{x.isocalendar()[0]}-W{x.isocalendar()[1]:02d}") == w
     short_pnl = td[w_mask & (td['side'] == 'SHORT')]['bookRs'].sum()
@@ -284,7 +295,7 @@ for w, cap in weekly_caps.items():
     prev_cap = cap
 
 print("\n=== LONG ONLY MONTHLY RETURNS (%) ===")
-prev_cap = 100_000.0
+prev_cap = 40_000.0
 for m, cap in monthly_caps.items():
     m_mask = td['date'].apply(lambda x: x.strftime('%Y-%m')) == m
     long_pnl = td[m_mask & (td['side'] == 'LONG')]['bookRs'].sum()
@@ -293,7 +304,7 @@ for m, cap in monthly_caps.items():
     prev_cap = cap
 
 print("\n=== LONG ONLY WEEKLY RETURNS (%) ===")
-prev_cap = 100_000.0
+prev_cap = 40_000.0
 for w, cap in weekly_caps.items():
     w_mask = td['date'].apply(lambda x: f"{x.isocalendar()[0]}-W{x.isocalendar()[1]:02d}") == w
     long_pnl = td[w_mask & (td['side'] == 'LONG')]['bookRs'].sum()
@@ -317,3 +328,7 @@ for w in sorted(td['week_str'].unique()):
     s_win_str = f"{s_win:5.1f}%" if not pd.isna(s_win) else "  N/A "
     l_win_str = f"{l_win:5.1f}%" if not pd.isna(l_win) else "  N/A "
     print(f"{w} | Shorts: {s_win_str} ({s_trades:2d} trades) | Longs: {l_win_str} ({l_trades:2d} trades)")
+
+print('=== ALL TRADES ===')
+print(td[['ts', 'side', 'tk', 'net_bps', 'bookRs']].to_string(index=False))
+

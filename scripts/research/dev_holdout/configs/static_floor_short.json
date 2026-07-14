@@ -1,0 +1,23 @@
+{
+  "name": "static_floor_short",
+  "cost_bps": 6.0,
+  "time_start": "10:15",
+  "time_end": "14:15",
+  "lunch_veto": null,
+  "slot_lock_hours": 1.0,
+  "shorts_priority": true,
+
+  "short_enabled": true,
+  "short_thresh": 0.0788,
+  "short_dyn_thresh": null,
+  "short_dyn_sp500_gt": 0.005,
+  "short_dyn_nifty2h_gte": -0.0010,
+  "short_conv_cap": null,
+
+  "long_enabled": false,
+
+  "selection": "rank",
+  "random_seed": 0,
+  "base_capital": 100000.0,
+  "leverage": 5.0
+}

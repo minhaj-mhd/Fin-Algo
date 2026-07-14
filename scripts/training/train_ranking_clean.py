@@ -73,9 +73,15 @@ CFG = {
         data='data/research/v20_rolling_1h/panel.parquet',
         ret_col='Next_Hour_Return',
         model_dir='models/research/v23_rolling_1h',
-        desc='RESEARCH v23: V20 but strictly limited to the top 20 features by SHAP / Permutation Drop.',
+        desc='RESEARCH v23: V20 but strictly limited to the top 20 features by SHAP / Permutation Drop, split by side.',
         params=dict(max_depth=5, min_child_weight=10),
-        selected_features=[
+        selected_features_long=[
+            'Return', 'IBS', 'Dist_Donchian_Upper', 'Log_Return', 'Dist_Keltner_Lower', 
+            'CMF_20', 'Relative_Return', 'Lower_Shadow', 'Hour', 'Dist_52W_Low', 
+            'Dollar_Volume', 'PercentB', 'RVOL', 'Keltner_Width', 'Alpha_3H', 
+            'Time_To_Close', 'Volume_Zscore', 'Is_Close_Hour', 'Dist_SMA_6', 'Intraday_Return'
+        ],
+        selected_features_short=[
             'Dist_Keltner_Lower', 'Relative_Return', 'Keltner_Width', 'Return', 
             'CMF_20', 'Log_Return', 'PPO_Signal', 'Dist_52W_Low', 'RVOL', 
             'Lower_Shadow', 'Dollar_Volume', 'Intraday_Return', 'Dist_HMA_12', 
@@ -109,10 +115,21 @@ print(f"Spans {len(unique_months)} months: {unique_months[0]} -> {unique_months[
 exclude_cols = ['DateTime', 'DateTime_15Min', 'DateTime_Hour', 'Query_ID', 'Ticker',
                 'Open', 'High', 'Low', 'Close', 'Volume', RET_COL, 'YearMonth']
 
-if 'selected_features' in c:
+if 'selected_features_long' in c and 'selected_features_short' in c:
+    feature_cols = list(dict.fromkeys(c['selected_features_long'] + c['selected_features_short']))
+    feature_cols = [col for col in feature_cols if col in df.columns]
+elif 'selected_features' in c:
     feature_cols = [col for col in c['selected_features'] if col in df.columns]
 else:
     feature_cols = [col for col in df.columns if col not in exclude_cols]
+
+has_split_feats = 'selected_features_long' in c and 'selected_features_short' in c
+if has_split_feats:
+    idx_long = [feature_cols.index(f) for f in c['selected_features_long'] if f in feature_cols]
+    idx_short = [feature_cols.index(f) for f in c['selected_features_short'] if f in feature_cols]
+else:
+    idx_long = list(range(len(feature_cols)))
+    idx_short = list(range(len(feature_cols)))
 
 print(f"Features: {len(feature_cols)} | Samples: {df.shape[0]:,} | Queries: {df['Query_ID'].nunique():,}")
 
@@ -221,15 +238,17 @@ for cfg in folds:
     gtr = pd.Series(qtr).groupby(qtr).size().values
     gva = pd.Series(qva).groupby(qva).size().values
     # long
-    dtl = xgb.DMatrix(Xtr, label=get_integer_ranks(ytr, qtr, False)); dtl.set_group(gtr)
-    dvl = xgb.DMatrix(Xva, label=get_integer_ranks(yva, qva, False)); dvl.set_group(gva)
+    dtl = xgb.DMatrix(Xtr[:, idx_long], label=get_integer_ranks(ytr, qtr, False)); dtl.set_group(gtr)
+    dvl = xgb.DMatrix(Xva[:, idx_long], label=get_integer_ranks(yva, qva, False)); dvl.set_group(gva)
     bl = xgb.train(params, dtl, num_boost_round=500, evals=[(dvl, 'val')], early_stopping_rounds=50, verbose_eval=False)
     # short
-    dts = xgb.DMatrix(Xtr, label=get_integer_ranks(ytr, qtr, True)); dts.set_group(gtr)
-    dvs = xgb.DMatrix(Xva, label=get_integer_ranks(yva, qva, True)); dvs.set_group(gva)
+    dts = xgb.DMatrix(Xtr[:, idx_short], label=get_integer_ranks(ytr, qtr, True)); dts.set_group(gtr)
+    dvs = xgb.DMatrix(Xva[:, idx_short], label=get_integer_ranks(yva, qva, True)); dvs.set_group(gva)
     bs = xgb.train(params, dts, num_boost_round=500, evals=[(dvs, 'val')], early_stopping_rounds=50, verbose_eval=False)
-    dte = xgb.DMatrix(Xte)
-    m = evaluate(dfte, bl.predict(dte), bs.predict(dte)); m['fold'] = cfg['fold']
+    
+    dte_long = xgb.DMatrix(Xte[:, idx_long])
+    dte_short = xgb.DMatrix(Xte[:, idx_short])
+    m = evaluate(dfte, bl.predict(dte_long), bs.predict(dte_short)); m['fold'] = cfg['fold']
     wf.append(m)
     print(f"    Long Rho {m['long_rho']:.4f} | Short Rho {m['short_rho']:.4f} | L-WR@3 {m['long_win_rates'][3]:.1%} | S-WR@3 {m['short_win_rates'][3]:.1%}")
 
@@ -255,13 +274,13 @@ Xpva, ypva, qpva = X[pva], y_returns[pva], query_ids[pva]
 gptr = pd.Series(qptr).groupby(qptr).size().values
 gpva = pd.Series(qpva).groupby(qpva).size().values
 
-dptl = xgb.DMatrix(Xptr, label=get_integer_ranks(yptr, qptr, False)); dptl.set_group(gptr)
-dpvl = xgb.DMatrix(Xpva, label=get_integer_ranks(ypva, qpva, False)); dpvl.set_group(gpva)
+dptl = xgb.DMatrix(Xptr[:, idx_long], label=get_integer_ranks(yptr, qptr, False)); dptl.set_group(gptr)
+dpvl = xgb.DMatrix(Xpva[:, idx_long], label=get_integer_ranks(ypva, qpva, False)); dpvl.set_group(gpva)
 prod_long = xgb.train(params, dptl, num_boost_round=500, evals=[(dpvl, 'val')], early_stopping_rounds=50, verbose_eval=50)
 prod_long.save_model(LONG_MODEL_PATH)
 
-dpts = xgb.DMatrix(Xptr, label=get_integer_ranks(yptr, qptr, True)); dpts.set_group(gptr)
-dpvs = xgb.DMatrix(Xpva, label=get_integer_ranks(ypva, qpva, True)); dpvs.set_group(gpva)
+dpts = xgb.DMatrix(Xptr[:, idx_short], label=get_integer_ranks(yptr, qptr, True)); dpts.set_group(gptr)
+dpvs = xgb.DMatrix(Xpva[:, idx_short], label=get_integer_ranks(ypva, qpva, True)); dpvs.set_group(gpva)
 prod_short = xgb.train(params, dpts, num_boost_round=500, evals=[(dpvs, 'val')], early_stopping_rounds=50, verbose_eval=50)
 prod_short.save_model(SHORT_MODEL_PATH)
 
@@ -279,7 +298,10 @@ def imp(bst):
         return {}
 
 metadata = {
-    'description': c['desc'], 'type': 'ranking', 'features': feature_cols,
+    'description': c['desc'], 'type': 'ranking', 
+    'features': feature_cols,
+    'features_long': c.get('selected_features_long', feature_cols),
+    'features_short': c.get('selected_features_short', feature_cols),
     'num_features': len(feature_cols), 'data_source': f'upstox_{args.tf}_clean',
     'data_file': DATA_FILE, 'total_rows': int(df.shape[0]),
     'walk_forward_summary': {'avg_long_spearman': avg_l_rho, 'avg_short_spearman': avg_s_rho,

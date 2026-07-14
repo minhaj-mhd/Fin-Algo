@@ -1,0 +1,33 @@
+{
+  "name": "baseline_213",
+  "cost_bps": 6.0,
+  "time_start": "10:15",
+  "time_end": "14:15",
+  "lunch_veto": ["11:30", "13:00"],
+  "slot_lock_hours": 1.0,
+  "shorts_priority": true,
+  "hour_side_gate": {
+    "10:15": ["LONG"],
+    "11:15": ["SHORT"],
+    "14:15": ["LONG", "SHORT"]
+  },
+
+  "short_enabled": true,
+  "short_thresh": 0.082,
+  "short_dyn_thresh": 0.110,
+  "short_dyn_sp500_gt": 0.005,
+  "short_dyn_nifty2h_gte": -0.0010,
+  "short_conv_cap": null,
+
+  "long_enabled": true,
+  "long_sp500_veto_lt": -0.005,
+  "long_nifty2h_gt": 0.0025,
+  "long_vwap_gate": true,
+  "long_market_gate": true,
+  "long_conv_cap": 0.030,
+
+  "selection": "rank",
+  "random_seed": 0,
+  "base_capital": 100000.0,
+  "leverage": 5.0
+}

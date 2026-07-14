@@ -4,7 +4,7 @@
 > by `scripts/memory/build_index.py` from each doc's front-matter — do not hand-edit.
 > Protocol: [[00 — Start Here/AI Operating Protocol|AI Operating Protocol]] · Dead ends: [[00 — Start Here/Dead-Ends Register|Dead-Ends Register]] · Machine index: `00 — Start Here/INDEX.json`
 
-**249 docs** across 10 sections.
+**251 docs** across 10 sections.
 
 ## 00 — Start Here  (2)
 → [[00 — Start Here/_MOC|Browse all 2]]
@@ -54,8 +54,8 @@
 - [[03 — Strategies/Time Based ATR Targets|Time-Based ATR Targeting (1-Hour Hold Constraints)]] — Concept: Dynamic Stop Loss (SL) and Take Profit (TP) must be scaled to realistically match
 - [[03 — Strategies/Upstox Fees & Statutory Taxes|Upstox Fees & Statutory Taxes Research (2024-2025)]] — Project: Vanguard Trading Engine
 
-## 04 — Research  (32)
-→ [[04 — Research/_MOC|Browse all 32]]
+## 04 — Research  (34)
+→ [[04 — Research/_MOC|Browse all 34]]
 - [[04 — Research/1030 Strategy/Architecture Research Report|Intraday Stock Trading: AI Architecture Research Report]] — Objective: Predict the intraday trend, returns, or distribution for the rest of the day ba
 - [[04 — Research/1030 Strategy/Feature Engineering Report|Feature Engineering for 10:30 AM Intraday Trading Model (Indian Stock Market)]] — I have completed the research on feature engineering for an intraday trading model targeti
 - [[04 — Research/1030 Strategy/Implementation Plan|10:30 AM Momentum Prediction System — Implementation Plan (V2)]] — Build a two-layer prediction system that runs at 10:30 AM IST each trading day:

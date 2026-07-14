@@ -36,5 +36,10 @@ updated: "2026-07-14"
   - *Proxy OOS (June 2026) Check*: Lowering the threshold to >0.52 isolated massive short edge (+58.27 bps) but only fired 7 times a month. The long side was heavily anti-selected (33% WR, -13.3 bps edge). 
   - *Conclusion*: A hard absolute probability gate requires `binary:logistic` training or local Z-score normalization; applying it directly to pairwise rank scores yields zero volume.
 
+- **Step 4 (Binary Logistic Migration - `v24`)**: Transitioned the model architecture from `rank:pairwise` to `binary:logistic` (`train_binary_clean.py`) to output raw bounded probabilities, enabling absolute threshold filtering.
+  - *Full 86-Feature Base*: At `>0.55` probability, Short edge hit `+16.92 bps` (viable) but Longs collapsed entirely to `-1.44 bps`.
+  - *Top-20 Constrained*: Carved out the distinct Top 20 features for Long/Shorts using XGBoost `gain`. The peak Short edge dropped to `+15.35 bps` at the `>0.60` threshold.
+  - *Conclusion*: A true probability gate isolates some alpha on the short side that clears statutory costs, but the long side is heavily anti-selected by high model conviction. Constraining to 20 features merely shifts the calibration curve rather than strictly improving out-of-sample edge.
+
 ## 🔗 Core Memory Links & Backlinks
 - Linked Core Specs: [[02. Model Suite/Model Registry & File Structures]]
