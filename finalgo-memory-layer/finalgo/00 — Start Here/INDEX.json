@@ -1188,6 +1188,15 @@
   "updated": "2026-07-11"
  },
  {
+  "path": "04 — Research/V23 Top-20 Constrained Ranker.md",
+  "title": "V23 Top-20 Constrained Ranker",
+  "type": "research",
+  "status": "concluded",
+  "model": "v23_rolling_1h",
+  "verdict": "",
+  "updated": "2026-07-14"
+ },
+ {
   "path": "04 — Research/v20_1Slot_Stress_Tests.md",
   "title": "v20 1-Slot Priority Lane Stress Tests",
   "type": "research",
