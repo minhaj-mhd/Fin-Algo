@@ -33,13 +33,26 @@ CFG = {
             'Down_Streak', 'Up_Streak', 'CMF_20', 'OBV_Dist', 'Lower_Shadow', 
             'Is_Open_Hour', 'Dollar_Volume', 'Rolling_Skew', 'Price_Zscore', 'Vortex_Plus'
         ]
+    ),
+    '1h_roll_v25_fat': dict(
+        data='data/research/v20_rolling_1h/panel.parquet',
+        ret_col='Next_Hour_Return',
+        model_dir='models/research/v25_fat_tail_1h',
+        desc='RESEARCH v25: Fat-tail binary classification (label > 25 bps).',
+        params=dict(max_depth=5, min_child_weight=10),
+        label_thresh=0.0025,
     )
 }
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--tf', required=True, choices=list(CFG.keys()))
+ap.add_argument('--regime', default='all', choices=['all', 'bull', 'bear', 'chop'], help='Train only on specific Nifty 500 100-DMA regime')
 args = ap.parse_args()
 c = CFG[args.tf]
+
+if args.regime != 'all':
+    c['model_dir'] = c['model_dir'] + f'_{args.regime}_100dma'
+
 DATA_FILE, RET_COL, MODEL_DIR = c['data'], c['ret_col'], c['model_dir']
 os.makedirs(MODEL_DIR, exist_ok=True)
 LONG_MODEL_PATH  = f'{MODEL_DIR}/xgb_long_model.json'
@@ -53,6 +66,49 @@ print("=" * 64)
 print(f"Loading {DATA_FILE} ...")
 df = pd.read_parquet(DATA_FILE) if DATA_FILE.endswith('.parquet') else pd.read_csv(DATA_FILE)
 print(f"Loaded {df.shape[0]:,} rows")
+
+if args.regime != 'all':
+    print(f"Applying regime filter: {args.regime.upper()} (Nifty 500 100-DMA)")
+    nifty = pd.read_csv('data/raw_index_cache/nifty500_1d.csv')
+    nifty['timestamp'] = pd.to_datetime(nifty['timestamp'])
+    nifty['date'] = nifty['timestamp'].dt.date
+    nifty = nifty.sort_values('date')
+    nifty['nifty_100dma'] = nifty['close'].rolling(window=100).mean()
+    
+    # E0.1 Fix: Shift by 1 day to prevent lookahead bias
+    nifty['prev_close'] = nifty['close'].shift(1)
+    nifty['prev_100dma'] = nifty['nifty_100dma'].shift(1)
+    nifty['routing_timestamp'] = nifty['timestamp'].shift(1)
+    
+    df['date'] = pd.to_datetime(df['DateTime']).dt.date
+    nifty_subset = nifty[['date', 'routing_timestamp', 'prev_close', 'prev_100dma']].rename(
+        columns={'prev_close': 'nifty_close', 'prev_100dma': 'nifty_100dma'}
+    )
+    df = df.merge(nifty_subset, on='date', how='left')
+    
+    # E0.1 Audit Assertion: Ensure routing data is from BEFORE the current trade's time
+    routing_ts_naive = pd.to_datetime(df['routing_timestamp']).dt.tz_localize(None)
+    datetime_naive = pd.to_datetime(df['DateTime']).dt.tz_localize(None)
+    
+    # Drop NaNs before assertion
+    valid_mask = routing_ts_naive.notna() & datetime_naive.notna()
+    
+    assert (routing_ts_naive[valid_mask] <= datetime_naive[valid_mask]).all(), "Lookahead bias detected in routing key!"
+    
+    df = df.dropna(subset=['nifty_100dma'])
+    
+    if args.regime == 'bull':
+        # E0.2 Fix: Exclude buffer zone during training
+        df = df[(df['nifty_close'] > df['nifty_100dma']) & (np.abs((df['nifty_close'] - df['nifty_100dma']) / df['nifty_100dma']) >= 0.015)].copy()
+    elif args.regime == 'bear':
+        # E0.2 Fix: Exclude buffer zone during training
+        df = df[(df['nifty_close'] <= df['nifty_100dma']) & (np.abs((df['nifty_close'] - df['nifty_100dma']) / df['nifty_100dma']) >= 0.015)].copy()
+    elif args.regime == 'chop':
+        df = df[np.abs((df['nifty_close'] - df['nifty_100dma']) / df['nifty_100dma']) < 0.015].copy()
+        
+    print(f"Post-regime filter rows: {df.shape[0]:,}")
+    df.drop(columns=['date', 'routing_timestamp', 'nifty_close', 'nifty_100dma'], inplace=True, errors='ignore')
+
 df['YearMonth'] = pd.to_datetime(df['DateTime']).dt.strftime('%Y-%m')
 unique_months = sorted(df['YearMonth'].unique())
 print(f"Spans {len(unique_months)} months: {unique_months[0]} -> {unique_months[-1]}")
@@ -151,22 +207,30 @@ for cfg in folds:
     Xva, yva = X[vam], y_returns[vam]
     Xte, yte = X[tem], y_returns[tem]
 
+    label_thresh = c.get('label_thresh', 0.0)
+
     # Labels for binary classifier
-    ytr_long = (ytr > 0).astype(int)
-    yva_long = (yva > 0).astype(int)
+    ytr_long = (ytr > label_thresh).astype(int)
+    yva_long = (yva > label_thresh).astype(int)
     
-    ytr_short = (ytr < 0).astype(int)
-    yva_short = (yva < 0).astype(int)
+    ytr_short = (ytr < -label_thresh).astype(int)
+    yva_short = (yva < -label_thresh).astype(int)
+
+    p_long = params.copy()
+    p_long['scale_pos_weight'] = (len(ytr_long) - ytr_long.sum()) / max(1, ytr_long.sum())
+
+    p_short = params.copy()
+    p_short['scale_pos_weight'] = (len(ytr_short) - ytr_short.sum()) / max(1, ytr_short.sum())
 
     # long
     dtl = xgb.DMatrix(Xtr[:, idx_long], label=ytr_long)
     dvl = xgb.DMatrix(Xva[:, idx_long], label=yva_long)
-    bl = xgb.train(params, dtl, num_boost_round=500, evals=[(dvl, 'val')], early_stopping_rounds=50, verbose_eval=False)
+    bl = xgb.train(p_long, dtl, num_boost_round=500, evals=[(dvl, 'val')], early_stopping_rounds=50, verbose_eval=False)
     
     # short
     dts = xgb.DMatrix(Xtr[:, idx_short], label=ytr_short)
     dvs = xgb.DMatrix(Xva[:, idx_short], label=yva_short)
-    bs = xgb.train(params, dts, num_boost_round=500, evals=[(dvs, 'val')], early_stopping_rounds=50, verbose_eval=False)
+    bs = xgb.train(p_short, dts, num_boost_round=500, evals=[(dvs, 'val')], early_stopping_rounds=50, verbose_eval=False)
     
     dte_long = xgb.DMatrix(Xte[:, idx_long])
     dte_short = xgb.DMatrix(Xte[:, idx_short])
@@ -201,14 +265,25 @@ pva = df['YearMonth'].isin([unique_months[split_idx-1]]).values
 Xptr, yptr = X[ptr], y_returns[ptr]
 Xpva, ypva = X[pva], y_returns[pva]
 
-dptl = xgb.DMatrix(Xptr[:, idx_long], label=(yptr > 0).astype(int))
-dpvl = xgb.DMatrix(Xpva[:, idx_long], label=(ypva > 0).astype(int))
-prod_long = xgb.train(params, dptl, num_boost_round=500, evals=[(dpvl, 'val')], early_stopping_rounds=50, verbose_eval=50)
+label_thresh = c.get('label_thresh', 0.0)
+yptr_long = (yptr > label_thresh).astype(int)
+ypva_long = (ypva > label_thresh).astype(int)
+yptr_short = (yptr < -label_thresh).astype(int)
+ypva_short = (ypva < -label_thresh).astype(int)
+
+p_long = params.copy()
+p_long['scale_pos_weight'] = (len(yptr_long) - yptr_long.sum()) / max(1, yptr_long.sum())
+p_short = params.copy()
+p_short['scale_pos_weight'] = (len(yptr_short) - yptr_short.sum()) / max(1, yptr_short.sum())
+
+dptl = xgb.DMatrix(Xptr[:, idx_long], label=yptr_long)
+dpvl = xgb.DMatrix(Xpva[:, idx_long], label=ypva_long)
+prod_long = xgb.train(p_long, dptl, num_boost_round=500, evals=[(dpvl, 'val')], early_stopping_rounds=50, verbose_eval=50)
 prod_long.save_model(LONG_MODEL_PATH)
 
-dpts = xgb.DMatrix(Xptr[:, idx_short], label=(yptr < 0).astype(int))
-dpvs = xgb.DMatrix(Xpva[:, idx_short], label=(ypva < 0).astype(int))
-prod_short = xgb.train(params, dpts, num_boost_round=500, evals=[(dpvs, 'val')], early_stopping_rounds=50, verbose_eval=50)
+dpts = xgb.DMatrix(Xptr[:, idx_short], label=yptr_short)
+dpvs = xgb.DMatrix(Xpva[:, idx_short], label=ypva_short)
+prod_short = xgb.train(p_short, dpts, num_boost_round=500, evals=[(dpvs, 'val')], early_stopping_rounds=50, verbose_eval=50)
 prod_short.save_model(SHORT_MODEL_PATH)
 
 with open(SCALER_PATH, 'wb') as f:

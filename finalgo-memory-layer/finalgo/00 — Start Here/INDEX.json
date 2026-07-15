@@ -1800,6 +1800,33 @@
   "updated": "2026-07-14"
  },
  {
+  "path": "06 — Logs/Conversations/Conv-2026-07-14-V26-Phase-0-Validation.md",
+  "title": "Conv-2026-07-14-V26-Phase-0-Validation",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-15-Edge-Search.md",
+  "title": "Conv-2026-07-15-Edge-Search",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
+  "path": "06 — Logs/Conversations/Conv-2026-07-15-Edge-Verification.md",
+  "title": "Conv-2026-07-15-Edge-Verification",
+  "type": "?",
+  "status": "?",
+  "model": "",
+  "verdict": "",
+  "updated": ""
+ },
+ {
   "path": "06 — Logs/Daily Logs/2026-05-31.md",
   "title": "Daily Update: 2026-05-31",
   "type": "log",

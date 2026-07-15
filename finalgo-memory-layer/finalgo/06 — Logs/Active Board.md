@@ -13,6 +13,8 @@ tags: [board]
 
 ## 🔵 Current Focus
 
+* **Edge Search & Verification (COMPLETED)** — Combing through finalgo system data and features to find a small but genuine, tradable edge that has not been invalidated. Reconstructed the Open GAP-FADE strategy (exit at 09:30, 6bps cost), showing strictly positive and statistically significant EV on the Holdout Set (+12.96 bps, t-stat 3.43). Tested cost sensitivity (break-even 18.96 bps) and confirmed randomized negative control is flat. Verified lookahead-free and CLEAN by Forensic Auditor. See [[06 — Logs/Conversations/Conv-2026-07-15-Edge-Search|Conversation Log]].
+
 * **v23 Top-20 Constrained Model (COMPLETED — exploratory training)** — Trained `v23_rolling_1h` strictly limited to the top 20 features (by SHAP/Permutation Drop) from the `v20` dataset. The Walk-Forward Aggregate showed Long Rho 0.0322 and Short Rho 0.0308, which is slightly degraded compared to the 86-feature `v20` model (Long Rho 0.0345). Thus, forcing feature sparsity slightly lowers raw cross-sectional Spearman performance, confirming the model relies on the tail of correlated predictors. See [[06 — Logs/Conversations/Conv-2026-07-14-Train-V23-Top20-Features|Conversation Log]].
 
 * **1-Slot Limit Backtest (COMPLETED)** — Implemented and visualized global 1-slot portfolio limit to eliminate overlapping leverage and maximize capital efficiency.
