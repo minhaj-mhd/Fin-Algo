@@ -48,3 +48,13 @@ data/raw_daily_10y/
 data/raw_global_daily/
 data/model_analysis/gauntlet_reports/
 
+# Large NN panels & model artifacts (kept on disk, regenerate via scripts/; exceed GitHub's file-size limit)
+data/transformer_panel/
+data/transformer_panel_v20/
+data/transformer_panel_v21/
+data/transformer_panel_smc/
+data/graph_panel_smc/
+data/daily_transformer_panel/
+artifacts/*.pt
+data/backtests/*.csv
+
